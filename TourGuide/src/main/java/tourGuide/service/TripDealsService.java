@@ -7,13 +7,13 @@ import tourGuide.domain.UserPreferences;
 import tripPricer.Provider;
 
 /**
- * Service Interface to retrieve trip deals for an user.
+ * Service Interface to retrieve trip deals for a user.
  */
 @Service
 public interface TripDealsService {
 
   /**
-   * Get a list of providers with trips prices according to the user preferences and reward points.
+   * Get a list of providers with trip prices according to the user preferences and reward points.
    *
    * @param attractionId of the trip
    * @param preferences of the user
