@@ -5,21 +5,46 @@ import javax.money.Monetary;
 
 import org.javamoney.moneta.Money;
 
-
+/**
+ * Entity Class for the user preferences used when getting trip deals with the range of expecting
+ * prices, the trip duration, and number of adults and children.
+ */
 public class UserPreferences {
 	
 	private int attractionProximity = Integer.MAX_VALUE;
 	private CurrencyUnit currency = Monetary.getCurrency("USD");
-	private Money lowerPricePoint = Money.of(0, currency);
-	private Money highPricePoint = Money.of(Integer.MAX_VALUE, currency);
-	private int tripDuration = 1;
-	private int ticketQuantity = 1;
-	private int numberOfAdults = 1;
-	private int numberOfChildren = 0;
-	
+	private Money lowerPricePoint;
+	private Money highPricePoint;
+	private int tripDuration;
+	private int ticketQuantity;
+	private int numberOfAdults ;
+	private int numberOfChildren;
+
+	/**
+	 * Default constructor to instantiate UserPreferences with default values.
+	 */
 	public UserPreferences() {
+		this.lowerPricePoint = Money.of(0, currency);
+		this.highPricePoint = Money.of(Integer.MAX_VALUE, currency);
+		this.tripDuration = 1;
+		this.ticketQuantity = 1;
+		this.numberOfAdults = 1;
+		this.numberOfChildren = 0;
 	}
-	
+
+	/**
+	 * Parametric constructor to instantiate a UserPreferences with the values chosen by the user.
+	 */
+	public UserPreferences(double lowerPricePoint, double highPricePoint, int tripDuration,
+						   int ticketQuantity, int numberOfAdults, int numberOfChildren) {
+		this.lowerPricePoint = Money.of(lowerPricePoint, currency);
+		this.highPricePoint = Money.of(highPricePoint, currency);
+		this.tripDuration = tripDuration;
+		this.ticketQuantity = ticketQuantity;
+		this.numberOfAdults = numberOfAdults;
+		this.numberOfChildren = numberOfChildren;
+	}
+
 	public void setAttractionProximity(int attractionProximity) {
 		this.attractionProximity = attractionProximity;
 	}
