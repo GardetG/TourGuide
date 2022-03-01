@@ -12,25 +12,25 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
 import tourGuide.domain.UserPreferences;
-import tourGuide.service.impl.TripDealsServiceImpl;
 import tripPricer.Provider;
 import tripPricer.TripPricer;
 
+@SpringBootTest
+@ActiveProfiles("test")
 class TripDealsServiceTest {
 
-  private TripPricer tripPricer;
+  @Autowired
   private TripDealsService tripDealsService;
 
-  @BeforeEach
-  void setUp() {
-    tripPricer = Mockito.mock(TripPricer.class);
-    tripDealsService = new TripDealsServiceImpl(tripPricer);
-  }
+  @MockBean
+  private TripPricer tripPricer;
 
   // Return a list of 5 providers with the following price [0,25,50,75,100] for testing purposes
   private List<Provider> createProviders(UUID attractionId) {

@@ -8,6 +8,7 @@ import javax.money.Monetary;
 import org.javamoney.moneta.Money;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import tourGuide.config.TourGuideProperties;
 import tourGuide.domain.UserPreferences;
 import tourGuide.service.TripDealsService;
 import tripPricer.Provider;
@@ -20,10 +21,12 @@ import tripPricer.TripPricer;
 public class TripDealsServiceImpl implements TripDealsService {
 
   private final TripPricer tripPricer;
+  private final String tripPricerApiKey;
 
   @Autowired
-  public TripDealsServiceImpl(TripPricer tripPricer) {
+  public TripDealsServiceImpl(TripPricer tripPricer, TourGuideProperties properties) {
     this.tripPricer = tripPricer;
+    this.tripPricerApiKey = properties.getTripPricerApiKey();
   }
 
   /**
@@ -33,7 +36,7 @@ public class TripDealsServiceImpl implements TripDealsService {
   public List<Provider> getTripDeals(UUID attractionId, UserPreferences preferences,
                                      int rewardPoints) {
     List<Provider> providers = tripPricer.getPrice(
-        "test-server-api-key",
+        tripPricerApiKey,
         attractionId,
         preferences.getNumberOfAdults(),
         preferences.getNumberOfChildren(),
