@@ -19,6 +19,7 @@ import tourGuide.service.RewardsService;
 import tourGuide.service.TourGuideService;
 import tourGuide.service.TripDealsService;
 import tourGuide.utils.ProviderMapper;
+import tourGuide.utils.UserPreferencesMapper;
 import tripPricer.Provider;
 
 /**
@@ -88,14 +89,16 @@ public class TourGuideServiceImpl implements TourGuideService {
 
 	@Override
 	public UserPreferencesDto getUserPreferences(String username) throws UserNotFoundException {
-		return null;
+		User user = getUser(username);
+		return UserPreferencesMapper.toDto(user.getUserPreferences());
 	}
 
 	@Override
-	public UserPreferencesDto setUserPreferences(String username,
-												 UserPreferencesDto userPreferences)
+	public UserPreferencesDto setUserPreferences(String username, UserPreferencesDto userPreferences)
 			throws UserNotFoundException {
-		return null;
+		User user = getUser(username);
+		user.setUserPreferences(UserPreferencesMapper.toEntity(userPreferences));
+		return userPreferences;
 	}
 
 	@Override
