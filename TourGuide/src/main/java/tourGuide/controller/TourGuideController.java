@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.jsoniter.output.JsonStream;
 
 import gpsUtil.location.VisitedLocation;
-import tourGuide.service.TourGuideService;
+import tourGuide.service.impl.TourGuideServiceImpl;
 import tourGuide.domain.User;
 import tripPricer.Provider;
 
@@ -18,7 +18,7 @@ import tripPricer.Provider;
 public class TourGuideController {
 
 	@Autowired
-	TourGuideService tourGuideService;
+    TourGuideServiceImpl tourGuideService;
 	
     @RequestMapping("/")
     public String index() {
