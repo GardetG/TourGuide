@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.jsoniter.output.JsonStream;
 
 import gpsUtil.location.VisitedLocation;
+import tourGuide.dto.ProviderDto;
+import tourGuide.exception.UserNotFoundException;
+import tourGuide.service.TourGuideService;
 import tourGuide.service.impl.TourGuideServiceImpl;
 import tourGuide.domain.User;
 import tripPricer.Provider;
@@ -18,7 +21,7 @@ import tripPricer.Provider;
 public class TourGuideController {
 
 	@Autowired
-    TourGuideServiceImpl tourGuideService;
+    TourGuideService tourGuideService;
 	
     @RequestMapping("/")
     public String index() {
@@ -67,8 +70,8 @@ public class TourGuideController {
     }
     
     @RequestMapping("/getTripDeals")
-    public String getTripDeals(@RequestParam String userName) {
-    	List<Provider> providers = tourGuideService.getTripDeals(getUser(userName));
+    public String getTripDeals(@RequestParam String userName) throws UserNotFoundException {
+    	List<ProviderDto> providers = tourGuideService.getTripDeals(userName);
     	return JsonStream.serialize(providers);
     }
     

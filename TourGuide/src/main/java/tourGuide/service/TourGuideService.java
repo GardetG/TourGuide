@@ -6,7 +6,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import tourGuide.domain.User;
 import tourGuide.domain.UserReward;
-import tripPricer.Provider;
+import tourGuide.dto.ProviderDto;
+import tourGuide.exception.UserNotFoundException;
 
 /**
  * Service interface for the main service of TourGuide.
@@ -22,7 +23,7 @@ public interface TourGuideService {
 
   List<User> getAllUsers();
 
-  List<Provider> getTripDeals(User user);
+  List<ProviderDto> getTripDeals(String userName) throws UserNotFoundException;
 
   VisitedLocation trackUserLocation(User user);
 
