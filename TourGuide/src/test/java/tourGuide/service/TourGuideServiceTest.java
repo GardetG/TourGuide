@@ -24,6 +24,7 @@ import tourGuide.domain.User;
 import tourGuide.domain.UserPreferences;
 import tourGuide.domain.UserReward;
 import tourGuide.dto.ProviderDto;
+import tourGuide.dto.UserPreferencesDto;
 import tourGuide.exception.UserNotFoundException;
 import tourGuide.repository.UserRepository;
 import tripPricer.Provider;
@@ -118,6 +119,68 @@ class TourGuideServiceTest {
         .hasMessageContaining("User not found");
     verify(userRepository, times(1)).findByUsername("nonExistent");
     verify(tripDealsService, times(0)).getTripDeals(any(UUID.class),any(UserPreferences.class), anyInt());
+  }
+
+  @DisplayName("Get user preferences should return a user preferences dto")
+  @Test
+  void getUserPreferenceTest() throws Exception {
+    // Given
+    User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
+    user.setUserPreferences(new UserPreferences(0,Integer.MAX_VALUE,1,1,2,3));
+    UserPreferencesDto userPreferencesDto = new UserPreferencesDto(0,Integer.MAX_VALUE,1, 1,2,3);
+    when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+
+    // When
+    UserPreferencesDto actualDto = tourGuideService.getUserPreferences("jon");
+
+    //Then
+    assertThat(actualDto).isEqualToComparingFieldByFieldRecursively(userPreferencesDto);
+    verify(userRepository, times(1)).findByUsername("jon");
+  }
+
+  @DisplayName("Get user preferences of non found user should throw an exception")
+  @Test
+  void getUserPreferencesNotFoundTest() {
+    // Given
+    when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
+
+    // Then
+    assertThatThrownBy(() -> tourGuideService.getUserPreferences("nonExistent"))
+        .isInstanceOf(UserNotFoundException.class)
+        .hasMessageContaining("User not found");
+    verify(userRepository, times(1)).findByUsername("nonExistent");
+  }
+
+  @DisplayName("Set user preferences should update user preferences")
+  @Test
+  void setUserPreferenceTest() throws Exception {
+    // Given
+    User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
+    UserPreferencesDto userPreferencesDto = new UserPreferencesDto(0, Integer.MAX_VALUE,1, 1,2,3);
+    UserPreferences userPreferences = new UserPreferences(0, Integer.MAX_VALUE,1,1,2,3);
+    when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+
+    // When
+    UserPreferencesDto actualDto = tourGuideService.setUserPreferences("jon", userPreferencesDto);
+
+    //Then
+    assertThat(actualDto).isEqualTo(userPreferencesDto);
+    assertThat(user.getUserPreferences()).isEqualToComparingFieldByFieldRecursively(userPreferences);
+    verify(userRepository, times(1)).findByUsername("jon");
+  }
+
+  @DisplayName("Set user preferences of non found user should throw an exception")
+  @Test
+  void setUserPreferencesNotFoundTest() {
+    // Given
+    UserPreferencesDto userPreferencesDto = new UserPreferencesDto(0, Integer.MAX_VALUE,1, 1,2,3);
+    when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
+
+    // Then
+    assertThatThrownBy(() -> tourGuideService.setUserPreferences("nonExistent", userPreferencesDto))
+        .isInstanceOf(UserNotFoundException.class)
+        .hasMessageContaining("User not found");
+    verify(userRepository, times(1)).findByUsername("nonExistent");
   }
 
 }
