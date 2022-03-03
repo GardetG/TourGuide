@@ -9,13 +9,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import tourGuide.domain.User;
+import tourGuide.domain.UserPreferences;
 import tourGuide.domain.UserReward;
 import tourGuide.dto.ProviderDto;
+import tourGuide.exception.UserNotFoundException;
 import tourGuide.repository.UserRepository;
 import tourGuide.service.RewardsService;
 import tourGuide.service.TourGuideService;
+import tourGuide.service.TripDealsService;
+import tourGuide.utils.ProviderMapper;
 import tripPricer.Provider;
-import tripPricer.TripPricer;
 
 /**
  * Service implementation class for the main service of TourGuide.
@@ -27,12 +30,13 @@ public class TourGuideServiceImpl implements TourGuideService {
 
 	private final GpsUtil gpsUtil;
 	private final RewardsService rewardsService;
-	private final TripPricer tripPricer = new TripPricer();
+	private final TripDealsService tripDealsService;
 	private final UserRepository userRepository;
 
-	public TourGuideServiceImpl(GpsUtil gpsUtil, RewardsService rewardsService, UserRepository userRepository) {
+	public TourGuideServiceImpl(GpsUtil gpsUtil, RewardsService rewardsService, TripDealsService tripDealsService, UserRepository userRepository) {
 		this.gpsUtil = gpsUtil;
 		this.rewardsService = rewardsService;
+		this.tripDealsService = tripDealsService;
 		this.userRepository = userRepository;
 	}
 	
@@ -50,8 +54,12 @@ public class TourGuideServiceImpl implements TourGuideService {
 	}
 	
 	@Override
-	public User getUser(String userName) {
-		return userRepository.findByUsername(userName).orElse(null);
+	public User getUser(String userName) throws UserNotFoundException {
+		return userRepository.findByUsername(userName)
+				.orElseThrow(() -> {
+					LOGGER.error("User not found");
+					return new UserNotFoundException("User not found");
+				});
 	}
 	
 	@Override
@@ -64,13 +72,17 @@ public class TourGuideServiceImpl implements TourGuideService {
 	}
 	
 	@Override
-	public List<ProviderDto> getTripDeals(String userName) {
-		/*int cumulatativeRewardPoints = user.getUserRewards().stream().mapToInt(i -> i.getRewardPoints()).sum();
-		List<Provider> providers = tripPricer.getPrice("", user.getUserId(), user.getUserPreferences().getNumberOfAdults(),
-				user.getUserPreferences().getNumberOfChildren(), user.getUserPreferences().getTripDuration(), cumulatativeRewardPoints);
+	public List<ProviderDto> getTripDeals(String userName) throws UserNotFoundException {
+		User user = getUser(userName);
+		UserPreferences preferences = user.getUserPreferences();
+		int rewardPoints =  user.getUserRewards().stream().mapToInt(UserReward::getRewardPoints).sum();
+		List<Provider> providers = tripDealsService.getTripDeals(
+				user.getUserId(),
+				preferences,
+				rewardPoints
+		);
 		user.setTripDeals(providers);
-		return providers;*/
-		return null ;
+		return ProviderMapper.toDto(providers);
 	}
 	
 	@Override

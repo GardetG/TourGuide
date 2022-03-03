@@ -29,7 +29,7 @@ public class TourGuideController {
     }
     
     @RequestMapping("/getLocation") 
-    public String getLocation(@RequestParam String userName) {
+    public String getLocation(@RequestParam String userName) throws UserNotFoundException {
     	VisitedLocation visitedLocation = tourGuideService.getUserLocation(getUser(userName));
 		return JsonStream.serialize(visitedLocation.location);
     }
@@ -44,13 +44,13 @@ public class TourGuideController {
         // The reward points for visiting each Attraction.
         //    Note: Attraction reward points can be gathered from RewardsCentral
     @RequestMapping("/getNearbyAttractions") 
-    public String getNearbyAttractions(@RequestParam String userName) {
+    public String getNearbyAttractions(@RequestParam String userName) throws UserNotFoundException {
     	VisitedLocation visitedLocation = tourGuideService.getUserLocation(getUser(userName));
     	return JsonStream.serialize(tourGuideService.getNearByAttractions(visitedLocation));
     }
     
     @RequestMapping("/getRewards") 
-    public String getRewards(@RequestParam String userName) {
+    public String getRewards(@RequestParam String userName) throws UserNotFoundException {
     	return JsonStream.serialize(tourGuideService.getUserRewards(getUser(userName)));
     }
     
@@ -75,7 +75,7 @@ public class TourGuideController {
     	return JsonStream.serialize(providers);
     }
     
-    private User getUser(String userName) {
+    private User getUser(String userName) throws UserNotFoundException {
     	return tourGuideService.getUser(userName);
     }
    

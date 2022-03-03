@@ -19,7 +19,7 @@ public interface TourGuideService {
 
   VisitedLocation getUserLocation(User user);
 
-  User getUser(String userName);
+  User getUser(String userName) throws UserNotFoundException;
 
   List<User> getAllUsers();
 
