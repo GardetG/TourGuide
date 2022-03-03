@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import tourGuide.domain.User;
 import tourGuide.domain.UserReward;
 import tourGuide.dto.ProviderDto;
+import tourGuide.dto.UserPreferencesDto;
 import tourGuide.exception.UserNotFoundException;
 
 /**
@@ -24,6 +25,10 @@ public interface TourGuideService {
   List<User> getAllUsers();
 
   List<ProviderDto> getTripDeals(String userName) throws UserNotFoundException;
+
+  UserPreferencesDto getUserPreferences(String username) throws UserNotFoundException;
+
+  UserPreferencesDto setUserPreferences(String username, UserPreferencesDto userPreferences) throws UserNotFoundException;
 
   VisitedLocation trackUserLocation(User user);
 
