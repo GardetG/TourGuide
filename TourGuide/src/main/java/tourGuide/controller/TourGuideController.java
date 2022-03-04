@@ -1,21 +1,21 @@
 package tourGuide.controller;
 
-import java.util.List;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
+import com.jsoniter.output.JsonStream;
+import gpsUtil.location.VisitedLocation;
+import java.util.List;
+import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.jsoniter.output.JsonStream;
-
-import gpsUtil.location.VisitedLocation;
+import tourGuide.domain.User;
 import tourGuide.dto.ProviderDto;
+import tourGuide.dto.UserPreferencesDto;
 import tourGuide.exception.UserNotFoundException;
 import tourGuide.service.TourGuideService;
-import tourGuide.service.impl.TourGuideServiceImpl;
-import tourGuide.domain.User;
-import tripPricer.Provider;
 
 @RestController
 public class TourGuideController {
@@ -74,7 +74,20 @@ public class TourGuideController {
     	List<ProviderDto> providers = tourGuideService.getTripDeals(userName);
     	return JsonStream.serialize(providers);
     }
-    
+
+
+  @RequestMapping("/getUserPreferences")
+  public String getUserPreferences(@RequestParam String userName) throws UserNotFoundException {
+    return JsonStream.serialize(tourGuideService.getUserPreferences(userName));
+  }
+
+  @RequestMapping(value = "/setUserPreferences", method = PUT)
+  public String getUserPreferences(@RequestParam String userName,
+                                   @Valid @RequestBody UserPreferencesDto userPreferencesDto)
+      throws UserNotFoundException {
+    return JsonStream.serialize(tourGuideService.setUserPreferences(userName, userPreferencesDto));
+  }
+
     private User getUser(String userName) throws UserNotFoundException {
     	return tourGuideService.getUser(userName);
     }
