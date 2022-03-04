@@ -1,8 +1,13 @@
 package tourGuide.dto;
 
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
+import tourGuide.utils.validator.RangeCheck;
+
 /**
  * Dto class for UserPreference entity.
  */
+@RangeCheck(message = "Lower price point cannot be greater than High price point")
 public class UserPreferencesDto {
 
   /**
@@ -23,11 +28,17 @@ public class UserPreferencesDto {
     this.numberOfChildren = numberOfChildren;
   }
 
+  @PositiveOrZero(message = "Lower price point cannot be negative")
   private final double lowerPricePoint;
+  @PositiveOrZero(message = "High price point cannot be negative")
   private final double highPricePoint;
+  @Positive(message = "Trip Duration cannot be negative or equals to 0")
   private final int tripDuration;
+  @PositiveOrZero(message = "Ticket Quantity cannot be negative")
   private final int ticketQuantity;
+  @PositiveOrZero(message = "Number of Adults cannot be negative")
   private final int numberOfAdults;
+  @PositiveOrZero(message = "Number of Children cannot be negative")
   private final int numberOfChildren;
 
   public double getLowerPricePoint() {
