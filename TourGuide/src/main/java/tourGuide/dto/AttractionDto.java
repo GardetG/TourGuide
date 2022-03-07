@@ -15,10 +15,10 @@ public class AttractionDto {
    * @param distance from the user
    * @param rewardPoints earned for visiting it
    */
-  public AttractionDto(String name, double longitude, double latitude, double distance, int rewardPoints) {
+  public AttractionDto(String name, double latitude, double longitude, double distance, int rewardPoints) {
     this.name = name;
-    this.longitude = longitude;
     this.latitude = latitude;
+    this.longitude = longitude;
     this.distance = distance;
     this.rewardPoints = rewardPoints;
   }

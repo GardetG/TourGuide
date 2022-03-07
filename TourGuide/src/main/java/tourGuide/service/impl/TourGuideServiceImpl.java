@@ -123,8 +123,8 @@ public class TourGuideServiceImpl implements TourGuideService {
 				.stream()
 				.map(attraction -> new AttractionDto(
 						attraction.attractionName,
-						attraction.longitude,
 						attraction.latitude,
+						attraction.longitude,
 						attractionsMap.get(attraction),
 						rewardsService.getRewardPoints(attraction, user)
 				))

@@ -210,7 +210,9 @@ class TourGuideServiceTest {
 
     //Then
     assertThat(actualDto.getUserLocation()).isEqualToComparingFieldByField(userLocation.location);
-    assertThat(actualDto.getAttractions()).hasSize(5);
+    assertThat(actualDto.getAttractions())
+        .hasSize(5)
+        .usingFieldByFieldElementComparator().containsOnlyElementsOf(EntitiesTestFactory.getAttractionsDto());
     verify(userRepository, times(1)).findByUsername("jon");
   }
 
