@@ -1,9 +1,7 @@
 package tourGuide.service.impl;
 
 import gpsUtil.GpsUtil;
-import gpsUtil.location.Attraction;
 import gpsUtil.location.VisitedLocation;
-import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +9,7 @@ import org.springframework.stereotype.Service;
 import tourGuide.domain.User;
 import tourGuide.domain.UserPreferences;
 import tourGuide.domain.UserReward;
+import tourGuide.dto.NearbyAttractionsDto;
 import tourGuide.dto.ProviderDto;
 import tourGuide.dto.UserPreferencesDto;
 import tourGuide.exception.UserNotFoundException;
@@ -110,7 +109,8 @@ public class TourGuideServiceImpl implements TourGuideService {
 	}
 
 	@Override
-	public List<Attraction> getNearByAttractions(VisitedLocation visitedLocation) {
+	public NearbyAttractionsDto getNearByAttractions(String userName) {
+		/*
 		List<Attraction> nearbyAttractions = new ArrayList<>();
 		for(Attraction attraction : gpsUtil.getAttractions()) {
 			if(rewardsService.isWithinAttractionProximity(attraction, visitedLocation.location)) {
@@ -119,6 +119,8 @@ public class TourGuideServiceImpl implements TourGuideService {
 		}
 		
 		return nearbyAttractions;
+		 */
+		return null;
 	}
 	
 }
