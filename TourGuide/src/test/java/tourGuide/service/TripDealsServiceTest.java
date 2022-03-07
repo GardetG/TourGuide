@@ -10,8 +10,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import tourGuide.domain.UserPreferences;
+import tourGuide.utils.EntitiesTestFactory;
 import tripPricer.Provider;
 import tripPricer.TripPricer;
 
@@ -32,13 +31,6 @@ class TripDealsServiceTest {
   @MockBean
   private TripPricer tripPricer;
 
-  // Return a list of 5 providers with the following price [0,25,50,75,100] for testing purposes
-  private List<Provider> createProviders(UUID attractionId) {
-    return IntStream.range(0,5)
-        .mapToObj(index -> new Provider(attractionId, String.format("Provider %s", index), index*25))
-        .collect(Collectors.toList());
-  }
-
   @DisplayName("Get trip deals should return providers list from tripPricer")
   @Test
   void getTripDealsTest() {
@@ -48,7 +40,7 @@ class TripDealsServiceTest {
     double highPricePoint = Integer.MAX_VALUE;
     UserPreferences preferences = new UserPreferences(lowerPricePoint,highPricePoint,1, 1,2,3);
     int rewardPoint = 100;
-    List<Provider> providers = createProviders(attractionId);
+    List<Provider> providers = EntitiesTestFactory.getProviders(attractionId);
     when(tripPricer.getPrice(anyString(), any(UUID.class), anyInt(), anyInt(),anyInt(),anyInt()))
         .thenReturn(providers);
 
@@ -72,7 +64,7 @@ class TripDealsServiceTest {
     double highPricePoint = 75;
     UserPreferences preferences = new UserPreferences(lowerPricePoint, highPricePoint,1, 1,2,3);
     int rewardPoint = 100;
-    List<Provider> providers = createProviders(attractionId);
+    List<Provider> providers = EntitiesTestFactory.getProviders(attractionId);
     when(tripPricer.getPrice(anyString(), any(UUID.class), anyInt(), anyInt(),anyInt(),anyInt()))
         .thenReturn(providers);
 
