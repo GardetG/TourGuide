@@ -1,19 +1,24 @@
 package tourGuide.service.impl;
 
-import gpsUtil.GpsUtil;
+import gpsUtil.location.Attraction;
 import gpsUtil.location.VisitedLocation;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import tourGuide.domain.User;
 import tourGuide.domain.UserPreferences;
 import tourGuide.domain.UserReward;
+import tourGuide.dto.AttractionDto;
+import tourGuide.dto.LocationDto;
 import tourGuide.dto.NearbyAttractionsDto;
 import tourGuide.dto.ProviderDto;
 import tourGuide.dto.UserPreferencesDto;
 import tourGuide.exception.UserNotFoundException;
 import tourGuide.repository.UserRepository;
+import tourGuide.service.GpsService;
 import tourGuide.service.RewardsService;
 import tourGuide.service.TourGuideService;
 import tourGuide.service.TripDealsService;
@@ -29,13 +34,13 @@ public class TourGuideServiceImpl implements TourGuideService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(TourGuideServiceImpl.class);
 
-	private final GpsUtil gpsUtil;
+	private final GpsService gpsService;
 	private final RewardsService rewardsService;
 	private final TripDealsService tripDealsService;
 	private final UserRepository userRepository;
 
-	public TourGuideServiceImpl(GpsUtil gpsUtil, RewardsService rewardsService, TripDealsService tripDealsService, UserRepository userRepository) {
-		this.gpsUtil = gpsUtil;
+	public TourGuideServiceImpl(GpsService gpsService, RewardsService rewardsService, TripDealsService tripDealsService, UserRepository userRepository) {
+		this.gpsService = gpsService;
 		this.rewardsService = rewardsService;
 		this.tripDealsService = tripDealsService;
 		this.userRepository = userRepository;
@@ -102,25 +107,33 @@ public class TourGuideServiceImpl implements TourGuideService {
 
 	@Override
 	public VisitedLocation trackUserLocation(User user) {
-		VisitedLocation visitedLocation = gpsUtil.getUserLocation(user.getUserId());
+		VisitedLocation visitedLocation = gpsService.getUserLocation(user.getUserId());
 		user.addToVisitedLocations(visitedLocation);
 		rewardsService.calculateRewards(user);
 		return visitedLocation;
 	}
 
 	@Override
-	public NearbyAttractionsDto getNearByAttractions(String userName) {
-		/*
-		List<Attraction> nearbyAttractions = new ArrayList<>();
-		for(Attraction attraction : gpsUtil.getAttractions()) {
-			if(rewardsService.isWithinAttractionProximity(attraction, visitedLocation.location)) {
-				nearbyAttractions.add(attraction);
-			}
-		}
-		
-		return nearbyAttractions;
-		 */
-		return null;
+	public NearbyAttractionsDto getNearByAttractions(String userName) throws UserNotFoundException {
+		User user = getUser(userName);
+		VisitedLocation userLocation = getUserLocation(user);
+
+		Map<Attraction, Double> attractionsMap = gpsService.getTopNearbyAttractionsWithDistances(userLocation.location, 5);
+		List<AttractionDto> attractions = attractionsMap.keySet()
+				.stream()
+				.map(attraction -> new AttractionDto(
+						attraction.attractionName,
+						attraction.longitude,
+						attraction.latitude,
+						attractionsMap.get(attraction),
+						rewardsService.getRewardPoints(attraction, user)
+				))
+				.collect(Collectors.toList());
+
+		return new NearbyAttractionsDto(
+				new LocationDto(userLocation.location.longitude, userLocation.location.latitude),
+				attractions
+		);
 	}
 	
 }
