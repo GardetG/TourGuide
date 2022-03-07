@@ -3,10 +3,12 @@ package tourGuide.service.impl;
 import gpsUtil.GpsUtil;
 import gpsUtil.location.Attraction;
 import gpsUtil.location.Location;
+import gpsUtil.location.VisitedLocation;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -46,6 +48,12 @@ public class GpsServiceImpl implements GpsService {
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1,e2) -> e1, LinkedHashMap::new));
   }
 
+  @Override
+  public VisitedLocation getUserLocation(UUID userId) {
+    return gpsUtil.getUserLocation(userId);
+  }
+
+  @Override
   public double getDistance(Location loc1, Location loc2) {
     double lat1 = Math.toRadians(loc1.latitude);
     double lon1 = Math.toRadians(loc1.longitude);
