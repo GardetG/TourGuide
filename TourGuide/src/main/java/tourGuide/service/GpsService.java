@@ -15,4 +15,6 @@ public interface GpsService {
 
   Map<Attraction, Double> getTopNearbyAttractionsWithDistances(Location location, int top);
 
+  double getDistance(Location loc1, Location loc2);
+
 }

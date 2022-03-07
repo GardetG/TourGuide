@@ -13,6 +13,8 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "tourguide")
 public class TourGuideProperties {
 
+  public static final double STATUTE_MILES_PER_NAUTICAL_MILE = 1.15077945;
+
   private String tripPricerApiKey;
   private long trackingPollingInterval;
   private boolean trackingOnStart;
