@@ -214,6 +214,8 @@ class TourGuideServiceTest {
         .hasSize(5)
         .usingFieldByFieldElementComparator().containsOnlyElementsOf(EntitiesTestFactory.getAttractionsDto());
     verify(userRepository, times(1)).findByUsername("jon");
+    verify(gpsService, times(1)).getTopNearbyAttractionsWithDistances(userLocation.location,5);
+    verify(rewardsService, times(5)).getRewardPoints(any(Attraction.class), any(User.class));
   }
 
   @DisplayName("Set nearby attractions of non found user should throw an exception")
