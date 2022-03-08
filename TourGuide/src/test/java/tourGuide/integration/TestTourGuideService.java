@@ -84,7 +84,6 @@ class TestTourGuideService {
     assertEquals(visitedLocation.userId, user.getUserId());
   }
 
-  @Disabled // Not yet implemented
   @Test
   void getNearbyAttractions() throws Exception {
     // Given

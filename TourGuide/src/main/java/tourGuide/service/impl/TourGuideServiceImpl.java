@@ -121,6 +121,7 @@ public class TourGuideServiceImpl implements TourGuideService {
 		Map<Attraction, Double> attractionsMap = gpsService.getTopNearbyAttractionsWithDistances(userLocation.location, 5);
 		List<AttractionDto> attractions = attractionsMap.keySet()
 				.stream()
+				.parallel()
 				.map(attraction -> new AttractionDto(
 						attraction.attractionName,
 						attraction.latitude,
