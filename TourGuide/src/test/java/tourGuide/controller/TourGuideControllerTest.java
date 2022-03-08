@@ -24,15 +24,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import tourGuide.dto.LocationDto;
+import tourGuide.dto.NearbyAttractionsDto;
 import tourGuide.dto.ProviderDto;
 import tourGuide.dto.UserPreferencesDto;
 import tourGuide.exception.UserNotFoundException;
 import tourGuide.service.TourGuideService;
-import tourGuide.testutils.ProviderTestFactory;
+import tourGuide.utils.EntitiesTestFactory;
 
 @WebMvcTest
-public class TourGuideControllerTest {
+@ActiveProfiles("test")
+class TourGuideControllerTest {
 
   @Autowired
   private MockMvc mockMvc;
@@ -49,7 +53,7 @@ public class TourGuideControllerTest {
   @Test
   void getTripDealsTest() throws Exception {
     // GIVEN
-    List<ProviderDto> providerDtos = ProviderTestFactory.getProvidersDto(UUID.randomUUID());
+    List<ProviderDto> providerDtos = EntitiesTestFactory.getProvidersDto(UUID.randomUUID());
     when(tourGuideService.getTripDeals(anyString())).thenReturn(providerDtos);
 
     // WHEN
@@ -168,6 +172,42 @@ public class TourGuideControllerTest {
         .andExpect(jsonPath("$.numberOfAdults", is("Number of Adults cannot be negative")))
         .andExpect(jsonPath("$.numberOfChildren", is("Number of Children cannot be negative")));
     verify(tourGuideService, times(0)).setUserPreferences(anyString(), any(UserPreferencesDto.class) );
+  }
+
+  @DisplayName("GET nearby attractions should return 200 with nearby attractions Dto")
+  @Test
+  void getNearbyAttractionsTest() throws Exception {
+    // GIVEN
+    NearbyAttractionsDto nearbyAttractionsDto = new NearbyAttractionsDto(
+        new LocationDto(45,-45),
+        EntitiesTestFactory.getAttractionsDto()
+    );
+    when(tourGuideService.getNearByAttractions(anyString())).thenReturn(nearbyAttractionsDto);
+
+    // WHEN
+    mockMvc.perform(put("/getNearbyAttractions?userName=jon"))
+
+        // THEN
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.userLocation.longitude", is(45)))
+        .andExpect(jsonPath("$.userLocation.latitude", is(-45)))
+        .andExpect(jsonPath("$.attractions", hasSize(5)));
+    verify(tourGuideService, times(1)).getNearByAttractions("jon");
+  }
+
+  @DisplayName("GET not found nearby attractions should return 404")
+  @Test
+  void getNearbyAttractionsNotFoundTest() throws Exception {
+    // GIVEN
+    when(tourGuideService.getNearByAttractions(anyString())).thenThrow(new UserNotFoundException("User not found"));
+
+    // WHEN
+    mockMvc.perform(put("/getNearbyAttractions?userName=nonExistent"))
+
+        // THEN
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$", is("User not found")));
+    verify(tourGuideService, times(1)).getNearByAttractions(anyString());
   }
 
 }

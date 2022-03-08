@@ -10,7 +10,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import gpsUtil.location.Attraction;
+import gpsUtil.location.Location;
+import gpsUtil.location.VisitedLocation;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,10 +26,12 @@ import org.springframework.test.context.ActiveProfiles;
 import tourGuide.domain.User;
 import tourGuide.domain.UserPreferences;
 import tourGuide.domain.UserReward;
+import tourGuide.dto.NearbyAttractionsDto;
 import tourGuide.dto.ProviderDto;
 import tourGuide.dto.UserPreferencesDto;
 import tourGuide.exception.UserNotFoundException;
 import tourGuide.repository.UserRepository;
+import tourGuide.utils.EntitiesTestFactory;
 import tripPricer.Provider;
 
 @SpringBootTest
@@ -40,6 +45,10 @@ class TourGuideServiceTest {
   private UserRepository userRepository;
   @MockBean
   private TripDealsService tripDealsService;
+  @MockBean
+  private GpsService gpsService;
+  @MockBean
+  private RewardsService rewardsService;
 
   @DisplayName("Get all users should return a list of all users")
   @Test
@@ -92,7 +101,7 @@ class TourGuideServiceTest {
     User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
     user.setUserPreferences(new UserPreferences(0, Integer.MAX_VALUE, 1, 1,2,3));
     user.addUserReward(new UserReward(null, new Attraction("Test1", "", "",0,0), 10));
-    List<Provider> providers = tourGuide.testutils.ProviderTestFactory.getProviders(user.getUserId());
+    List<Provider> providers = EntitiesTestFactory.getProviders(user.getUserId());
     when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
     when(tripDealsService.getTripDeals(any(UUID.class), any(UserPreferences.class), anyInt()))
         .thenReturn(providers);
@@ -182,5 +191,46 @@ class TourGuideServiceTest {
         .hasMessageContaining("User not found");
     verify(userRepository, times(1)).findByUsername("nonExistent");
   }
+
+  @DisplayName("Set nearby attractions should should return dto with user location and 5 attractions")
+  @Test
+  void getNearByAttractionsTest() throws Exception {
+    // Given
+    User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
+    VisitedLocation userLocation = new VisitedLocation(user.getUserId(), new Location(0,0), new Date());
+    user.addToVisitedLocations(userLocation);
+    when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+    when(gpsService.getTopNearbyAttractionsWithDistances(any(Location.class),anyInt()))
+        .thenReturn(EntitiesTestFactory.getAttractionsWithDistance());
+    when(rewardsService.getRewardPoints(any(Attraction.class), any(User.class))).thenReturn(100);
+
+
+    // When
+    NearbyAttractionsDto actualDto = tourGuideService.getNearByAttractions("jon");
+
+    //Then
+    assertThat(actualDto.getUserLocation()).isEqualToComparingFieldByField(userLocation.location);
+    assertThat(actualDto.getAttractions())
+        .hasSize(5)
+        .usingFieldByFieldElementComparator().containsOnlyElementsOf(EntitiesTestFactory.getAttractionsDto());
+    verify(userRepository, times(1)).findByUsername("jon");
+    verify(gpsService, times(1)).getTopNearbyAttractionsWithDistances(userLocation.location,5);
+    verify(rewardsService, times(5)).getRewardPoints(any(Attraction.class), any(User.class));
+  }
+
+  @DisplayName("Set nearby attractions of non found user should throw an exception")
+  @Test
+  void getNearByAttractionsNotFoundTest() {
+    // Given
+    UserPreferencesDto userPreferencesDto = new UserPreferencesDto(0, Integer.MAX_VALUE,1, 1,2,3);
+    when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
+
+    // Then
+    assertThatThrownBy(() -> tourGuideService.getNearByAttractions("nonExistent"))
+        .isInstanceOf(UserNotFoundException.class)
+        .hasMessageContaining("User not found");
+    verify(userRepository, times(1)).findByUsername("nonExistent");
+  }
+
 
 }

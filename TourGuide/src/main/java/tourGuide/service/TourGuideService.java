@@ -1,11 +1,11 @@
 package tourGuide.service;
 
-import gpsUtil.location.Attraction;
 import gpsUtil.location.VisitedLocation;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import tourGuide.domain.User;
 import tourGuide.domain.UserReward;
+import tourGuide.dto.NearbyAttractionsDto;
 import tourGuide.dto.ProviderDto;
 import tourGuide.dto.UserPreferencesDto;
 import tourGuide.exception.UserNotFoundException;
@@ -32,6 +32,6 @@ public interface TourGuideService {
 
   VisitedLocation trackUserLocation(User user);
 
-  List<Attraction> getNearByAttractions(VisitedLocation visitedLocation);
+  NearbyAttractionsDto getNearByAttractions(String userName) throws UserNotFoundException;
 
 }

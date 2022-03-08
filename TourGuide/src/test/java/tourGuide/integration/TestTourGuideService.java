@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import tourGuide.domain.User;
+import tourGuide.dto.NearbyAttractionsDto;
 import tourGuide.dto.ProviderDto;
 import tourGuide.service.TourGuideService;
 import tourGuide.tracker.Tracker;
@@ -83,7 +84,6 @@ class TestTourGuideService {
     assertEquals(visitedLocation.userId, user.getUserId());
   }
 
-  @Disabled // Not yet implemented
   @Test
   void getNearbyAttractions() throws Exception {
     // Given
@@ -92,10 +92,10 @@ class TestTourGuideService {
     VisitedLocation visitedLocation = tourGuideService.trackUserLocation(user);
 
     // When
-    List<Attraction> attractions = tourGuideService.getNearByAttractions(visitedLocation);
+    NearbyAttractionsDto nearbyAttractionsDto = tourGuideService.getNearByAttractions(userName);
 
     // Then
-    assertEquals(5, attractions.size());
+    assertThat(nearbyAttractionsDto.getAttractions()).hasSize(5);
   }
 
   @Test
