@@ -21,7 +21,7 @@ public interface TourGuideService {
 
   List<UserReward> getUserRewards(User user);
 
-  VisitedLocation getUserLocation(User user);
+  LocationDto getUserLocation(String userName) throws UserNotFoundException;
 
   User getUser(String userName) throws UserNotFoundException;
 
