@@ -29,10 +29,13 @@ import org.springframework.test.context.ActiveProfiles;
 import tourGuide.domain.User;
 import tourGuide.domain.UserPreferences;
 import tourGuide.domain.UserReward;
+import tourGuide.dto.AttractionDto;
 import tourGuide.dto.LocationDto;
 import tourGuide.dto.NearbyAttractionsListDto;
 import tourGuide.dto.ProviderDto;
 import tourGuide.dto.UserPreferencesDto;
+import tourGuide.dto.UserRewardDto;
+import tourGuide.dto.VisitedLocationDto;
 import tourGuide.exception.UserNotFoundException;
 import tourGuide.repository.UserRepository;
 import tourGuide.utils.EntitiesTestFactory;
@@ -53,6 +56,40 @@ class TourGuideServiceTest {
   private GpsService gpsService;
   @MockBean
   private RewardsService rewardsService;
+
+  @DisplayName("Get user rewards should return list of reward dto")
+  @Test
+  void getUserRewardsTest() throws Exception {
+    // Given
+    User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
+    Attraction attraction = new Attraction("Test1", "city", "state",45,-45);
+    VisitedLocation visitedLocation = new VisitedLocation(user.getUserId(), new Location(45,-45), new Date());
+    user.addUserReward(new UserReward(visitedLocation, attraction, 10));
+    AttractionDto attractionDto = new AttractionDto(attraction.attractionId, -45,45, "Test1", "city", "state");
+    VisitedLocationDto visitedLocationDto = new VisitedLocationDto(user.getUserId(), new LocationDto(-45,45), visitedLocation.timeVisited);
+    UserRewardDto expectedDto = new UserRewardDto(visitedLocationDto, attractionDto, 10);
+    when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+
+    // When
+    List<UserRewardDto> actualDto = tourGuideService.getUserRewards("jon");
+
+    //Then
+    assertThat(actualDto).usingRecursiveFieldByFieldElementComparator().containsExactly(expectedDto);
+    verify(userRepository, times(1)).findByUsername("jon");
+  }
+
+  @DisplayName("Get user rewards of non found user should throw an exception")
+  @Test
+  void getUserRewardsNotFoundTest() {
+    // Given
+    when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
+
+    // Then
+    assertThatThrownBy(() -> tourGuideService.getUserRewards("nonExistent"))
+        .isInstanceOf(UserNotFoundException.class)
+        .hasMessageContaining("User not found");
+    verify(userRepository, times(1)).findByUsername("nonExistent");
+  }
 
   @DisplayName("Get user location should return last location dto")
   @Test
@@ -78,7 +115,7 @@ class TourGuideServiceTest {
     when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
 
     // Then
-    assertThatThrownBy(() -> tourGuideService.getUserPreferences("nonExistent"))
+    assertThatThrownBy(() -> tourGuideService.getUserLocation("nonExistent"))
         .isInstanceOf(UserNotFoundException.class)
         .hasMessageContaining("User not found");
     verify(userRepository, times(1)).findByUsername("nonExistent");
