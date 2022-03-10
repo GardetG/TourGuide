@@ -12,9 +12,9 @@ import org.springframework.stereotype.Service;
 import tourGuide.domain.User;
 import tourGuide.domain.UserPreferences;
 import tourGuide.domain.UserReward;
-import tourGuide.dto.AttractionDto;
+import tourGuide.dto.NearbyAttractionDto;
 import tourGuide.dto.LocationDto;
-import tourGuide.dto.NearbyAttractionsDto;
+import tourGuide.dto.NearbyAttractionsListDto;
 import tourGuide.dto.ProviderDto;
 import tourGuide.dto.UserPreferencesDto;
 import tourGuide.exception.UserNotFoundException;
@@ -132,16 +132,16 @@ public class TourGuideServiceImpl implements TourGuideService {
   }
 
   @Override
-  public NearbyAttractionsDto getNearByAttractions(String userName) throws UserNotFoundException {
+  public NearbyAttractionsListDto getNearByAttractions(String userName) throws UserNotFoundException {
     User user = getUser(userName);
     VisitedLocation userLocation = getLastVisitedLocation(user);
 
     Map<Attraction, Double> attractionsMap =
         gpsService.getTopNearbyAttractionsWithDistances(userLocation.location, 5);
-    List<AttractionDto> attractions = attractionsMap.keySet()
+    List<NearbyAttractionDto> attractions = attractionsMap.keySet()
         .stream()
         .parallel()
-        .map(attraction -> new AttractionDto(
+        .map(attraction -> new NearbyAttractionDto(
             attraction.attractionName,
             attraction.latitude,
             attraction.longitude,
@@ -150,7 +150,7 @@ public class TourGuideServiceImpl implements TourGuideService {
         ))
         .collect(Collectors.toList());
 
-    return new NearbyAttractionsDto(
+    return new NearbyAttractionsListDto(
         new LocationDto(userLocation.location.longitude, userLocation.location.latitude),
         attractions
     );

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import tourGuide.domain.User;
 import tourGuide.domain.UserReward;
 import tourGuide.dto.LocationDto;
-import tourGuide.dto.NearbyAttractionsDto;
+import tourGuide.dto.NearbyAttractionsListDto;
 import tourGuide.dto.ProviderDto;
 import tourGuide.dto.UserPreferencesDto;
 import tourGuide.exception.UserNotFoundException;
@@ -37,6 +37,6 @@ public interface TourGuideService {
 
   VisitedLocation trackUserLocation(User user);
 
-  NearbyAttractionsDto getNearByAttractions(String userName) throws UserNotFoundException;
+  NearbyAttractionsListDto getNearByAttractions(String userName) throws UserNotFoundException;
 
 }

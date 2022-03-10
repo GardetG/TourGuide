@@ -16,7 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import tourGuide.domain.User;
 import tourGuide.dto.LocationDto;
-import tourGuide.dto.NearbyAttractionsDto;
+import tourGuide.dto.NearbyAttractionsListDto;
 import tourGuide.dto.ProviderDto;
 import tourGuide.service.TourGuideService;
 import tourGuide.tracker.Tracker;
@@ -93,7 +93,7 @@ class TestTourGuideService {
     VisitedLocation visitedLocation = tourGuideService.trackUserLocation(user);
 
     // When
-    NearbyAttractionsDto nearbyAttractionsDto = tourGuideService.getNearByAttractions(userName);
+    NearbyAttractionsListDto nearbyAttractionsDto = tourGuideService.getNearByAttractions(userName);
 
     // Then
     assertThat(nearbyAttractionsDto.getAttractions()).hasSize(5);

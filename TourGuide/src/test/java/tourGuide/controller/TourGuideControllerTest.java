@@ -32,7 +32,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import tourGuide.dto.LocationDto;
-import tourGuide.dto.NearbyAttractionsDto;
+import tourGuide.dto.NearbyAttractionsListDto;
 import tourGuide.dto.ProviderDto;
 import tourGuide.dto.UserPreferencesDto;
 import tourGuide.exception.UserNotFoundException;
@@ -195,7 +195,7 @@ class TourGuideControllerTest {
   @Test
   void getNearbyAttractionsTest() throws Exception {
     // GIVEN
-    NearbyAttractionsDto nearbyAttractionsDto = new NearbyAttractionsDto(
+    NearbyAttractionsListDto nearbyAttractionsDto = new NearbyAttractionsListDto(
         new LocationDto(45, -45),
         EntitiesTestFactory.getAttractionsDto()
     );

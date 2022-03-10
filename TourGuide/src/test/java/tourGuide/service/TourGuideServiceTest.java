@@ -30,7 +30,7 @@ import tourGuide.domain.User;
 import tourGuide.domain.UserPreferences;
 import tourGuide.domain.UserReward;
 import tourGuide.dto.LocationDto;
-import tourGuide.dto.NearbyAttractionsDto;
+import tourGuide.dto.NearbyAttractionsListDto;
 import tourGuide.dto.ProviderDto;
 import tourGuide.dto.UserPreferencesDto;
 import tourGuide.exception.UserNotFoundException;
@@ -240,7 +240,7 @@ class TourGuideServiceTest {
 
 
     // When
-    NearbyAttractionsDto actualDto = tourGuideService.getNearByAttractions("jon");
+    NearbyAttractionsListDto actualDto = tourGuideService.getNearByAttractions("jon");
 
     //Then
     assertThat(actualDto.getUserLocation()).isEqualToComparingFieldByField(userLocation.location);

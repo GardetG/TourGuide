@@ -1,36 +1,41 @@
 package tourGuide.dto;
 
+import java.util.UUID;
+
 /**
- * Dto Class for an Attraction with location, distance from the user, and reward points earned for
- * visiting it.
+ * Dto Class for an Attraction.
  */
 public class AttractionDto {
 
   /**
-   * Constructor for an instance of AttractionDto with name, location, distance and reward points.
+   * Constructor for an instance of AttractionDto with longitude and latitude, id and name.
    *
-   * @param name of the attraction
-   * @param longitude of the attraction
-   * @param latitude of the attraction
-   * @param distance from the user
-   * @param rewardPoints earned for visiting it
+   * @param attractionId of the attraction
+   * @param longitude of the attraction location
+   * @param latitude of the attraction location
+   * @param attractionName of the attraction
+   * @param city of the attraction
+   * @param state of the attraction
    */
-  public AttractionDto(String name, double latitude, double longitude, double distance, int rewardPoints) {
-    this.name = name;
-    this.latitude = latitude;
+  public AttractionDto(UUID attractionId, double longitude, double latitude,
+                       String attractionName, String city, String state) {
+    this.attractionId = attractionId;
     this.longitude = longitude;
-    this.distance = distance;
-    this.rewardPoints = rewardPoints;
+    this.latitude = latitude;
+    this.attractionName = attractionName;
+    this.city = city;
+    this.state = state;
   }
 
-  private final String name;
+  private final UUID attractionId;
   private final double longitude;
   private final double latitude;
-  private final double distance;
-  private final int rewardPoints;
+  private final String attractionName;
+  private final String city;
+  private final String state;
 
-  public String getName() {
-    return name;
+  public UUID getAttractionId() {
+    return attractionId;
   }
 
   public double getLongitude() {
@@ -41,11 +46,16 @@ public class AttractionDto {
     return latitude;
   }
 
-  public double getDistance() {
-    return distance;
+  public String getAttractionName() {
+    return attractionName;
   }
 
-  public int getRewardPoints() {
-    return rewardPoints;
+  public String getCity() {
+    return city;
   }
+
+  public String getState() {
+    return state;
+  }
+
 }
