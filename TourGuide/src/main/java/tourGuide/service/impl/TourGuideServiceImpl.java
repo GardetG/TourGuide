@@ -17,6 +17,7 @@ import tourGuide.dto.LocationDto;
 import tourGuide.dto.NearbyAttractionsListDto;
 import tourGuide.dto.ProviderDto;
 import tourGuide.dto.UserPreferencesDto;
+import tourGuide.dto.UserRewardDto;
 import tourGuide.exception.UserNotFoundException;
 import tourGuide.repository.UserRepository;
 import tourGuide.service.GpsService;
@@ -26,6 +27,7 @@ import tourGuide.service.TripDealsService;
 import tourGuide.utils.LocationMapper;
 import tourGuide.utils.ProviderMapper;
 import tourGuide.utils.UserPreferencesMapper;
+import tourGuide.utils.UserRewardMapper;
 import tripPricer.Provider;
 
 /**
@@ -50,8 +52,9 @@ public class TourGuideServiceImpl implements TourGuideService {
   }
 
   @Override
-  public List<UserReward> getUserRewards(User user) {
-    return user.getUserRewards();
+  public List<UserRewardDto> getUserRewards(String userName) throws UserNotFoundException {
+    User user = getUser(userName);
+    return UserRewardMapper.toDto(user.getUserRewards());
   }
 
   @Override
