@@ -4,6 +4,7 @@ import gpsUtil.location.Attraction;
 import gpsUtil.location.VisitedLocation;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,7 +73,21 @@ public class TourGuideServiceImpl implements TourGuideService {
 	public List<User> getAllUsers() {
 		return userRepository.findAll();
 	}
-	
+
+	@Override
+	public Map<UUID, LocationDto> getAllCurrentLocations() {
+		return getAllUsers().stream()
+				.collect(Collectors.toMap(
+						User::getUserId,
+						this::getUserCoordinates
+				));
+	}
+
+	private LocationDto getUserCoordinates(User user) {
+		VisitedLocation location = getUserLocation(user);
+		return new LocationDto(location.location.longitude, location.location.latitude);
+	}
+
 	public void addUser(User user) {
 		userRepository.save(user);
 	}
