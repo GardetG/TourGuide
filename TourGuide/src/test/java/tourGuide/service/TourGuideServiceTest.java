@@ -12,9 +12,12 @@ import static org.mockito.Mockito.when;
 import gpsUtil.location.Attraction;
 import gpsUtil.location.Location;
 import gpsUtil.location.VisitedLocation;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -26,6 +29,7 @@ import org.springframework.test.context.ActiveProfiles;
 import tourGuide.domain.User;
 import tourGuide.domain.UserPreferences;
 import tourGuide.domain.UserReward;
+import tourGuide.dto.LocationDto;
 import tourGuide.dto.NearbyAttractionsDto;
 import tourGuide.dto.ProviderDto;
 import tourGuide.dto.UserPreferencesDto;
@@ -232,5 +236,39 @@ class TourGuideServiceTest {
     verify(userRepository, times(1)).findByUsername("nonExistent");
   }
 
+  @DisplayName("Get all users current locations should return a map of userId and location")
+  @Test
+  void getAllCurrentLocationsTest() {
+    // Given
+    Map<UUID, LocationDto> expectedMap = new HashMap<>();
+    User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
+    User user2 = new User(UUID.randomUUID(), "jon2", "000", "jon2@tourGuide.com");
+    user.addToVisitedLocations(new VisitedLocation(user.getUserId(), new Location(0,0), new Date()));
+    expectedMap.put(user.getUserId(), new LocationDto(0,0));
+    user2.addToVisitedLocations(new VisitedLocation(user2.getUserId(), new Location(45,45), new Date()));
+    expectedMap.put(user2.getUserId(), new LocationDto(45,45));
+    when(userRepository.findAll()).thenReturn(Arrays.asList(user, user2));
+
+    // When
+    Map<UUID, LocationDto> actualMap = tourGuideService.getAllCurrentLocations();
+
+    // Then
+    assertThat(actualMap.entrySet()).usingRecursiveFieldByFieldElementComparator().isEqualTo(expectedMap.entrySet());
+    verify(userRepository, times(1)).findAll();
+  }
+
+  @DisplayName("Get all users current locations when no users available should return an empty map")
+  @Test
+  void getAllCurrentLocationsWhenEmptyTest() {
+    // Given
+    when(userRepository.findAll()).thenReturn(new ArrayList<>());
+
+    // When
+    Map<UUID, LocationDto> actualMap = tourGuideService.getAllCurrentLocations();
+
+    // Then
+    assertThat(actualMap).isEmpty();
+    verify(userRepository, times(1)).findAll();
+  }
 
 }
