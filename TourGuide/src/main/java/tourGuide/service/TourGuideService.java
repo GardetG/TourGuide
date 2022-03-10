@@ -2,9 +2,12 @@ package tourGuide.service;
 
 import gpsUtil.location.VisitedLocation;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.springframework.stereotype.Service;
 import tourGuide.domain.User;
 import tourGuide.domain.UserReward;
+import tourGuide.dto.LocationDto;
 import tourGuide.dto.NearbyAttractionsDto;
 import tourGuide.dto.ProviderDto;
 import tourGuide.dto.UserPreferencesDto;
@@ -23,6 +26,8 @@ public interface TourGuideService {
   User getUser(String userName) throws UserNotFoundException;
 
   List<User> getAllUsers();
+
+  Map<UUID, LocationDto> getAllCurrentLocations();
 
   List<ProviderDto> getTripDeals(String userName) throws UserNotFoundException;
 
