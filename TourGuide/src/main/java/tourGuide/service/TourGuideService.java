@@ -11,6 +11,7 @@ import tourGuide.dto.LocationDto;
 import tourGuide.dto.NearbyAttractionsListDto;
 import tourGuide.dto.ProviderDto;
 import tourGuide.dto.UserPreferencesDto;
+import tourGuide.dto.UserRewardDto;
 import tourGuide.exception.UserNotFoundException;
 
 /**
@@ -19,7 +20,7 @@ import tourGuide.exception.UserNotFoundException;
 @Service
 public interface TourGuideService {
 
-  List<UserReward> getUserRewards(User user);
+  List<UserRewardDto> getUserRewards(String userName) throws UserNotFoundException;
 
   LocationDto getUserLocation(String userName) throws UserNotFoundException;
 
