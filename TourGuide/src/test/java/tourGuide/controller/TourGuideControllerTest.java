@@ -1,6 +1,9 @@
 package tourGuide.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
@@ -14,7 +17,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.jsoniter.output.JsonStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -69,7 +74,8 @@ class TourGuideControllerTest {
   @Test
   void getTripDealsNotFoundTest() throws Exception {
     // GIVEN
-    when(tourGuideService.getTripDeals(anyString())).thenThrow(new UserNotFoundException("User not found"));
+    when(tourGuideService.getTripDeals(anyString())).thenThrow(
+        new UserNotFoundException("User not found"));
 
     // WHEN
     mockMvc.perform(get("/getTripDeals?userName=nonExistent"))
@@ -84,7 +90,8 @@ class TourGuideControllerTest {
   @Test
   void getUserPreferencesTest() throws Exception {
     // GIVEN
-    UserPreferencesDto userPreferencesDto = new UserPreferencesDto(0, Integer.MAX_VALUE,1,1,2,3);
+    UserPreferencesDto userPreferencesDto =
+        new UserPreferencesDto(0, Integer.MAX_VALUE, 1, 1, 2, 3);
     when(tourGuideService.getUserPreferences(anyString())).thenReturn(userPreferencesDto);
 
     // WHEN
@@ -102,7 +109,8 @@ class TourGuideControllerTest {
   @Test
   void getUserPreferencesNotFoundTest() throws Exception {
     // GIVEN
-    when(tourGuideService.getUserPreferences(anyString())).thenThrow(new UserNotFoundException("User not found"));
+    when(tourGuideService.getUserPreferences(anyString())).thenThrow(
+        new UserNotFoundException("User not found"));
 
     // WHEN
     mockMvc.perform(get("/getUserPreferences?userName=nonExistent"))
@@ -117,8 +125,11 @@ class TourGuideControllerTest {
   @Test
   void setUserPreferencesTest() throws Exception {
     // GIVEN
-    UserPreferencesDto userPreferencesDto = new UserPreferencesDto(0, Integer.MAX_VALUE,1,1,2,3);
-    when(tourGuideService.setUserPreferences(anyString(), any(UserPreferencesDto.class))).thenReturn(userPreferencesDto);
+    UserPreferencesDto userPreferencesDto =
+        new UserPreferencesDto(0, Integer.MAX_VALUE, 1, 1, 2, 3);
+    when(
+        tourGuideService.setUserPreferences(anyString(), any(UserPreferencesDto.class))).thenReturn(
+        userPreferencesDto);
 
     // WHEN
     mockMvc.perform(put("/setUserPreferences?userName=jon")
@@ -138,25 +149,28 @@ class TourGuideControllerTest {
   @Test
   void setUserPreferencesNotFoundTest() throws Exception {
     // GIVEN
-    UserPreferencesDto userPreferencesDto = new UserPreferencesDto(0, Integer.MAX_VALUE,1,1,2,3);
-    when(tourGuideService.setUserPreferences(anyString(), any(UserPreferencesDto.class))).thenThrow(new UserNotFoundException("User not found"));
+    UserPreferencesDto userPreferencesDto =
+        new UserPreferencesDto(0, Integer.MAX_VALUE, 1, 1, 2, 3);
+    when(tourGuideService.setUserPreferences(anyString(), any(UserPreferencesDto.class))).thenThrow(
+        new UserNotFoundException("User not found"));
 
     // WHEN
     mockMvc.perform(put("/setUserPreferences?userName=nonExistent")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(JsonStream.serialize(userPreferencesDto)))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(JsonStream.serialize(userPreferencesDto)))
 
         // THEN
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$", is("User not found")));
-    verify(tourGuideService, times(1)).setUserPreferences(anyString(), any(UserPreferencesDto.class) );
+    verify(tourGuideService, times(1)).setUserPreferences(anyString(),
+        any(UserPreferencesDto.class));
   }
 
   @DisplayName("PUT invalid user preferences should return 422")
   @Test
   void setUserPreferencesWhenInvalidTest() throws Exception {
     // GIVEN
-    UserPreferencesDto userPreferencesDto = new UserPreferencesDto(0,-1,-1,-1,-1,-1);
+    UserPreferencesDto userPreferencesDto = new UserPreferencesDto(0, -1, -1, -1, -1, -1);
 
     // WHEN
     mockMvc.perform(put("/setUserPreferences?userName=j")
@@ -165,13 +179,16 @@ class TourGuideControllerTest {
 
         // THEN
         .andExpect(status().isUnprocessableEntity())
-        .andExpect(jsonPath("$.userPreferencesDto", is("Lower price point cannot be greater than High price point")))
+        .andExpect(jsonPath("$.userPreferencesDto",
+            is("Lower price point cannot be greater than High price point")))
         .andExpect(jsonPath("$.highPricePoint", is("High price point cannot be negative")))
-        .andExpect(jsonPath("$.tripDuration", is("Trip Duration cannot be negative or equals to 0")))
+        .andExpect(
+            jsonPath("$.tripDuration", is("Trip Duration cannot be negative or equals to 0")))
         .andExpect(jsonPath("$.ticketQuantity", is("Ticket Quantity cannot be negative")))
         .andExpect(jsonPath("$.numberOfAdults", is("Number of Adults cannot be negative")))
         .andExpect(jsonPath("$.numberOfChildren", is("Number of Children cannot be negative")));
-    verify(tourGuideService, times(0)).setUserPreferences(anyString(), any(UserPreferencesDto.class) );
+    verify(tourGuideService, times(0)).setUserPreferences(anyString(),
+        any(UserPreferencesDto.class));
   }
 
   @DisplayName("GET nearby attractions should return 200 with nearby attractions Dto")
@@ -179,7 +196,7 @@ class TourGuideControllerTest {
   void getNearbyAttractionsTest() throws Exception {
     // GIVEN
     NearbyAttractionsDto nearbyAttractionsDto = new NearbyAttractionsDto(
-        new LocationDto(45,-45),
+        new LocationDto(45, -45),
         EntitiesTestFactory.getAttractionsDto()
     );
     when(tourGuideService.getNearByAttractions(anyString())).thenReturn(nearbyAttractionsDto);
@@ -199,7 +216,8 @@ class TourGuideControllerTest {
   @Test
   void getNearbyAttractionsNotFoundTest() throws Exception {
     // GIVEN
-    when(tourGuideService.getNearByAttractions(anyString())).thenThrow(new UserNotFoundException("User not found"));
+    when(tourGuideService.getNearByAttractions(anyString())).thenThrow(
+        new UserNotFoundException("User not found"));
 
     // WHEN
     mockMvc.perform(put("/getNearbyAttractions?userName=nonExistent"))
@@ -208,6 +226,27 @@ class TourGuideControllerTest {
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$", is("User not found")));
     verify(tourGuideService, times(1)).getNearByAttractions(anyString());
+  }
+
+  @DisplayName("GET all current locations should return 200 with list of user Id and current location")
+  @Test
+  void getAllCurrentLocationsTest() throws Exception {
+    // GIVEN
+    Map<UUID, LocationDto> locationsMap = new HashMap<>();
+    locationsMap.put(new UUID(0, 1), new LocationDto(0, 0));
+    locationsMap.put(new UUID(0, 2), new LocationDto(45, -45));
+    when(tourGuideService.getAllCurrentLocations()).thenReturn(locationsMap);
+
+    // WHEN
+    mockMvc.perform(get("/getAllCurrentLocations"))
+
+        // THEN
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.00000000-0000-0000-0000-000000000001.longitude", is(0.0)))
+        .andExpect(jsonPath("$.00000000-0000-0000-0000-000000000001.latitude", is(0.0)))
+        .andExpect(jsonPath("$.00000000-0000-0000-0000-000000000002.longitude", is(45.0)))
+        .andExpect(jsonPath("$.00000000-0000-0000-0000-000000000002.latitude", is(-45.0)));
+    verify(tourGuideService, times(1)).getAllCurrentLocations();
   }
 
 }
