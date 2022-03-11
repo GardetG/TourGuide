@@ -3,20 +3,20 @@ package tourGuide.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import gpsUtil.location.Attraction;
+import gpsUtil.location.Location;
 import gpsUtil.location.VisitedLocation;
 import java.util.List;
 import java.util.Locale;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import tourGuide.domain.User;
-import tourGuide.dto.NearbyAttractionsDto;
+import tourGuide.dto.LocationDto;
+import tourGuide.dto.NearbyAttractionsListDto;
 import tourGuide.dto.ProviderDto;
 import tourGuide.service.TourGuideService;
 import tourGuide.tracker.Tracker;
@@ -50,12 +50,13 @@ class TestTourGuideService {
     // Given
     String userName = "internalUser0";
     User user = tourGuideService.getUser(userName);
+    Location expectedLocation = user.getLastVisitedLocation().location;
 
     // When
-    VisitedLocation visitedLocation = tourGuideService.getUserLocation(user);
+    LocationDto location = tourGuideService.getUserLocation("internalUser0");
 
     // Then
-    assertEquals(visitedLocation.userId, user.getUserId());
+    assertThat(location).isEqualToComparingFieldByField(expectedLocation);
   }
 
   @Test
@@ -92,7 +93,7 @@ class TestTourGuideService {
     VisitedLocation visitedLocation = tourGuideService.trackUserLocation(user);
 
     // When
-    NearbyAttractionsDto nearbyAttractionsDto = tourGuideService.getNearByAttractions(userName);
+    NearbyAttractionsListDto nearbyAttractionsDto = tourGuideService.getNearByAttractions(userName);
 
     // Then
     assertThat(nearbyAttractionsDto.getAttractions()).hasSize(5);

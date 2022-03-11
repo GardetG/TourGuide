@@ -7,7 +7,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import tourGuide.dto.AttractionDto;
+import tourGuide.dto.NearbyAttractionDto;
 import tourGuide.dto.ProviderDto;
 import tripPricer.Provider;
 
@@ -35,9 +35,9 @@ public class EntitiesTestFactory {
   }
 
   // Return a List of 5 AttractionsDto
-  public static List<AttractionDto> getAttractionsDto() {
+  public static List<NearbyAttractionDto> getAttractionsDto() {
     return IntStream.range(0,5)
-        .mapToObj(index -> new AttractionDto("Attraction"+index, 0, index*50, index*50, 100))
+        .mapToObj(index -> new NearbyAttractionDto("Attraction"+index, 0, index*50, index*50, 100))
         .collect(Collectors.toList());
   }
 
