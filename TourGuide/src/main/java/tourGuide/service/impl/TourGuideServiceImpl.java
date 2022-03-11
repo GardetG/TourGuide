@@ -51,12 +51,9 @@ public class TourGuideServiceImpl implements TourGuideService {
     this.userRepository = userRepository;
   }
 
-  @Override
-  public List<UserRewardDto> getUserRewards(String userName) throws UserNotFoundException {
-    User user = getUser(userName);
-    return UserRewardMapper.toDto(user.getUserRewards());
-  }
-
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public LocationDto getUserLocation(String userName) throws UserNotFoundException {
     User user = getUser(userName);
@@ -64,10 +61,88 @@ public class TourGuideServiceImpl implements TourGuideService {
     return LocationMapper.toDto(visitedLocation.location);
   }
 
-  private VisitedLocation getLastVisitedLocation(User user) {
-    return user.getVisitedLocations().isEmpty() ?
-        trackUserLocation(user) :
-        user.getLastVisitedLocation();
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<UUID, LocationDto> getAllCurrentLocations() {
+    return getAllUsers().stream()
+        .collect(Collectors.toMap(
+            User::getUserId,
+            user -> LocationMapper.toDto(getLastVisitedLocation(user).location)
+        ));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public List<UserRewardDto> getUserRewards(String userName) throws UserNotFoundException {
+    User user = getUser(userName);
+    return UserRewardMapper.toDto(user.getUserRewards());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public UserPreferencesDto getUserPreferences(String username) throws UserNotFoundException {
+    User user = getUser(username);
+    return UserPreferencesMapper.toDto(user.getUserPreferences());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public UserPreferencesDto setUserPreferences(String username, UserPreferencesDto userPreferences)
+      throws UserNotFoundException {
+    User user = getUser(username);
+    user.setUserPreferences(UserPreferencesMapper.toEntity(userPreferences));
+    return userPreferences;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public List<ProviderDto> getTripDeals(String userName) throws UserNotFoundException {
+    User user = getUser(userName);
+    UserPreferences preferences = user.getUserPreferences();
+    int rewardPoints = user.getUserRewards().stream().mapToInt(UserReward::getRewardPoints).sum();
+    List<Provider> providers = tripDealsService.getTripDeals(
+        user.getUserId(),
+        preferences,
+        rewardPoints
+    );
+    user.setTripDeals(providers);
+    return ProviderMapper.toDto(providers);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public NearbyAttractionsListDto getNearByAttractions(String userName) throws UserNotFoundException {
+    User user = getUser(userName);
+    VisitedLocation userLocation = getLastVisitedLocation(user);
+    Map<Attraction, Double> attractionsMap =
+        gpsService.getTopNearbyAttractionsWithDistances(userLocation.location, 5);
+    List<NearbyAttractionDto> attractions = attractionsMap.keySet()
+        .stream()
+        .parallel()
+        .map(attraction -> new NearbyAttractionDto(
+            attraction.attractionName,
+            attraction.latitude,
+            attraction.longitude,
+            attractionsMap.get(attraction),
+            rewardsService.getRewardPoints(attraction, user)
+        ))
+        .collect(Collectors.toList());
+    return new NearbyAttractionsListDto(
+        new LocationDto(userLocation.location.longitude, userLocation.location.latitude),
+        attractions
+    );
   }
 
   @Override
@@ -85,48 +160,6 @@ public class TourGuideServiceImpl implements TourGuideService {
   }
 
   @Override
-  public Map<UUID, LocationDto> getAllCurrentLocations() {
-    return getAllUsers().stream()
-        .collect(Collectors.toMap(
-            User::getUserId,
-            user -> LocationMapper.toDto(getLastVisitedLocation(user).location)
-        ));
-  }
-
-
-  public void addUser(User user) {
-    userRepository.save(user);
-  }
-
-  @Override
-  public List<ProviderDto> getTripDeals(String userName) throws UserNotFoundException {
-    User user = getUser(userName);
-    UserPreferences preferences = user.getUserPreferences();
-    int rewardPoints = user.getUserRewards().stream().mapToInt(UserReward::getRewardPoints).sum();
-    List<Provider> providers = tripDealsService.getTripDeals(
-        user.getUserId(),
-        preferences,
-        rewardPoints
-    );
-    user.setTripDeals(providers);
-    return ProviderMapper.toDto(providers);
-  }
-
-  @Override
-  public UserPreferencesDto getUserPreferences(String username) throws UserNotFoundException {
-    User user = getUser(username);
-    return UserPreferencesMapper.toDto(user.getUserPreferences());
-  }
-
-  @Override
-  public UserPreferencesDto setUserPreferences(String username, UserPreferencesDto userPreferences)
-      throws UserNotFoundException {
-    User user = getUser(username);
-    user.setUserPreferences(UserPreferencesMapper.toEntity(userPreferences));
-    return userPreferences;
-  }
-
-  @Override
   public VisitedLocation trackUserLocation(User user) {
     VisitedLocation visitedLocation = gpsService.getUserLocation(user.getUserId());
     user.addToVisitedLocations(visitedLocation);
@@ -134,29 +167,14 @@ public class TourGuideServiceImpl implements TourGuideService {
     return visitedLocation;
   }
 
-  @Override
-  public NearbyAttractionsListDto getNearByAttractions(String userName) throws UserNotFoundException {
-    User user = getUser(userName);
-    VisitedLocation userLocation = getLastVisitedLocation(user);
+  public void addUser(User user) {
+    userRepository.save(user);
+  }
 
-    Map<Attraction, Double> attractionsMap =
-        gpsService.getTopNearbyAttractionsWithDistances(userLocation.location, 5);
-    List<NearbyAttractionDto> attractions = attractionsMap.keySet()
-        .stream()
-        .parallel()
-        .map(attraction -> new NearbyAttractionDto(
-            attraction.attractionName,
-            attraction.latitude,
-            attraction.longitude,
-            attractionsMap.get(attraction),
-            rewardsService.getRewardPoints(attraction, user)
-        ))
-        .collect(Collectors.toList());
-
-    return new NearbyAttractionsListDto(
-        new LocationDto(userLocation.location.longitude, userLocation.location.latitude),
-        attractions
-    );
+  private VisitedLocation getLastVisitedLocation(User user) {
+    return user.getVisitedLocations().isEmpty() ?
+        trackUserLocation(user) :
+        user.getLastVisitedLocation();
   }
 
 }
