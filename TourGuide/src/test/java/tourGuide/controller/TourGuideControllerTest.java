@@ -17,6 +17,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.jsoniter.output.JsonStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,10 +34,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import tourGuide.dto.AttractionDto;
 import tourGuide.dto.LocationDto;
 import tourGuide.dto.NearbyAttractionsListDto;
 import tourGuide.dto.ProviderDto;
 import tourGuide.dto.UserPreferencesDto;
+import tourGuide.dto.UserRewardDto;
+import tourGuide.dto.VisitedLocationDto;
 import tourGuide.exception.UserNotFoundException;
 import tourGuide.service.TourGuideService;
 import tourGuide.utils.EntitiesTestFactory;
@@ -54,36 +60,98 @@ class TourGuideControllerTest {
   @Captor
   private ArgumentCaptor<UserPreferencesDto> argumentCaptor;
 
-  @DisplayName("GET user trip deals should return 200 with list of provider Dto")
+  @DisplayName("GET user location return 200 with user longitude and latitude")
   @Test
-  void getTripDealsTest() throws Exception {
+  void getLocationTest() throws Exception {
     // GIVEN
-    List<ProviderDto> providerDtos = EntitiesTestFactory.getProvidersDto(UUID.randomUUID());
-    when(tourGuideService.getTripDeals(anyString())).thenReturn(providerDtos);
+    LocationDto locationDto = new LocationDto(45,-45);
+    when(tourGuideService.getUserLocation(anyString())).thenReturn(locationDto);
 
     // WHEN
-    mockMvc.perform(get("/getTripDeals?userName=jon"))
+    mockMvc.perform(get("/getLocation?userName=jon"))
 
         // THEN
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(5)));
-    verify(tourGuideService, times(1)).getTripDeals("jon");
+        .andExpect(jsonPath("$.longitude", is(45.0)))
+        .andExpect(jsonPath("$.latitude", is(-45.0)));
+    verify(tourGuideService, times(1)).getUserLocation("jon");
   }
 
-  @DisplayName("GET not found user trip deals should return 404")
+  @DisplayName("GET not found user location should return 404")
   @Test
-  void getTripDealsNotFoundTest() throws Exception {
+  void getLocationNotFoundTest() throws Exception {
     // GIVEN
-    when(tourGuideService.getTripDeals(anyString())).thenThrow(
+    when(tourGuideService.getUserLocation(anyString())).thenThrow(
         new UserNotFoundException("User not found"));
 
     // WHEN
-    mockMvc.perform(get("/getTripDeals?userName=nonExistent"))
+    mockMvc.perform(get("/getLocation?userName=nonExistent"))
 
         // THEN
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$", is("User not found")));
-    verify(tourGuideService, times(1)).getTripDeals("nonExistent");
+    verify(tourGuideService, times(1)).getUserLocation("nonExistent");
+  }
+
+  @DisplayName("GET all current locations should return 200 with list of user Id and current location")
+  @Test
+  void getAllCurrentLocationsTest() throws Exception {
+    // GIVEN
+    Map<UUID, LocationDto> locationsMap = new HashMap<>();
+    locationsMap.put(new UUID(0, 1), new LocationDto(0, 0));
+    locationsMap.put(new UUID(0, 2), new LocationDto(45, -45));
+    when(tourGuideService.getAllCurrentLocations()).thenReturn(locationsMap);
+
+    // WHEN
+    mockMvc.perform(get("/getAllCurrentLocations"))
+
+        // THEN
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.00000000-0000-0000-0000-000000000001.longitude", is(0.0)))
+        .andExpect(jsonPath("$.00000000-0000-0000-0000-000000000001.latitude", is(0.0)))
+        .andExpect(jsonPath("$.00000000-0000-0000-0000-000000000002.longitude", is(45.0)))
+        .andExpect(jsonPath("$.00000000-0000-0000-0000-000000000002.latitude", is(-45.0)));
+    verify(tourGuideService, times(1)).getAllCurrentLocations();
+  }
+
+  @DisplayName("GET user rewards return 200 with list of rewards dto")
+  @Test
+  void getRewardsTest() throws Exception {
+    // GIVEN
+    VisitedLocationDto visitedLocationDto = new VisitedLocationDto(UUID.randomUUID(), new LocationDto(45,-45), new Date());
+    AttractionDto attractionDto = new AttractionDto(UUID.randomUUID(), 50,-50,"Test1", "city", "state");
+    UserRewardDto userRewardDto = new UserRewardDto(visitedLocationDto, attractionDto, 10);
+    when(tourGuideService.getUserRewards(anyString())).thenReturn(Arrays.asList(userRewardDto));
+
+    // WHEN
+    mockMvc.perform(get("/getRewards?userName=jon"))
+
+        // THEN
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(1)))
+        .andExpect(jsonPath("$[0].visitedLocation.location.longitude", is(45.0)))
+        .andExpect(jsonPath("$[0].visitedLocation.location.latitude", is(-45.0)))
+        .andExpect(jsonPath("$[0].attraction.attractionName", is("Test1")))
+        .andExpect(jsonPath("$[0].attraction.longitude", is(50.0)))
+        .andExpect(jsonPath("$[0].attraction.latitude", is(-50.0)))
+        .andExpect(jsonPath("$[0].rewardPoints", is(10)));
+    verify(tourGuideService, times(1)).getUserRewards("jon");
+  }
+
+  @DisplayName("GET not found user rewards should return 404")
+  @Test
+  void getRewardsNotFoundTest() throws Exception {
+    // GIVEN
+    when(tourGuideService.getUserRewards(anyString())).thenThrow(
+        new UserNotFoundException("User not found"));
+
+    // WHEN
+    mockMvc.perform(get("/getRewards?userName=nonExistent"))
+
+        // THEN
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$", is("User not found")));
+    verify(tourGuideService, times(1)).getUserRewards("nonExistent");
   }
 
   @DisplayName("GET user preferences should return 200 with user preferences Dto")
@@ -191,6 +259,38 @@ class TourGuideControllerTest {
         any(UserPreferencesDto.class));
   }
 
+  @DisplayName("GET user trip deals should return 200 with list of provider Dto")
+  @Test
+  void getTripDealsTest() throws Exception {
+    // GIVEN
+    List<ProviderDto> providerDtos = EntitiesTestFactory.getProvidersDto(UUID.randomUUID());
+    when(tourGuideService.getTripDeals(anyString())).thenReturn(providerDtos);
+
+    // WHEN
+    mockMvc.perform(get("/getTripDeals?userName=jon"))
+
+        // THEN
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(5)));
+    verify(tourGuideService, times(1)).getTripDeals("jon");
+  }
+
+  @DisplayName("GET not found user trip deals should return 404")
+  @Test
+  void getTripDealsNotFoundTest() throws Exception {
+    // GIVEN
+    when(tourGuideService.getTripDeals(anyString())).thenThrow(
+        new UserNotFoundException("User not found"));
+
+    // WHEN
+    mockMvc.perform(get("/getTripDeals?userName=nonExistent"))
+
+        // THEN
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$", is("User not found")));
+    verify(tourGuideService, times(1)).getTripDeals("nonExistent");
+  }
+
   @DisplayName("GET nearby attractions should return 200 with nearby attractions Dto")
   @Test
   void getNearbyAttractionsTest() throws Exception {
@@ -206,8 +306,8 @@ class TourGuideControllerTest {
 
         // THEN
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.userLocation.longitude", is(45)))
-        .andExpect(jsonPath("$.userLocation.latitude", is(-45)))
+        .andExpect(jsonPath("$.userLocation.longitude", is(45.0)))
+        .andExpect(jsonPath("$.userLocation.latitude", is(-45.0)))
         .andExpect(jsonPath("$.attractions", hasSize(5)));
     verify(tourGuideService, times(1)).getNearByAttractions("jon");
   }
@@ -226,27 +326,6 @@ class TourGuideControllerTest {
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$", is("User not found")));
     verify(tourGuideService, times(1)).getNearByAttractions(anyString());
-  }
-
-  @DisplayName("GET all current locations should return 200 with list of user Id and current location")
-  @Test
-  void getAllCurrentLocationsTest() throws Exception {
-    // GIVEN
-    Map<UUID, LocationDto> locationsMap = new HashMap<>();
-    locationsMap.put(new UUID(0, 1), new LocationDto(0, 0));
-    locationsMap.put(new UUID(0, 2), new LocationDto(45, -45));
-    when(tourGuideService.getAllCurrentLocations()).thenReturn(locationsMap);
-
-    // WHEN
-    mockMvc.perform(get("/getAllCurrentLocations"))
-
-        // THEN
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.00000000-0000-0000-0000-000000000001.longitude", is(0.0)))
-        .andExpect(jsonPath("$.00000000-0000-0000-0000-000000000001.latitude", is(0.0)))
-        .andExpect(jsonPath("$.00000000-0000-0000-0000-000000000002.longitude", is(45.0)))
-        .andExpect(jsonPath("$.00000000-0000-0000-0000-000000000002.latitude", is(-45.0)));
-    verify(tourGuideService, times(1)).getAllCurrentLocations();
   }
 
 }
