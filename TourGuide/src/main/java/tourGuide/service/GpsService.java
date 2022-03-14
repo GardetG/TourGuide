@@ -6,6 +6,7 @@ import gpsUtil.location.VisitedLocation;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
+import tourGuide.dto.AttractionDto;
 import tourGuide.dto.LocationDto;
 import tourGuide.dto.VisitedLocationDto;
 import tourGuide.exception.NoLocationFoundException;
@@ -15,8 +16,6 @@ import tourGuide.exception.NoLocationFoundException;
  */
 @Service
 public interface GpsService {
-
-  Map<Attraction, Double> getAttractionsWithDistances(Location location);
 
   Map<Attraction, Double> getTopNearbyAttractionsWithDistances(Location location, int top);
 
@@ -45,6 +44,29 @@ public interface GpsService {
    * @param location location to add
    */
   void addLocation(UUID userId, LocationDto location);
+
+  /**
+   * Return a map of the visited attractions of the user and the corresponding visited location that
+   * was in range of the attraction.
+   *
+   * @param userId of the user
+   * @return Map of the attraction Dto and corresponding visited location Dto
+   */
+  Map<AttractionDto, VisitedLocationDto> getVisitedAttractions(UUID userId);
+
+  /**
+   * Return a map of attractions and their distance from the user sorted from the closest to the
+   * farthest. The limit truncate the list to keep only the closest records.
+   * The limit can't be negative or would throw an IllegalArgumentException.
+   *
+   * @param userId of the user
+   * @param limit number of records
+   * @return Map of attraction Dto with distance
+   * @throws NoLocationFoundException when no user location found
+   * @throws IllegalArgumentException when limit is negative
+   */
+  Map<AttractionDto, Double> getNearbyAttractions(UUID userId, int limit)
+      throws NoLocationFoundException;
 
   /**
    * Return the distance in miles between two location
