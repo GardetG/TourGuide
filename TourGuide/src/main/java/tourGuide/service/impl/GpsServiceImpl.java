@@ -23,6 +23,7 @@ import tourGuide.repository.LocationHistoryRepository;
 import tourGuide.service.GpsService;
 import tourGuide.utils.AttractionMapper;
 import tourGuide.utils.LocationMapper;
+import tourGuide.utils.VisitedLocationMapper;
 
 /**
  * Service implementation class to retrieve users and attractions location and manage distance
@@ -42,15 +43,6 @@ public class GpsServiceImpl implements GpsService {
     this.locationHistoryRepository = locationHistoryRepository;
   }
 
-  private Map<Attraction, Double> getAttractionsWithDistances(Location location) {
-    List<Attraction> attractions = gpsUtil.getAttractions();
-    return attractions.stream()
-        .collect(Collectors.toMap(
-            attraction -> attraction,
-            attraction -> getDistance(attraction, location)
-        ));
-  }
-
   @Override
   public Map<Attraction, Double> getTopNearbyAttractionsWithDistances(Location location, int top) {
     return getAttractionsWithDistances(location).entrySet()
@@ -66,13 +58,8 @@ public class GpsServiceImpl implements GpsService {
    */
   @Override
   public VisitedLocationDto getLastLocation(UUID userId) throws NoLocationFoundException {
-    VisitedLocation lastLocation = locationHistoryRepository.findFirstByIdOrderByDateDesc(userId)
-        .orElseThrow(() ->  new NoLocationFoundException("No location registered for the user yet"));
-    return new VisitedLocationDto(
-        lastLocation.userId,
-        LocationMapper.toDto(lastLocation.location),
-        lastLocation.timeVisited
-    );
+    VisitedLocation lastLocation = getLastVisitedLocation(userId);
+    return VisitedLocationMapper.toDto(lastLocation);
   }
 
   /**
@@ -82,11 +69,7 @@ public class GpsServiceImpl implements GpsService {
   public VisitedLocationDto trackUserLocation(UUID userId) {
     VisitedLocation currentLocation = gpsUtil.getUserLocation(userId);
     locationHistoryRepository.save(currentLocation);
-    return new VisitedLocationDto(
-        currentLocation.userId,
-        LocationMapper.toDto(currentLocation.location),
-        currentLocation.timeVisited
-    );
+    return VisitedLocationMapper.toDto(currentLocation);
   }
 
   /**
@@ -108,15 +91,11 @@ public class GpsServiceImpl implements GpsService {
     Map<AttractionDto, VisitedLocationDto>  visitedAttraction = new HashMap<>();
     attractions.forEach(attraction -> visitedLocations
         .stream()
-        .filter(visitedLocation -> nearAttraction(visitedLocation, attraction))
+        .filter(visitedLocation -> isInRangeOfAttraction(visitedLocation, attraction))
         .findFirst()
         .ifPresent(visitedLocation -> visitedAttraction.put(
             AttractionMapper.toDto(attraction),
-            new VisitedLocationDto(
-                visitedLocation.userId,
-                LocationMapper.toDto(visitedLocation.location),
-                visitedLocation.timeVisited
-            )
+            VisitedLocationMapper.toDto(visitedLocation)
             ))
     );
     return visitedAttraction;
@@ -131,8 +110,7 @@ public class GpsServiceImpl implements GpsService {
     if (limit < 0) {
       throw new IllegalArgumentException("Limit must be positive");
     }
-    VisitedLocation visitedLocation = locationHistoryRepository.findFirstByIdOrderByDateDesc(userId)
-        .orElseThrow(() ->  new NoLocationFoundException("No location registered for the user yet"));
+    VisitedLocation visitedLocation = getLastVisitedLocation(userId);
     return getAttractionsWithDistances(visitedLocation.location).entrySet()
         .stream()
         .sorted(Comparator.comparingDouble(Map.Entry::getValue))
@@ -162,8 +140,22 @@ public class GpsServiceImpl implements GpsService {
     return  TourGuideProperties.STATUTE_MILES_PER_NAUTICAL_MILE * nauticalMiles;
   }
 
-  private boolean nearAttraction(VisitedLocation visitedLocation, Attraction attraction) {
+  private boolean isInRangeOfAttraction(VisitedLocation visitedLocation, Attraction attraction) {
     return getDistance(attraction, visitedLocation.location) < proximityBuffer;
+  }
+
+  private VisitedLocation getLastVisitedLocation(UUID userId) throws NoLocationFoundException {
+    return locationHistoryRepository.findFirstByIdOrderByDateDesc(userId)
+        .orElseThrow(() -> new NoLocationFoundException("No location registered for the user yet"));
+  }
+
+  private Map<Attraction, Double> getAttractionsWithDistances(Location location) {
+    List<Attraction> attractions = gpsUtil.getAttractions();
+    return attractions.stream()
+        .collect(Collectors.toMap(
+            attraction -> attraction,
+            attraction -> getDistance(attraction, location)
+        ));
   }
 
 }
