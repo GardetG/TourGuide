@@ -1,11 +1,11 @@
 package tourGuide.domain;
 
+import gpsUtil.location.VisitedLocation;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-
-import gpsUtil.location.VisitedLocation;
 import tripPricer.Provider;
 
 public class User {
@@ -62,7 +62,8 @@ public class User {
 	}
 	
 	public List<VisitedLocation> getVisitedLocations() {
-		return visitedLocations;
+
+		return Collections.unmodifiableList(new ArrayList<>(visitedLocations));
 	}
 	
 	public void clearVisitedLocations() {
@@ -76,7 +77,7 @@ public class User {
 	}
 	
 	public List<UserReward> getUserRewards() {
-		return userRewards;
+		return Collections.unmodifiableList(new ArrayList<>(userRewards));
 	}
 	
 	public UserPreferences getUserPreferences() {
