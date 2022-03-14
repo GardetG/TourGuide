@@ -52,25 +52,6 @@ class GpsServiceTest {
   @Captor
   ArgumentCaptor<VisitedLocation> visitedLocationCaptor;
 
-  @DisplayName("Get attractions with distances should return a map of attractions and distances")
-  @Test
-  void getAttractionsWithDistancesTest() {
-    // Given
-    Location location = new Location(0, 0);
-    Attraction attraction1 = new Attraction("attraction1", "", "", 0, 0);
-    Attraction attraction2 = new Attraction("attraction2", "", "", 0, 45);
-    when(gpsUtil.getAttractions()).thenReturn(Arrays.asList(attraction1, attraction2));
-
-    // When
-    Map<Attraction, Double> attractionsWithDistance = gpsService.getAttractionsWithDistances(location);
-
-    // Then
-    assertThat(attractionsWithDistance)
-        .hasSize(2)
-        .containsOnlyKeys(attraction1, attraction2)
-        .containsValues(0d, 2700d * TourGuideProperties.STATUTE_MILES_PER_NAUTICAL_MILE);
-  }
-
   @DisplayName("Get Top nearby attractions with distances should return top nearest attractions with distances")
   @Test
   void getTopNearbyAttractionsWithDistancesTest() {
@@ -160,6 +141,69 @@ class GpsServiceTest {
     verify(locationHistoryRepository, times(1)).save(visitedLocationCaptor.capture());
     assertThat(visitedLocationCaptor.getValue().location).isEqualToComparingFieldByFieldRecursively(location);
     assertThat(visitedLocationCaptor.getValue().userId).isEqualTo(userId);
+  }
+
+  @DisplayName("Get visited locations should return map of attractions and first in range visited location")
+  @Test
+  void getVisitedAttractionsTest() {
+    // Given
+    UUID userId = UUID.randomUUID();
+    VisitedLocation location1 = new VisitedLocation(userId, new Location(0,0), new Date());
+    VisitedLocation location2 = new VisitedLocation(userId, new Location(0,0), new Date());
+    VisitedLocationDto locationDto = new VisitedLocationDto(userId, new LocationDto(0,0), location1.timeVisited);
+    Attraction attraction1 = new Attraction("attraction1", "","",0,0);
+    AttractionDto attractionDto1 = new AttractionDto(attraction1.attractionId,0,0,"attraction1","","");
+    when(locationHistoryRepository.findById(any(UUID.class))).thenReturn(Arrays.asList(location1, location2));
+    when(gpsUtil.getAttractions()).thenReturn(Collections.singletonList(attraction1));
+
+    // When
+    Map<AttractionDto, VisitedLocationDto> visitedAttractions = gpsService.getVisitedAttractions(userId);
+
+    // Then
+    assertThat(visitedAttractions).hasSize(1);
+    assertThat(visitedAttractions.keySet()).usingRecursiveFieldByFieldElementComparator()
+        .containsOnly(attractionDto1);
+    assertThat(visitedAttractions.values()).usingRecursiveFieldByFieldElementComparator()
+        .containsOnly(locationDto);
+    verify(locationHistoryRepository, times(1)).findById(userId);
+    verify(gpsUtil, times(1)).getAttractions();
+  }
+
+  @DisplayName("Get visited locations when no visited location in range should return an empty map")
+  @Test
+  void getVisitedAttractionsWhenNoLocationInRangeTest() {
+    // Given
+    UUID userId = UUID.randomUUID();
+    VisitedLocation location = new VisitedLocation(userId, new Location(90,0), new Date());
+    Attraction attraction = new Attraction("attraction1", "","",0,0);
+    when(locationHistoryRepository.findById(any(UUID.class))).thenReturn(Collections.singletonList(location));
+    when(gpsUtil.getAttractions()).thenReturn(Collections.singletonList(attraction));
+
+    // When
+    Map<AttractionDto, VisitedLocationDto> visitedAttractions = gpsService.getVisitedAttractions(userId);
+
+    // Then
+    assertThat(visitedAttractions).isEmpty();
+    verify(locationHistoryRepository, times(1)).findById(userId);
+    verify(gpsUtil, times(1)).getAttractions();
+  }
+
+  @DisplayName("Get visited location without registered locations should return an empty map")
+  @Test
+  void getVisitedAttractionsWhenNoLocationsTest() {
+    // Given
+    UUID userId = UUID.randomUUID();
+    Attraction attraction = new Attraction("test", "","",90,-90);
+    when(locationHistoryRepository.findById(any(UUID.class))).thenReturn(new ArrayList<>());
+    when(gpsUtil.getAttractions()).thenReturn(Collections.singletonList(attraction));
+
+    // When
+    Map<AttractionDto, VisitedLocationDto> visitedAttractions = gpsService.getVisitedAttractions(userId);
+
+    // Then
+    assertThat(visitedAttractions).isEmpty();
+    verify(locationHistoryRepository, times(1)).findById(userId);
+    verify(gpsUtil, times(1)).getAttractions();
   }
 
   @DisplayName("Get distance between two locations should return distance in miles")
