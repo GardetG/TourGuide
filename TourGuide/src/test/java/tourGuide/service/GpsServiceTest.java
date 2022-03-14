@@ -206,6 +206,66 @@ class GpsServiceTest {
     verify(gpsUtil, times(1)).getAttractions();
   }
 
+  @DisplayName("Get nearby attractions with distances should return nearest attractions with distances")
+  @Test
+  void getNearbyAttractionsTest() throws Exception {
+    // Given
+    UUID userId = UUID.randomUUID();
+    VisitedLocation location = new VisitedLocation(userId, new Location(0, 0), new Date());
+    int limit = 2;
+    Attraction attraction1 = new Attraction("attraction1", "", "", 0, -90);
+    Attraction attraction2 = new Attraction("attraction2", "", "", 0, 0);
+    Attraction attraction3 = new Attraction("attraction3", "", "", 0, 45);
+    AttractionDto expectedAttraction1 = new AttractionDto(attraction2.attractionId, 0,0, "attraction2", "","");
+    AttractionDto expectedAttraction2 = new AttractionDto(attraction3.attractionId, 45,0, "attraction3", "","");
+    when(locationHistoryRepository.findFirstByIdOrderByDateDesc(any(UUID.class))).thenReturn(Optional.of(location));
+    when(gpsUtil.getAttractions()).thenReturn(Arrays.asList(attraction1, attraction2, attraction3));
+
+    // When
+    Map<AttractionDto, Double> attractionsWithDistance = gpsService.getNearbyAttractions(userId, limit);
+
+    // Then
+    assertThat(attractionsWithDistance)
+        .hasSize(limit)
+        .containsValues(0d, 2700d * TourGuideProperties.STATUTE_MILES_PER_NAUTICAL_MILE);
+    assertThat(attractionsWithDistance.keySet())
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(expectedAttraction1, expectedAttraction2);
+    verify(locationHistoryRepository, times(1)).findFirstByIdOrderByDateDesc(userId);
+    verify(gpsUtil, times(1)).getAttractions();
+  }
+
+  @DisplayName("Get nearby attractions when no location registered should throw an exception")
+  @Test
+  void getNearbyAttractionsWhenEmptyTest() {
+    // Given
+    UUID userId = UUID.randomUUID();
+    int limit = 2;
+    when(locationHistoryRepository.findFirstByIdOrderByDateDesc(any(UUID.class))).thenReturn(Optional.empty());
+
+    // Then
+    assertThatThrownBy(() -> gpsService.getNearbyAttractions(userId,limit))
+        .isInstanceOf(NoLocationFoundException.class)
+        .hasMessageContaining("No location registered for the user yet");
+    verify(locationHistoryRepository, times(1)).findFirstByIdOrderByDateDesc(userId);
+    verify(gpsUtil, times(0)).getAttractions();
+  }
+
+  @DisplayName("Get nearby attractions when limit negative should throw an exception")
+  @Test
+  void getNearbyAttractionsWhenInvalidLimitTest() {
+    // Given
+    UUID userId = UUID.randomUUID();
+    int limit = -1;
+
+    // Then
+    assertThatThrownBy(() -> gpsService.getNearbyAttractions(userId,limit))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Limit must be positive");
+    verify(locationHistoryRepository, times(0)).findFirstByIdOrderByDateDesc(any(UUID.class));
+    verify(gpsUtil, times(0)).getAttractions();
+  }
+
   @DisplayName("Get distance between two locations should return distance in miles")
   @ParameterizedTest(name = "Distance between 0,0 and {0},{1} equals {2} nmi")
   @CsvSource({"0,0,0", "0,45,2700", "0,-45,2700", "0,90,5400", "45,0,2700", "-45,0,2700",
