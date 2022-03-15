@@ -273,7 +273,7 @@ class TourGuideServiceTest {
     when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
     when(gpsService.getTopNearbyAttractionsWithDistances(any(Location.class),anyInt()))
         .thenReturn(EntitiesTestFactory.getAttractionsWithDistance());
-    when(rewardsService.getRewardPoints(any(Attraction.class), any(User.class))).thenReturn(100);
+    when(rewardsService.getRewardPoints(any(UUID.class), any(UUID.class))).thenReturn(100);
 
 
     // When
@@ -286,7 +286,7 @@ class TourGuideServiceTest {
         .usingFieldByFieldElementComparator().containsOnlyElementsOf(EntitiesTestFactory.getAttractionsDto());
     verify(userRepository, times(1)).findByUsername("jon");
     verify(gpsService, times(1)).getTopNearbyAttractionsWithDistances(userLocation.location,5);
-    verify(rewardsService, times(5)).getRewardPoints(any(Attraction.class), any(User.class));
+    verify(rewardsService, times(5)).getRewardPoints(any(UUID.class), any(UUID.class));
   }
 
   @DisplayName("Set nearby attractions of non found user should throw an exception")

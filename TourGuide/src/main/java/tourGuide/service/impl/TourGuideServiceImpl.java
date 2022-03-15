@@ -136,7 +136,7 @@ public class TourGuideServiceImpl implements TourGuideService {
             attraction.latitude,
             attraction.longitude,
             attractionsMap.get(attraction),
-            rewardsService.getRewardPoints(attraction, user)
+            rewardsService.getRewardPoints(attraction.attractionId, user.getUserId())
         ))
         .collect(Collectors.toList());
     return new NearbyAttractionsListDto(
