@@ -26,4 +26,18 @@ public class VisitedLocationMapper {
     );
   }
 
+  /**
+   * Map a VisitedLocation Dto into entity.
+   *
+   * @param visitedLocationDto to map
+   * @return corresponding VisitedLocation mapped
+   */
+  public static VisitedLocation toEntity(VisitedLocationDto visitedLocationDto) {
+    return new VisitedLocation(
+        visitedLocationDto.getUserId(),
+        LocationMapper.toEntity(visitedLocationDto.getLocation()),
+        visitedLocationDto.getTimeVisited()
+    );
+  }
+
 }

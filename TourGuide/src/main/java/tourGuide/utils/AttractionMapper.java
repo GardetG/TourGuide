@@ -29,4 +29,20 @@ public class AttractionMapper {
     );
   }
 
+  /**
+   * Map a Attraction Dto into entity.
+   *
+   * @param attractionDto to map
+   * @return corresponding Attraction mapped
+   */
+  public static Attraction toEntity(AttractionDto attractionDto) {
+    return new Attraction(
+        attractionDto.getAttractionName(),
+        attractionDto.getCity(),
+        attractionDto.getState(),
+        attractionDto.getLatitude(),
+        attractionDto.getLongitude()
+    );
+  }
+
 }
