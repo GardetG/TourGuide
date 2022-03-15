@@ -19,7 +19,9 @@ import tourGuide.dto.UserRewardDto;
 import tourGuide.dto.VisitedLocationDto;
 import tourGuide.repository.RewardsRepository;
 import tourGuide.service.RewardsService;
+import tourGuide.utils.AttractionMapper;
 import tourGuide.utils.UserRewardMapper;
+import tourGuide.utils.VisitedLocationMapper;
 
 @Service
 public class RewardsServiceImpl implements RewardsService {
@@ -125,7 +127,16 @@ public class RewardsServiceImpl implements RewardsService {
 	@Override
 	public void calculateRewards(UUID userId,
 								 Map<AttractionDto, VisitedLocationDto> visitedAttractionsToReward) {
-
+		List<UserReward> rewards =  visitedAttractionsToReward.entrySet()
+				.stream()
+				.map(entry -> new UserReward(
+						VisitedLocationMapper.toEntity(entry.getValue()),
+						AttractionMapper.toEntity(entry.getKey()),
+						getRewardPoints(entry.getKey().getAttractionId(), entry.getValue()
+								.getUserId())
+				))
+				.collect(Collectors.toList());
+		rewards.forEach(rewardsRepository::save);
 	}
 
 }
