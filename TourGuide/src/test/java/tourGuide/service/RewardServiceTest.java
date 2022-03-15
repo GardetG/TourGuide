@@ -6,7 +6,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import gpsUtil.GpsUtil;
 import gpsUtil.location.Attraction;
 import gpsUtil.location.Location;
 import gpsUtil.location.VisitedLocation;
@@ -14,16 +13,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import rewardCentral.RewardCentral;
-import tourGuide.domain.User;
 import tourGuide.domain.UserReward;
 import tourGuide.dto.AttractionDto;
 import tourGuide.dto.LocationDto;
@@ -42,6 +44,9 @@ class RewardServiceTest {
   private RewardCentral rewardCentral;
   @MockBean
   private RewardsRepository rewardsRepository;
+
+  @Captor
+  ArgumentCaptor<UserReward> userRewardCaptor;
 
   @DisplayName("Get all user rewards should return list of rewards Dto")
   @Test
@@ -117,20 +122,58 @@ class RewardServiceTest {
     verify(rewardsRepository, times(1)).findById(userId);
   }
 
-  @DisplayName("Get user location should return user location from GpsUtil library")
+  @DisplayName("Get total rewards points when no rewards registered should return 0")
   @Test
-  void getUserLocationTest() {
+  void calculateRewardsTest() {
     // Given
-    User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
-    Attraction attraction = new Attraction("attraction", "", "", 0,0);
+    UUID userId = UUID.randomUUID();
+    UUID attractionId = UUID.randomUUID();
+    Date date = new Date();
+    AttractionDto attraction = new AttractionDto(attractionId, 0,0, "attraction", "", "");
+    VisitedLocationDto location = new VisitedLocationDto(userId, new LocationDto(0,0), date);
+    Map<AttractionDto, VisitedLocationDto> attractionToReward = new HashMap<>();
+    attractionToReward.put(attraction, location);
     when(rewardCentral.getAttractionRewardPoints(any(UUID.class), any(UUID.class))).thenReturn(10);
 
     // When
-    int rewardPoints = rewardsService.getRewardPoints(attraction.attractionId, user.getUserId());
+    rewardsService.calculateRewards(userId, attractionToReward);
+
+    //Then
+    verify(rewardsRepository, times(1)).save(userRewardCaptor.capture());
+    assertThat(userRewardCaptor.getValue().visitedLocation)
+        .isEqualToComparingFieldByFieldRecursively(new VisitedLocation(userId, new Location(0,0), date));
+    assertThat(userRewardCaptor.getValue().attraction.attractionName).isEqualTo("attraction");
+    assertThat(userRewardCaptor.getValue().getRewardPoints()).isEqualTo(10);
+  }
+
+  @DisplayName("Calculate reward when no attraction to reward should not registered any reward")
+  @Test
+  void calculateRewardsWhenEmptyTest() {
+    // Given
+    UUID userId = UUID.randomUUID();
+    Map<AttractionDto, VisitedLocationDto> attractionToReward = new HashMap<>();
+
+    // When
+    rewardsService.calculateRewards(userId, attractionToReward);
+
+    //Then
+    verify(rewardsRepository, times(0)).save(any(UserReward.class));
+  }
+
+  @DisplayName("Get reward points should return points for the corresponding user and attraction")
+  @Test
+  void getRewardPointsTest() {
+    // Given
+    UUID userId = UUID.randomUUID();
+    UUID attractionId = UUID.randomUUID();
+    when(rewardCentral.getAttractionRewardPoints(any(UUID.class), any(UUID.class))).thenReturn(10);
+
+    // When
+    int rewardPoints = rewardsService.getRewardPoints(attractionId, userId);
 
     // Then
     assertThat(rewardPoints).isEqualTo(10);
-    verify(rewardCentral, times(1)).getAttractionRewardPoints(attraction.attractionId, user.getUserId());
+    verify(rewardCentral, times(1)).getAttractionRewardPoints(attractionId, userId);
   }
 
 }
