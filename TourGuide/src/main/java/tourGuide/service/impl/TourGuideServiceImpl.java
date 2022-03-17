@@ -20,13 +20,13 @@ import tourGuide.dto.ProviderDto;
 import tourGuide.dto.UserPreferencesDto;
 import tourGuide.dto.UserRewardDto;
 import tourGuide.dto.VisitedLocationDto;
+import tourGuide.exception.NoLocationFoundException;
 import tourGuide.exception.UserNotFoundException;
 import tourGuide.repository.UserRepository;
 import tourGuide.service.GpsService;
 import tourGuide.service.RewardsService;
 import tourGuide.service.TourGuideService;
 import tourGuide.service.TripDealsService;
-import tourGuide.utils.LocationMapper;
 import tourGuide.utils.ProviderMapper;
 import tourGuide.utils.UserPreferencesMapper;
 import tourGuide.utils.UserRewardMapper;
@@ -58,9 +58,9 @@ public class TourGuideServiceImpl implements TourGuideService {
    */
   @Override
   public LocationDto getUserLocation(String userName) throws UserNotFoundException {
-    User user = getUser(userName);
-    VisitedLocation visitedLocation = getLastVisitedLocation(user);
-    return LocationMapper.toDto(visitedLocation.location);
+    UUID userId = getUser(userName).getUserId();
+    VisitedLocationDto visitedLocation = getLastVisitedLocation(userId);
+    return visitedLocation.getLocation();
   }
 
   /**
@@ -71,7 +71,7 @@ public class TourGuideServiceImpl implements TourGuideService {
     return getAllUsers().stream()
         .collect(Collectors.toMap(
             User::getUserId,
-            user -> LocationMapper.toDto(getLastVisitedLocation(user).location)
+            user -> getLastVisitedLocation(user.getUserId()).getLocation()
         ));
   }
 
@@ -194,6 +194,15 @@ public class TourGuideServiceImpl implements TourGuideService {
     return user.getVisitedLocations().isEmpty() ?
         trackUserLocation(user) :
         user.getLastVisitedLocation();
+  }
+
+  private VisitedLocationDto getLastVisitedLocation(UUID userId) {
+    try {
+      return gpsService.getLastLocation(userId);
+    } catch (NoLocationFoundException e) {
+      LOGGER.warn("User {} location not found, track current location", userId);
+      return trackUserLocation(userId);
+    }
   }
 
 }
