@@ -36,6 +36,7 @@ import tourGuide.dto.ProviderDto;
 import tourGuide.dto.UserPreferencesDto;
 import tourGuide.dto.UserRewardDto;
 import tourGuide.dto.VisitedLocationDto;
+import tourGuide.exception.NoLocationFoundException;
 import tourGuide.exception.UserNotFoundException;
 import tourGuide.repository.UserRepository;
 import tourGuide.utils.EntitiesTestFactory;
@@ -56,6 +57,98 @@ class TourGuideServiceTest {
   private GpsService gpsService;
   @MockBean
   private RewardsService rewardsService;
+
+  @DisplayName("Get user location should return last location dto")
+  @Test
+  void getUserLocationTest() throws Exception {
+    // Given
+    User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
+    LocationDto location = new LocationDto(45,-45);
+    when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+    when(gpsService.getLastLocation(any(UUID.class)))
+        .thenReturn(new VisitedLocationDto(user.getUserId(), location, new Date()));
+
+    // When
+    LocationDto actualDto = tourGuideService.getUserLocation("jon");
+
+    //Then
+    assertThat(actualDto).isEqualToComparingFieldByField(location);
+    verify(userRepository, times(1)).findByUsername("jon");
+    verify(gpsService, times(1)).getLastLocation(user.getUserId());
+  }
+
+  @DisplayName("Get user location when no location registered should return last tracked location dto")
+  @Test
+  void getUserLocationWhenNoLocationTest() throws Exception {
+    // Given
+    User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
+    LocationDto location = new LocationDto(45,-45);
+    when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+    when(gpsService.getLastLocation(any(UUID.class))).thenThrow(new NoLocationFoundException("No user locations found"));
+    when(gpsService.trackUserLocation(any(UUID.class))).thenReturn(new VisitedLocationDto(user.getUserId(), location, new Date()));
+
+    // When
+    LocationDto actualDto = tourGuideService.getUserLocation("jon");
+
+    //Then
+    assertThat(actualDto).isEqualToComparingFieldByField(location);
+    verify(userRepository, times(1)).findByUsername("jon");
+    verify(gpsService, times(1)).getLastLocation(user.getUserId());
+    verify(gpsService, times(1)).trackUserLocation(user.getUserId());
+  }
+
+  @DisplayName("Get user location of non found user should throw an exception")
+  @Test
+  void getUserLocationNotFoundTest() {
+    // Given
+    when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
+
+    // Then
+    assertThatThrownBy(() -> tourGuideService.getUserLocation("nonExistent"))
+        .isInstanceOf(UserNotFoundException.class)
+        .hasMessageContaining("User not found");
+    verify(userRepository, times(1)).findByUsername("nonExistent");
+  }
+
+  @DisplayName("Get all users current locations should return a map of userId and location")
+  @Test
+  void getAllCurrentLocationsTest() throws Exception {
+    // Given
+    Map<UUID, LocationDto> expectedMap = new HashMap<>();
+
+    User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
+    VisitedLocationDto user1Location = new VisitedLocationDto(user.getUserId(), new LocationDto(0,0), new Date());
+    expectedMap.put(user.getUserId(),user1Location.getLocation());
+
+    User user2 = new User(UUID.randomUUID(), "jon2", "000", "jon2@tourGuide.com");
+    VisitedLocationDto user2Location = new VisitedLocationDto(user2.getUserId(), new LocationDto(45,45), new Date());
+    expectedMap.put(user2.getUserId(), user2Location.getLocation());
+
+    when(userRepository.findAll()).thenReturn(Arrays.asList(user, user2));
+    when(gpsService.getLastLocation(any(UUID.class))).thenReturn(user1Location).thenReturn(user2Location);
+
+    // When
+    Map<UUID, LocationDto> actualMap = tourGuideService.getAllCurrentLocations();
+
+    // Then
+    assertThat(actualMap.entrySet()).usingRecursiveFieldByFieldElementComparator().isEqualTo(expectedMap.entrySet());
+    verify(userRepository, times(1)).findAll();
+    verify(gpsService, times(2)).getLastLocation(any(UUID.class));
+  }
+
+  @DisplayName("Get all users current locations when no users available should return an empty map")
+  @Test
+  void getAllCurrentLocationsWhenEmptyTest() {
+    // Given
+    when(userRepository.findAll()).thenReturn(new ArrayList<>());
+
+    // When
+    Map<UUID, LocationDto> actualMap = tourGuideService.getAllCurrentLocations();
+
+    // Then
+    assertThat(actualMap).isEmpty();
+    verify(userRepository, times(1)).findAll();
+  }
 
   @DisplayName("Get user rewards should return list of reward dto")
   @Test
@@ -86,36 +179,6 @@ class TourGuideServiceTest {
 
     // Then
     assertThatThrownBy(() -> tourGuideService.getUserRewards("nonExistent"))
-        .isInstanceOf(UserNotFoundException.class)
-        .hasMessageContaining("User not found");
-    verify(userRepository, times(1)).findByUsername("nonExistent");
-  }
-
-  @DisplayName("Get user location should return last location dto")
-  @Test
-  void getUserLocationTest() throws Exception {
-    // Given
-    User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
-    user.addToVisitedLocations(new VisitedLocation(user.getUserId(), new Location(0,0), new Date()));
-    user.addToVisitedLocations(new VisitedLocation(user.getUserId(), new Location(45,-45), new Date()));
-    when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
-
-    // When
-    LocationDto actualDto = tourGuideService.getUserLocation("jon");
-
-    //Then
-    assertThat(actualDto).isEqualToComparingFieldByField(new LocationDto(-45,45));
-    verify(userRepository, times(1)).findByUsername("jon");
-  }
-
-  @DisplayName("Get user location of non found user should throw an exception")
-  @Test
-  void getUserLocationNotFoundTest() {
-    // Given
-    when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
-
-    // Then
-    assertThatThrownBy(() -> tourGuideService.getUserLocation("nonExistent"))
         .isInstanceOf(UserNotFoundException.class)
         .hasMessageContaining("User not found");
     verify(userRepository, times(1)).findByUsername("nonExistent");
@@ -301,41 +364,6 @@ class TourGuideServiceTest {
         .isInstanceOf(UserNotFoundException.class)
         .hasMessageContaining("User not found");
     verify(userRepository, times(1)).findByUsername("nonExistent");
-  }
-
-  @DisplayName("Get all users current locations should return a map of userId and location")
-  @Test
-  void getAllCurrentLocationsTest() {
-    // Given
-    Map<UUID, LocationDto> expectedMap = new HashMap<>();
-    User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
-    User user2 = new User(UUID.randomUUID(), "jon2", "000", "jon2@tourGuide.com");
-    user.addToVisitedLocations(new VisitedLocation(user.getUserId(), new Location(0,0), new Date()));
-    expectedMap.put(user.getUserId(), new LocationDto(0,0));
-    user2.addToVisitedLocations(new VisitedLocation(user2.getUserId(), new Location(45,45), new Date()));
-    expectedMap.put(user2.getUserId(), new LocationDto(45,45));
-    when(userRepository.findAll()).thenReturn(Arrays.asList(user, user2));
-
-    // When
-    Map<UUID, LocationDto> actualMap = tourGuideService.getAllCurrentLocations();
-
-    // Then
-    assertThat(actualMap.entrySet()).usingRecursiveFieldByFieldElementComparator().isEqualTo(expectedMap.entrySet());
-    verify(userRepository, times(1)).findAll();
-  }
-
-  @DisplayName("Get all users current locations when no users available should return an empty map")
-  @Test
-  void getAllCurrentLocationsWhenEmptyTest() {
-    // Given
-    when(userRepository.findAll()).thenReturn(new ArrayList<>());
-
-    // When
-    Map<UUID, LocationDto> actualMap = tourGuideService.getAllCurrentLocations();
-
-    // Then
-    assertThat(actualMap).isEmpty();
-    verify(userRepository, times(1)).findAll();
   }
 
   @DisplayName("Track user location should return current visited location Dto")
