@@ -59,7 +59,10 @@ public class Tracker implements Runnable {
     List<User> users = tourGuideService.getAllUsers();
     LOGGER.debug("Begin Tracker. Tracking {} users.", users.size());
     stopWatch.start();
-    users.forEach(u -> tourGuideService.trackUserLocation(u));
+    users.forEach(u -> {
+      tourGuideService.trackUserLocation(u.getUserId());
+      tourGuideService.calculateRewards(u.getUserId());
+    });
     stopWatch.stop();
     LOGGER.debug("Tracker Time Elapsed: {} seconds.", TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
     stopWatch.reset();
