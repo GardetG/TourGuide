@@ -338,4 +338,39 @@ class TourGuideServiceTest {
     verify(userRepository, times(1)).findAll();
   }
 
+  @DisplayName("Track user location should return current visited location Dto")
+  @Test
+  void trackUserLocationTest() {
+    // Given
+    UUID userId = UUID.randomUUID();
+    VisitedLocationDto visitedLocation = new VisitedLocationDto(userId, new LocationDto(0,0), new Date());
+    when(gpsService.trackUserLocation(any(UUID.class))).thenReturn(visitedLocation);
+
+    // When
+    VisitedLocationDto actualDto = tourGuideService.trackUserLocation(userId);
+
+    //Then
+    assertThat(actualDto).isEqualToComparingFieldByFieldRecursively(visitedLocation);
+    verify(gpsService, times(1)).trackUserLocation(userId);
+  }
+
+  @DisplayName("calculate user rewards should retrieve visited location and calculate rewards")
+  @Test
+  void calculateRewardsTest() {
+    // Given
+    UUID userId = UUID.randomUUID();
+    VisitedLocationDto visitedLocation = new VisitedLocationDto(userId, new LocationDto(0,0), new Date());
+    AttractionDto attraction = new AttractionDto(UUID.randomUUID(),0,0,"attraction", "", "");
+    Map<AttractionDto, VisitedLocationDto> attractionToReward = new HashMap<>();
+    attractionToReward.put(attraction, visitedLocation);
+    when(gpsService.getVisitedAttractions(any(UUID.class))).thenReturn(attractionToReward);
+
+    // When
+    tourGuideService.calculateRewards(userId);
+
+    //Then
+    verify(gpsService, times(1)).getVisitedAttractions(userId);
+    verify(rewardsService, times(1)).calculateRewards(userId, attractionToReward);
+  }
+
 }
