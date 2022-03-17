@@ -12,12 +12,14 @@ import org.springframework.stereotype.Service;
 import tourGuide.domain.User;
 import tourGuide.domain.UserPreferences;
 import tourGuide.domain.UserReward;
-import tourGuide.dto.NearbyAttractionDto;
+import tourGuide.dto.AttractionDto;
 import tourGuide.dto.LocationDto;
+import tourGuide.dto.NearbyAttractionDto;
 import tourGuide.dto.NearbyAttractionsListDto;
 import tourGuide.dto.ProviderDto;
 import tourGuide.dto.UserPreferencesDto;
 import tourGuide.dto.UserRewardDto;
+import tourGuide.dto.VisitedLocationDto;
 import tourGuide.exception.UserNotFoundException;
 import tourGuide.repository.UserRepository;
 import tourGuide.service.GpsService;
@@ -165,6 +167,23 @@ public class TourGuideServiceImpl implements TourGuideService {
     user.addToVisitedLocations(visitedLocation);
     rewardsService.calculateRewards(user);
     return visitedLocation;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public VisitedLocationDto trackUserLocation(UUID userId) {
+    return gpsService.trackUserLocation(userId);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void calculateRewards(UUID userId) {
+    Map<AttractionDto, VisitedLocationDto> attractionToReward = gpsService.getVisitedAttractions(userId);
+    rewardsService.calculateRewards(userId, attractionToReward);
   }
 
   public void addUser(User user) {
