@@ -11,6 +11,7 @@ import tourGuide.dto.NearbyAttractionsListDto;
 import tourGuide.dto.ProviderDto;
 import tourGuide.dto.UserPreferencesDto;
 import tourGuide.dto.UserRewardDto;
+import tourGuide.dto.VisitedLocationDto;
 import tourGuide.exception.UserNotFoundException;
 
 /**
@@ -89,5 +90,20 @@ public interface TourGuideService {
   List<User> getAllUsers();
 
   VisitedLocation trackUserLocation(User user);
+
+  /**
+   * Track the current user location and return the current visited location Dto.
+   *
+   * @param userId of the user
+   * @return Visited location Dto
+   */
+  VisitedLocationDto trackUserLocation(UUID userId);
+
+  /**
+   * Calculate and update the user rewards.
+   *
+   * @param userId of the user
+   */
+  void calculateRewards(UUID userId);
 
 }
