@@ -1,6 +1,5 @@
 package tourGuide.service.impl;
 
-import gpsUtil.location.Attraction;
 import gpsUtil.location.VisitedLocation;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import tourGuide.domain.User;
 import tourGuide.domain.UserPreferences;
-import tourGuide.domain.UserReward;
 import tourGuide.dto.AttractionDto;
 import tourGuide.dto.LocationDto;
 import tourGuide.dto.NearbyAttractionDto;
@@ -29,7 +27,6 @@ import tourGuide.service.TourGuideService;
 import tourGuide.service.TripDealsService;
 import tourGuide.utils.ProviderMapper;
 import tourGuide.utils.UserPreferencesMapper;
-import tourGuide.utils.UserRewardMapper;
 import tripPricer.Provider;
 
 /**
@@ -80,8 +77,8 @@ public class TourGuideServiceImpl implements TourGuideService {
    */
   @Override
   public List<UserRewardDto> getUserRewards(String userName) throws UserNotFoundException {
-    User user = getUser(userName);
-    return UserRewardMapper.toDto(user.getUserRewards());
+    UUID userId = getUser(userName).getUserId();
+    return rewardsService.getAllRewards(userId);
   }
 
   /**
@@ -111,9 +108,10 @@ public class TourGuideServiceImpl implements TourGuideService {
   public List<ProviderDto> getTripDeals(String userName) throws UserNotFoundException {
     User user = getUser(userName);
     UserPreferences preferences = user.getUserPreferences();
-    int rewardPoints = user.getUserRewards().stream().mapToInt(UserReward::getRewardPoints).sum();
+    UUID attractionId = getClosestAttraction(user.getUserId()).getAttractionId();
+    int rewardPoints = rewardsService.getTotalRewardPoints(user.getUserId());
     List<Provider> providers = tripDealsService.getTripDeals(
-        user.getUserId(),
+        attractionId,
         preferences,
         rewardPoints
     );
@@ -126,23 +124,22 @@ public class TourGuideServiceImpl implements TourGuideService {
    */
   @Override
   public NearbyAttractionsListDto getNearByAttractions(String userName) throws UserNotFoundException {
-    User user = getUser(userName);
-    VisitedLocation userLocation = getLastVisitedLocation(user);
-    Map<Attraction, Double> attractionsMap =
-        gpsService.getTopNearbyAttractionsWithDistances(userLocation.location, 5);
+    UUID userId = getUser(userName).getUserId();
+    LocationDto userLocation = getLastVisitedLocation(userId).getLocation();
+    Map<AttractionDto, Double> attractionsMap = getNearbyAttractions(userId, 5);
     List<NearbyAttractionDto> attractions = attractionsMap.keySet()
         .stream()
         .parallel()
         .map(attraction -> new NearbyAttractionDto(
-            attraction.attractionName,
-            attraction.latitude,
-            attraction.longitude,
+            attraction.getAttractionName(),
+            attraction.getLatitude(),
+            attraction.getLongitude(),
             attractionsMap.get(attraction),
-            rewardsService.getRewardPoints(attraction.attractionId, user.getUserId())
+            rewardsService.getRewardPoints(attraction.getAttractionId(), userId)
         ))
         .collect(Collectors.toList());
     return new NearbyAttractionsListDto(
-        new LocationDto(userLocation.location.longitude, userLocation.location.latitude),
+        new LocationDto(userLocation.getLongitude(), userLocation.getLatitude()),
         attractions
     );
   }
@@ -190,18 +187,40 @@ public class TourGuideServiceImpl implements TourGuideService {
     userRepository.save(user);
   }
 
-  private VisitedLocation getLastVisitedLocation(User user) {
-    return user.getVisitedLocations().isEmpty() ?
-        trackUserLocation(user) :
-        user.getLastVisitedLocation();
-  }
-
   private VisitedLocationDto getLastVisitedLocation(UUID userId) {
     try {
       return gpsService.getLastLocation(userId);
     } catch (NoLocationFoundException e) {
       LOGGER.warn("User {} location not found, track current location", userId);
       return trackUserLocation(userId);
+    }
+  }
+
+  private AttractionDto getClosestAttraction(UUID userId) {
+    return getNearbyAttractions(userId, 1)
+        .entrySet()
+        .stream()
+        .findFirst()
+        .orElseThrow(() -> {
+          LOGGER.error("Unable to retrieve user {} closest attraction", userId);
+          return new IllegalStateException("Unable to retrieve user closest attraction");
+        })
+        .getKey();
+  }
+
+  private Map<AttractionDto, Double> getNearbyAttractions(UUID userId, int limit) {
+    try {
+      return gpsService.getNearbyAttractions(userId, limit);
+    } catch (NoLocationFoundException e) {
+      LOGGER.warn("User {} location not found, track current location", userId);
+      trackUserLocation(userId);
+    }
+
+    try {
+      return gpsService.getNearbyAttractions(userId, limit);
+    } catch (NoLocationFoundException e) {
+      LOGGER.error("Unable to retrieve user {} nearby attractions", userId);
+      throw new IllegalArgumentException("Unable to retrieve user nearby attractions");
     }
   }
 
