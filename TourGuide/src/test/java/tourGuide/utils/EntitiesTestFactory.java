@@ -7,6 +7,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import tourGuide.dto.AttractionDto;
 import tourGuide.dto.NearbyAttractionDto;
 import tourGuide.dto.ProviderDto;
 import tripPricer.Provider;
@@ -28,10 +29,10 @@ public class EntitiesTestFactory {
   }
 
   // Return a Map of 5 Attractions with distance for testing purposes
-  public static Map<Attraction, Double> getAttractionsWithDistance() {
+  public static Map<AttractionDto, Double> getAttractionsWithDistance() {
     return IntStream.range(0,5)
-        .mapToObj(index -> new Attraction("Attraction"+index, "", "", 0, index*50))
-        .collect(Collectors.toMap(Function.identity(), attraction -> attraction.longitude ));
+        .mapToObj(index -> new AttractionDto(UUID.randomUUID(),index*50,0, "Attraction"+index, "", ""))
+        .collect(Collectors.toMap(Function.identity(), AttractionDto::getLongitude));
   }
 
   // Return a List of 5 AttractionsDto
