@@ -158,14 +158,6 @@ public class TourGuideServiceImpl implements TourGuideService {
     return userRepository.findAll();
   }
 
-  @Override
-  public VisitedLocation trackUserLocation(User user) {
-    VisitedLocation visitedLocation = gpsService.getUserLocation(user.getUserId());
-    user.addToVisitedLocations(visitedLocation);
-    rewardsService.calculateRewards(user);
-    return visitedLocation;
-  }
-
   /**
    * {@inheritDoc}
    */

@@ -1,6 +1,5 @@
 package tourGuide.service;
 
-import gpsUtil.location.VisitedLocation;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -88,8 +87,6 @@ public interface TourGuideService {
   User getUser(String userName) throws UserNotFoundException;
 
   List<User> getAllUsers();
-
-  VisitedLocation trackUserLocation(User user);
 
   /**
    * Track the current user location and return the current visited location Dto.
