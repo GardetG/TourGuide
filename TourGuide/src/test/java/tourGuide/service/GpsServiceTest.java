@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import javax.annotation.meta.When;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -125,6 +126,23 @@ class GpsServiceTest {
     verify(gpsUtil, times(1)).getUserLocation(userId);
     verify(locationHistoryRepository, times(1)).save(visitedLocationCaptor.capture());
     assertThat(visitedLocationCaptor.getValue()).isEqualTo(visitedLocation);
+  }
+
+
+  @DisplayName("Get attractions should return list of attraction Dto")
+  @Test
+  void getAttractionTest() {
+    // Given
+    Attraction attraction = new Attraction("attraction", "","",45,-45);
+    AttractionDto attractionDto = new AttractionDto(attraction.attractionId,-45,45,"attraction","","");
+    when(gpsUtil.getAttractions()).thenReturn(Collections.singletonList(attraction));
+
+    // When
+    List<AttractionDto> attractions = gpsService.getAttraction();
+
+    // Then
+    assertThat(attractions).usingRecursiveFieldByFieldElementComparator().containsExactly(attractionDto);
+    verify(gpsUtil, times(1)).getAttractions();
   }
 
   @DisplayName("Add location to user should save visited location in repository")

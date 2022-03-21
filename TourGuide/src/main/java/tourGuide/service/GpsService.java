@@ -3,6 +3,7 @@ package tourGuide.service;
 import gpsUtil.location.Attraction;
 import gpsUtil.location.Location;
 import gpsUtil.location.VisitedLocation;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,13 @@ public interface GpsService {
    * @return current visited location Dto
    */
   VisitedLocationDto trackUserLocation(UUID userId);
+
+  /**
+   * Get the list of attractions.
+   *
+   * @return list of attraction Dto
+   */
+  List<AttractionDto> getAttraction();
 
   /**
    * Add to the user a new location.
