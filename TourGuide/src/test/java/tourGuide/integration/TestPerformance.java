@@ -3,9 +3,6 @@ package tourGuide.integration;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import gpsUtil.GpsUtil;
-import gpsUtil.location.Attraction;
-import gpsUtil.location.VisitedLocation;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -14,14 +11,17 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Profile;
+import org.springframework.test.context.ActiveProfiles;
 import tourGuide.domain.User;
+import tourGuide.dto.AttractionDto;
+import tourGuide.dto.LocationDto;
+import tourGuide.service.GpsService;
 import tourGuide.service.RewardsService;
 import tourGuide.service.TourGuideService;
 import tourGuide.tracker.Tracker;
 
 @SpringBootTest(properties = "tourguide.internaluser.internalUserNumber=100")
-@Profile({"test", "internalUser"})
+@ActiveProfiles({"test", "internalUser"})
 class TestPerformance {
 
 	/*
@@ -47,6 +47,8 @@ class TestPerformance {
 	@Autowired
 	private TourGuideService tourGuideService;
 	@Autowired
+	private GpsService gpsService;
+	@Autowired
 	private RewardsService rewardsService;
 	@Autowired
 	private Tracker tracker;
@@ -66,7 +68,7 @@ class TestPerformance {
 	    StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
 		for(User user : allUsers) {
-			tourGuideService.trackUserLocation(user);
+			tourGuideService.trackUserLocation(user.getUserId());
 		}
 		stopWatch.stop();
 
@@ -86,13 +88,16 @@ class TestPerformance {
 		// When
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
-		
-	    Attraction attraction = gpsUtil.getAttractions().get(0);
-		allUsers.forEach(u -> u.addToVisitedLocations(new VisitedLocation(u.getUserId(), attraction, new Date())));
+
+		AttractionDto attraction = gpsService.getAttraction().get(0);
+		allUsers.forEach(u -> gpsService.addLocation(
+				u.getUserId(),
+				new LocationDto(attraction.getLongitude(), attraction.getLatitude())
+		));
 	     
 	    allUsers.forEach(u -> rewardsService.calculateRewards(u));
 		for(User user : allUsers) {
-			assertTrue(user.getUserRewards().size() > 0);
+			assertTrue(rewardsService.getAllRewards(user.getUserId()).size() > 0);
 		}
 		stopWatch.stop();
 
