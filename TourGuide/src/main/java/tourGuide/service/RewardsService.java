@@ -1,12 +1,9 @@
 package tourGuide.service;
 
-import gpsUtil.location.Attraction;
-import gpsUtil.location.Location;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
-import tourGuide.domain.User;
 import tourGuide.dto.AttractionDto;
 import tourGuide.dto.UserRewardDto;
 import tourGuide.dto.VisitedLocationDto;
@@ -16,13 +13,6 @@ import tourGuide.dto.VisitedLocationDto;
  */
 @Service
 public interface RewardsService {
-  void setProximityBuffer(int proximityBuffer);
-
-  void calculateRewards(User user);
-
-  boolean isWithinAttractionProximity(Attraction attraction, Location location);
-
-  double getDistance(Location loc1, Location loc2);
 
   /**
    * Get the list of all user rewards.

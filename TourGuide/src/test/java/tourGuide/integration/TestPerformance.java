@@ -95,7 +95,7 @@ class TestPerformance {
 				new LocationDto(attraction.getLongitude(), attraction.getLatitude())
 		));
 	     
-	    allUsers.forEach(u -> rewardsService.calculateRewards(u));
+	    allUsers.forEach(u -> tourGuideService.calculateRewards(u.getUserId()));
 		for(User user : allUsers) {
 			assertTrue(rewardsService.getAllRewards(user.getUserId()).size() > 0);
 		}
