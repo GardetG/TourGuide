@@ -1,8 +1,6 @@
 package tourGuide.service;
 
-import gpsUtil.location.Attraction;
 import gpsUtil.location.Location;
-import gpsUtil.location.VisitedLocation;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -17,8 +15,6 @@ import tourGuide.exception.NoLocationFoundException;
  */
 @Service
 public interface GpsService {
-
-  Map<Attraction, Double> getTopNearbyAttractionsWithDistances(Location location, int top);
 
   /**
    * Get the last visited location registered of the user or throws an exception if no location
@@ -84,7 +80,5 @@ public interface GpsService {
    * @return distance in miles
    */
   double getDistance(Location loc1, Location loc2);
-
-  VisitedLocation getUserLocation(UUID userId);
 
 }

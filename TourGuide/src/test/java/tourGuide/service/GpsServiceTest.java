@@ -53,27 +53,6 @@ class GpsServiceTest {
   @Captor
   ArgumentCaptor<VisitedLocation> visitedLocationCaptor;
 
-  @DisplayName("Get Top nearby attractions with distances should return top nearest attractions with distances")
-  @Test
-  void getTopNearbyAttractionsWithDistancesTest() {
-    // Given
-    Location location = new Location(0, 0);
-    int limit = 2;
-    Attraction attraction1 = new Attraction("attraction2", "", "", 0, -90);
-    Attraction attraction2 = new Attraction("attraction1", "", "", 0, 0);
-    Attraction attraction3 = new Attraction("attraction2", "", "", 0, 45);
-    when(gpsUtil.getAttractions()).thenReturn(Arrays.asList(attraction1, attraction2, attraction3));
-
-    // When
-    Map<Attraction, Double> attractionsWithDistance = gpsService.getTopNearbyAttractionsWithDistances(location, limit);
-
-    // Then
-    assertThat(attractionsWithDistance)
-        .hasSize(limit)
-        .containsOnlyKeys(attraction2, attraction3)
-        .containsValues(0d, 2700d * TourGuideProperties.STATUTE_MILES_PER_NAUTICAL_MILE);
-  }
-
   @DisplayName("Get last location should return last location Dto")
   @Test
   void getLastLocationTest() throws Exception {
@@ -300,22 +279,6 @@ class GpsServiceTest {
     assertThat(actualDistance)
         .isEqualTo(gpsService.getDistance(locationRef, location))
         .isEqualTo(distance * TourGuideProperties.STATUTE_MILES_PER_NAUTICAL_MILE);
-  }
-
-  @DisplayName("Get user location should return user location from GpsUtil library")
-  @Test
-  void getUserLocationTest() {
-    // Given
-    UUID userId = UUID.randomUUID();
-    VisitedLocation visitedLocation = new VisitedLocation(userId, new Location(0, 0), new Date());
-    when(gpsUtil.getUserLocation(any(UUID.class))).thenReturn(visitedLocation);
-
-    // When
-    VisitedLocation actualLocation = gpsService.getUserLocation(userId);
-
-    // Then
-    assertThat(actualLocation).isEqualTo(visitedLocation);
-    verify(gpsUtil, times(1)).getUserLocation(userId);
   }
 
 }
