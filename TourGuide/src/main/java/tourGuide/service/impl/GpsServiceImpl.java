@@ -51,8 +51,7 @@ public class GpsServiceImpl implements GpsService {
         .limit(top)
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1,e2) -> e1, LinkedHashMap::new));
   }
-
-
+  
   /**
    * {@inheritDoc}
    */
@@ -70,6 +69,17 @@ public class GpsServiceImpl implements GpsService {
     VisitedLocation currentLocation = gpsUtil.getUserLocation(userId);
     locationHistoryRepository.save(currentLocation);
     return VisitedLocationMapper.toDto(currentLocation);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public List<AttractionDto> getAttraction() {
+    return gpsUtil.getAttractions()
+        .stream()
+        .map(AttractionMapper::toDto)
+        .collect(Collectors.toList());
   }
 
   /**
