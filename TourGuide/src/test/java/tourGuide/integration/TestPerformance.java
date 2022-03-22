@@ -2,7 +2,6 @@ package tourGuide.integration;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import gpsUtil.GpsUtil;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -24,7 +23,6 @@ import tourGuide.dto.VisitedLocationDto;
 import tourGuide.service.GpsService;
 import tourGuide.service.RewardsService;
 import tourGuide.service.TourGuideService;
-import tourGuide.tracker.Tracker;
 
 @SpringBootTest(properties = "tourguide.internaluser.internalUserNumber=100000")
 @ActiveProfiles({"test", "internalUser"})
@@ -56,8 +54,6 @@ class TestPerformance {
 	private GpsService gpsService;
 	@Autowired
 	private RewardsService rewardsService;
-	@Autowired
-	private Tracker tracker;
 
 	@BeforeAll
 	public static void setDefaultLocale() {
@@ -87,10 +83,8 @@ class TestPerformance {
 
 	@Test
 	void highVolumeGetRewards() {
-		// Giveb
-		GpsUtil gpsUtil = new GpsUtil();
+		// Given
 		List<User> allUsers = tourGuideService.getAllUsers();
-		tracker.startTracking();
 
 		// When
 		StopWatch stopWatch = new StopWatch();
@@ -103,15 +97,20 @@ class TestPerformance {
 				new Date()
 		)));
 
-	    allUsers.forEach(u -> tourGuideService.calculateRewards(u.getUserId()));
+		ExecutorService executor = Executors.newFixedThreadPool(200);
+		List<CompletableFuture<?>> result = allUsers.stream()
+				.map(user -> CompletableFuture.runAsync(() -> tourGuideService.calculateRewards(user.getUserId()), executor))
+				.collect(Collectors.toList());
+		result.forEach(CompletableFuture::join);
+
 		for(User user : allUsers) {
 			assertTrue(rewardsService.getAllRewards(user.getUserId()).size() > 0);
 		}
 		stopWatch.stop();
 
 		// Then
-		tracker.stopTracking();
-		System.out.println("highVolumeGetRewards: Time Elapsed: " + TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds."); 
+
+		System.out.println("highVolumeGetRewards: Time Elapsed: " + TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");
 		assertTrue(TimeUnit.MINUTES.toSeconds(20) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
 	}
 
