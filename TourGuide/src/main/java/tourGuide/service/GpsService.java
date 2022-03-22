@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import tourGuide.dto.AttractionDto;
-import tourGuide.dto.LocationDto;
 import tourGuide.dto.VisitedLocationDto;
 import tourGuide.exception.NoLocationFoundException;
 
@@ -44,10 +43,9 @@ public interface GpsService {
   /**
    * Add to the user a new location.
    *
-   * @param userId of the user
-   * @param location location to add
+   * @param visitedLocationDto visited location to add
    */
-  void addLocation(UUID userId, LocationDto location);
+  void addLocation(VisitedLocationDto visitedLocationDto);
 
   /**
    * Return a map of the visited attractions of the user and the corresponding visited location that

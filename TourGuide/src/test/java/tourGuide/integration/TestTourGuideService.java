@@ -3,6 +3,7 @@ package tourGuide.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -119,7 +120,11 @@ class TestTourGuideService {
     String userName = "internalUser0";
     User user = tourGuideService.getUser(userName);
     AttractionDto attraction = gpsService.getAttraction().get(0);
-    gpsService.addLocation(user.getUserId(), new LocationDto(attraction.getLongitude(), attraction.getLatitude()));
+    gpsService.addLocation(new VisitedLocationDto(
+        user.getUserId(),
+        new LocationDto(attraction.getLongitude(), attraction.getLatitude()),
+        new Date()
+    ));
 
     // When
     tourGuideService.calculateRewards(user.getUserId());

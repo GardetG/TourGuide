@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Repository;
 import tourGuide.repository.LocationHistoryRepository;
 
@@ -24,7 +25,10 @@ public class LocationHistoryRepositoryImpl implements LocationHistoryRepository 
 
   @Override
   public List<VisitedLocation> findById(UUID userId) {
-    return internalUserLocationsMap.getOrDefault(userId, new ArrayList<>());
+    return internalUserLocationsMap.getOrDefault(userId, new ArrayList<>())
+        .stream()
+        .sorted(Comparator.comparing(visitedLocation -> visitedLocation.timeVisited))
+        .collect(Collectors.toList());
   }
 
   @Override

@@ -129,15 +129,16 @@ class GpsServiceTest {
   void addLocationTest() {
     // Given
     UUID userId = UUID.randomUUID();
-    LocationDto location = new LocationDto(45, -45);
+    Date date = new Date();
+    VisitedLocationDto locationDto = new VisitedLocationDto(userId, new LocationDto(45, -45), date);
+    VisitedLocation expectedLocation = new VisitedLocation(userId, new Location(-45,45), date);
 
     // When
-    gpsService.addLocation(userId, location);
+    gpsService.addLocation(locationDto);
 
     // Then
     verify(locationHistoryRepository, times(1)).save(visitedLocationCaptor.capture());
-    assertThat(visitedLocationCaptor.getValue().location).isEqualToComparingFieldByFieldRecursively(location);
-    assertThat(visitedLocationCaptor.getValue().userId).isEqualTo(userId);
+    assertThat(visitedLocationCaptor.getValue()).isEqualToComparingFieldByFieldRecursively(expectedLocation);
   }
 
   @DisplayName("Get visited locations should return map of attractions and first in range visited location")

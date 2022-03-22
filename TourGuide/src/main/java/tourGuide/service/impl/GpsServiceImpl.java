@@ -5,7 +5,6 @@ import gpsUtil.location.Attraction;
 import gpsUtil.location.Location;
 import gpsUtil.location.VisitedLocation;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -16,13 +15,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tourGuide.config.TourGuideProperties;
 import tourGuide.dto.AttractionDto;
-import tourGuide.dto.LocationDto;
 import tourGuide.dto.VisitedLocationDto;
 import tourGuide.exception.NoLocationFoundException;
 import tourGuide.repository.LocationHistoryRepository;
 import tourGuide.service.GpsService;
 import tourGuide.utils.AttractionMapper;
-import tourGuide.utils.LocationMapper;
 import tourGuide.utils.VisitedLocationMapper;
 
 /**
@@ -43,15 +40,6 @@ public class GpsServiceImpl implements GpsService {
     this.locationHistoryRepository = locationHistoryRepository;
   }
 
-  @Override
-  public Map<Attraction, Double> getTopNearbyAttractionsWithDistances(Location location, int top) {
-    return getAttractionsWithDistances(location).entrySet()
-        .stream()
-        .sorted(Comparator.comparingDouble(Map.Entry::getValue))
-        .limit(top)
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1,e2) -> e1, LinkedHashMap::new));
-  }
-  
   /**
    * {@inheritDoc}
    */
@@ -86,8 +74,8 @@ public class GpsServiceImpl implements GpsService {
    * {@inheritDoc}
    */
   @Override
-  public void addLocation(UUID userId, LocationDto location) {
-    VisitedLocation visitedLocation = new VisitedLocation(userId, LocationMapper.toEntity(location), new Date());
+  public void addLocation(VisitedLocationDto visitedLocationDto) {
+    VisitedLocation visitedLocation = VisitedLocationMapper.toEntity(visitedLocationDto);
     locationHistoryRepository.save(visitedLocation);
   }
 
@@ -126,11 +114,6 @@ public class GpsServiceImpl implements GpsService {
         .sorted(Comparator.comparingDouble(Map.Entry::getValue))
         .limit(limit)
         .collect(Collectors.toMap(e -> AttractionMapper.toDto(e.getKey()), Map.Entry::getValue, (e1,e2) -> e1, LinkedHashMap::new));
-  }
-
-  @Override
-  public VisitedLocation getUserLocation(UUID userId) {
-    return gpsUtil.getUserLocation(userId);
   }
 
   /**

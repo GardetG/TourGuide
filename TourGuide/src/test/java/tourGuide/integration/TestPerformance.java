@@ -3,6 +3,7 @@ package tourGuide.integration;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import gpsUtil.GpsUtil;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -15,6 +16,7 @@ import org.springframework.test.context.ActiveProfiles;
 import tourGuide.domain.User;
 import tourGuide.dto.AttractionDto;
 import tourGuide.dto.LocationDto;
+import tourGuide.dto.VisitedLocationDto;
 import tourGuide.service.GpsService;
 import tourGuide.service.RewardsService;
 import tourGuide.service.TourGuideService;
@@ -90,10 +92,11 @@ class TestPerformance {
 		stopWatch.start();
 
 		AttractionDto attraction = gpsService.getAttraction().get(0);
-		allUsers.forEach(u -> gpsService.addLocation(
+		allUsers.forEach(u -> gpsService.addLocation(new VisitedLocationDto(
 				u.getUserId(),
-				new LocationDto(attraction.getLongitude(), attraction.getLatitude())
-		));
+				new LocationDto(attraction.getLongitude(), attraction.getLatitude()),
+				new Date()
+		)));
 	     
 	    allUsers.forEach(u -> tourGuideService.calculateRewards(u.getUserId()));
 		for(User user : allUsers) {
