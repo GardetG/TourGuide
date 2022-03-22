@@ -1,7 +1,5 @@
 package tourGuide.helper;
 
-import gpsUtil.location.Location;
-import gpsUtil.location.VisitedLocation;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
@@ -15,7 +13,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import tourGuide.domain.User;
+import tourGuide.dto.LocationDto;
+import tourGuide.dto.VisitedLocationDto;
 import tourGuide.repository.UserRepository;
+import tourGuide.service.GpsService;
 
 /**
  * Configuration Class to handle generation of the internal user map when using internal users for
@@ -28,11 +29,14 @@ public class InternalTestHelper {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(InternalTestHelper.class);
 	private final UserRepository userRepository;
+	private final GpsService gpsService;
 	private final Random random = new Random();
 
 	@Autowired
-	public InternalTestHelper(UserRepository userRepository) {
+	public InternalTestHelper(UserRepository userRepository,
+							  GpsService gpsService) {
 		this.userRepository = userRepository;
+		this.gpsService = gpsService;
 	}
 
 	public void setInternalUserNumber(int internalUserNumber) {
@@ -54,9 +58,9 @@ public class InternalTestHelper {
 	}
 
 	private void generateUserLocationHistory(User user) {
-		IntStream.range(0, 3).forEach(i-> user.addToVisitedLocations(new VisitedLocation(
+		IntStream.range(0, 3).forEach(i-> gpsService.addLocation(new VisitedLocationDto(
 				user.getUserId(),
-				new Location(generateRandomLatitude(), generateRandomLongitude()),
+				new LocationDto(generateRandomLatitude(), generateRandomLongitude()),
 				getRandomTime()
 		)));
 	}
