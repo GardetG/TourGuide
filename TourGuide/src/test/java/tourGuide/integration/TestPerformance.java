@@ -6,7 +6,11 @@ import gpsUtil.GpsUtil;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.time.StopWatch;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -22,7 +26,7 @@ import tourGuide.service.RewardsService;
 import tourGuide.service.TourGuideService;
 import tourGuide.tracker.Tracker;
 
-@SpringBootTest(properties = "tourguide.internaluser.internalUserNumber=100")
+@SpringBootTest(properties = "tourguide.internaluser.internalUserNumber=100000")
 @ActiveProfiles({"test", "internalUser"})
 class TestPerformance {
 
@@ -62,20 +66,21 @@ class TestPerformance {
 
 	@Test
 	void highVolumeTrackLocation() {
-		// Giveb
+		// Given
 		List<User> allUsers = tourGuideService.getAllUsers();
-		tracker.startTracking();
 
 		// When
 	    StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
-		for(User user : allUsers) {
-			tourGuideService.trackUserLocation(user.getUserId());
-		}
+
+		ExecutorService executor = Executors.newFixedThreadPool(200);
+		List<CompletableFuture<?>> result = allUsers.stream()
+				.map(user -> CompletableFuture.runAsync(() -> tourGuideService.trackUserLocation(user.getUserId()), executor))
+				.collect(Collectors.toList());
+		result.forEach(CompletableFuture::join);
 		stopWatch.stop();
 
 		// Then
-		tracker.stopTracking();
 		System.out.println("highVolumeTrackLocation: Time Elapsed: " + TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");
 		assertTrue(TimeUnit.MINUTES.toSeconds(15) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
 	}
@@ -97,7 +102,7 @@ class TestPerformance {
 				new LocationDto(attraction.getLongitude(), attraction.getLatitude()),
 				new Date()
 		)));
-	     
+
 	    allUsers.forEach(u -> tourGuideService.calculateRewards(u.getUserId()));
 		for(User user : allUsers) {
 			assertTrue(rewardsService.getAllRewards(user.getUserId()).size() > 0);
