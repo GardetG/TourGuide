@@ -3,11 +3,11 @@ package tourGuide.repository.impl;
 import gpsUtil.location.VisitedLocation;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Repository;
 import tourGuide.repository.LocationHistoryRepository;
@@ -21,7 +21,7 @@ import tourGuide.repository.LocationHistoryRepository;
 @Repository
 public class LocationHistoryRepositoryImpl implements LocationHistoryRepository {
 
-  private final Map<UUID, List<VisitedLocation>> internalUserLocationsMap = new HashMap<>();
+  private final ConcurrentMap<UUID, List<VisitedLocation>> internalUserLocationsMap = new ConcurrentHashMap<>();
 
   @Override
   public List<VisitedLocation> findById(UUID userId) {

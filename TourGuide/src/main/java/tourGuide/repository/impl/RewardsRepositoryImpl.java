@@ -1,10 +1,10 @@
 package tourGuide.repository.impl;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import org.springframework.stereotype.Repository;
 import tourGuide.domain.UserReward;
 import tourGuide.repository.RewardsRepository;
@@ -17,7 +17,7 @@ import tourGuide.repository.RewardsRepository;
 @Repository
 public class RewardsRepositoryImpl implements RewardsRepository {
 
-  private final Map<UUID, List<UserReward>> internalUserRewardsMap = new HashMap<>();
+  private final ConcurrentMap<UUID, List<UserReward>> internalUserRewardsMap = new ConcurrentHashMap<>();
 
   @Override
   public List<UserReward> findById(UUID userId) {
