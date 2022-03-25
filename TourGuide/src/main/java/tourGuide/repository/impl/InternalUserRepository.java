@@ -1,10 +1,10 @@
 package tourGuide.repository.impl;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import org.springframework.stereotype.Repository;
 import tourGuide.domain.User;
 import tourGuide.repository.UserRepository;
@@ -17,7 +17,7 @@ import tourGuide.repository.UserRepository;
 @Repository
 public class InternalUserRepository implements UserRepository {
 
-  private final Map<String, User> internalUserMap = new HashMap<>();
+  private final ConcurrentMap<String, User> internalUserMap = new ConcurrentHashMap<>();
 
   @Override
   public List<User> findAll() {
