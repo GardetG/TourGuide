@@ -64,17 +64,14 @@ public class Tracker implements Runnable {
     stopWatch.start();
 
     ExecutorService trackExecutor = Executors.newFixedThreadPool(200);
-    List<CompletableFuture<?>> trackResult = users.stream()
-        .map(user -> CompletableFuture.runAsync(() -> tourGuideService.trackUserLocation(user.getUserId()), trackExecutor))
-        .collect(Collectors.toList());
-
     ExecutorService rewardExecutor = Executors.newFixedThreadPool(200);
-    List<CompletableFuture<?>> rewardsResult = users.stream()
-        .map(user -> CompletableFuture.runAsync(() -> tourGuideService.calculateRewards(user.getUserId()), rewardExecutor))
+
+    List<CompletableFuture<?>> trackResult = users.stream()
+        .map(user -> CompletableFuture.runAsync(() -> tourGuideService.trackUserLocation(user.getUserId()), trackExecutor)
+            .thenRunAsync(() -> tourGuideService.calculateRewards(user.getUserId()), rewardExecutor))
         .collect(Collectors.toList());
 
     trackResult.forEach(CompletableFuture::join);
-    rewardsResult.forEach(CompletableFuture::join);
 
     stopWatch.stop();
     LOGGER.debug("Tracker Time Elapsed: {} seconds.", TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
