@@ -1,9 +1,12 @@
 package tourGuide.tracker;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,10 +62,20 @@ public class Tracker implements Runnable {
     List<User> users = tourGuideService.getAllUsers();
     LOGGER.debug("Begin Tracker. Tracking {} users.", users.size());
     stopWatch.start();
-    users.forEach(u -> {
-      tourGuideService.trackUserLocation(u.getUserId());
-      tourGuideService.calculateRewards(u.getUserId());
-    });
+
+    ExecutorService trackExecutor = Executors.newFixedThreadPool(200);
+    List<CompletableFuture<?>> trackResult = users.stream()
+        .map(user -> CompletableFuture.runAsync(() -> tourGuideService.trackUserLocation(user.getUserId()), trackExecutor))
+        .collect(Collectors.toList());
+
+    ExecutorService rewardExecutor = Executors.newFixedThreadPool(200);
+    List<CompletableFuture<?>> rewardsResult = users.stream()
+        .map(user -> CompletableFuture.runAsync(() -> tourGuideService.calculateRewards(user.getUserId()), rewardExecutor))
+        .collect(Collectors.toList());
+
+    trackResult.forEach(CompletableFuture::join);
+    rewardsResult.forEach(CompletableFuture::join);
+
     stopWatch.stop();
     LOGGER.debug("Tracker Time Elapsed: {} seconds.", TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
     stopWatch.reset();
