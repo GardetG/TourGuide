@@ -31,9 +31,9 @@ class TripDealsServiceTest {
   @MockBean
   private TripPricer tripPricer;
 
-  @DisplayName("Get trip deals should return providers list from tripPricer")
+  @DisplayName("Get trip deals should return providers list according to preferences")
   @Test
-  void getTripDealsTest() {
+  void getUserTripDealsTest() {
     // Given
     UUID attractionId = UUID.randomUUID();
     BigDecimal lowerPricePoint = BigDecimal.valueOf(0);
@@ -57,9 +57,9 @@ class TripDealsServiceTest {
         .getPrice("test-server-api-key", attractionId, 2,3,1, 100);
   }
 
-  @DisplayName("Get trip deals should return providers list filtered according preferences")
+  @DisplayName("Get trip deals should only return providers whose price is in the chosen range")
   @Test
-  void getTripDealsFilteredTest() {
+  void getUserTripDealsFilteredTest() {
     // Given
     UUID attractionId = UUID.randomUUID();
     BigDecimal lowerPricePoint = BigDecimal.valueOf(25);
