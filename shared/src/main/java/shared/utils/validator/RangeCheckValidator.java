@@ -2,9 +2,9 @@ package shared.utils.validator;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
-import shared.dto.UserPreferencesDto;
+import shared.dto.PreferencesDto;
 
-public class RangeCheckValidator implements ConstraintValidator<RangeCheck, UserPreferencesDto> {
+public class RangeCheckValidator implements ConstraintValidator<RangeCheck, PreferencesDto> {
 
   @Override
   public void initialize(RangeCheck date) {
@@ -12,8 +12,8 @@ public class RangeCheckValidator implements ConstraintValidator<RangeCheck, User
   }
 
   @Override
-  public boolean isValid(UserPreferencesDto value, ConstraintValidatorContext context) {
-    return value.getLowerPricePoint() <= value.getHighPricePoint();
+  public boolean isValid(PreferencesDto value, ConstraintValidatorContext context) {
+    return value.getHighPricePoint().compareTo(value.getLowerPricePoint()) >= 0;
   }
 
 }

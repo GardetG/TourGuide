@@ -1,5 +1,8 @@
 package shared.dto;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.math.BigDecimal;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import shared.utils.validator.RangeCheck;
@@ -8,18 +11,15 @@ import shared.utils.validator.RangeCheck;
  * Dto class for UserPreference entity.
  */
 @RangeCheck(message = "Lower price point cannot be greater than High price point")
-public class UserPreferencesDto {
+public class PreferencesDto {
 
-  /**
-   * Constructor for an instance of UserPreferenceDto with price range, trip duration and number of
-   * adults and children.
-   *
-   * @param tripDuration duration of the trip
-   * @param numberOfAdults number of adults
-   * @param numberOfChildren number of children
-   */
-  public UserPreferencesDto(double lowerPricePoint, double highPricePoint, int tripDuration,
-                            int ticketQuantity, int numberOfAdults, int numberOfChildren) {
+  @JsonCreator
+  public PreferencesDto(@JsonProperty("lowerPricePoint") BigDecimal lowerPricePoint,
+                        @JsonProperty("highPricePoint") BigDecimal highPricePoint,
+                        @JsonProperty("tripDuration") int tripDuration,
+                        @JsonProperty("ticketQuantity") int ticketQuantity,
+                        @JsonProperty("numberOfAdults") int numberOfAdults,
+                        @JsonProperty("numberOfChildren") int numberOfChildren) {
     this.lowerPricePoint = lowerPricePoint;
     this.highPricePoint = highPricePoint;
     this.tripDuration = tripDuration;
@@ -29,9 +29,9 @@ public class UserPreferencesDto {
   }
 
   @PositiveOrZero(message = "Lower price point cannot be negative")
-  private final double lowerPricePoint;
+  private final BigDecimal lowerPricePoint;
   @PositiveOrZero(message = "High price point cannot be negative")
-  private final double highPricePoint;
+  private final BigDecimal highPricePoint;
   @Positive(message = "Trip Duration cannot be negative or equals to 0")
   private final int tripDuration;
   @PositiveOrZero(message = "Ticket Quantity cannot be negative")
@@ -41,11 +41,11 @@ public class UserPreferencesDto {
   @PositiveOrZero(message = "Number of Children cannot be negative")
   private final int numberOfChildren;
 
-  public double getLowerPricePoint() {
+  public BigDecimal getLowerPricePoint() {
     return lowerPricePoint;
   }
 
-  public double getHighPricePoint() {
+  public BigDecimal getHighPricePoint() {
     return highPricePoint;
   }
 
@@ -64,4 +64,5 @@ public class UserPreferencesDto {
   public int getNumberOfChildren() {
     return numberOfChildren;
   }
+
 }
