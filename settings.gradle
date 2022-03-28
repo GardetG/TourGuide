@@ -1,0 +1,3 @@
+rootProject.name = 'TourGuide'
+include(":shared")
+include(":tripservice")
