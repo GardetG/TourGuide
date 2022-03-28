@@ -45,7 +45,7 @@ class TripDealsServiceTest {
         .thenReturn(providers);
 
     // When
-    List<ProviderDto> actualProviders = tripDealsService.getTripDeals(attractionId, preferences, rewardPoint);
+    List<ProviderDto> actualProviders = tripDealsService.getUserTripDeals(attractionId, preferences, rewardPoint);
 
     // Then
     List<ProviderDto> expectedProviders = ProviderFactory.getProvidersDto(attractionId);
@@ -66,18 +66,19 @@ class TripDealsServiceTest {
     BigDecimal highPricePoint = BigDecimal.valueOf(75);
     PreferencesDto preferences = new PreferencesDto(lowerPricePoint, highPricePoint,1, 1,2,3);
     int rewardPoint = 100;
+    List<Provider> providers = ProviderFactory.getProviders(attractionId);
     when(tripPricer.getPrice(anyString(), any(UUID.class), anyInt(), anyInt(),anyInt(),anyInt()))
-        .thenReturn(ProviderFactory.getProviders(attractionId));
+        .thenReturn(providers);
 
     // When
-    List<ProviderDto> actualProviders = tripDealsService.getTripDeals(attractionId, preferences, rewardPoint);
+    List<ProviderDto> actualProviders = tripDealsService.getUserTripDeals(attractionId, preferences, rewardPoint);
 
     // Then
-    List<ProviderDto> providers = ProviderFactory.getProvidersDto(attractionId);
+    List<ProviderDto> expectedProviders = ProviderFactory.getProvidersDto(attractionId);
     assertThat(actualProviders)
         .hasSize(3)
         .usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(providers.get(1), providers.get(2), providers.get(3));
+        .containsExactly(expectedProviders.get(1), expectedProviders.get(2), expectedProviders.get(3));
     verify(tripPricer, times(1))
         .getPrice("test-server-api-key", attractionId, 2,3,1, 100);
   }

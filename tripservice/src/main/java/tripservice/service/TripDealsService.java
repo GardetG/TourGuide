@@ -20,6 +20,6 @@ public interface TripDealsService {
    * @param rewardPoints of the user
    * @return list of provider dtos
    */
-  List<ProviderDto> getTripDeals(UUID attractionId, PreferencesDto preferences, int rewardPoints);
+  List<ProviderDto> getUserTripDeals(UUID attractionId, PreferencesDto preferences, int rewardPoints);
 
 }

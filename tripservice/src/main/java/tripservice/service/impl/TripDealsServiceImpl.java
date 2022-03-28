@@ -33,8 +33,8 @@ public class TripDealsServiceImpl implements TripDealsService {
    * {@inheritDoc}
    */
   @Override
-  public List<ProviderDto> getTripDeals(UUID attractionId, PreferencesDto preferences,
-                                        int rewardPoints) {
+  public List<ProviderDto> getUserTripDeals(UUID attractionId, PreferencesDto preferences,
+                                            int rewardPoints) {
     return retrieveTripDeals(attractionId, preferences, rewardPoints)
         .stream()
         .filter(provider -> isInRange(
