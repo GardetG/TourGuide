@@ -29,7 +29,15 @@ dependencies {
 }
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform() {
+        excludeTags 'integration'
+    }
+}
+
+task integrationTest(type: Test) {
+    useJUnitPlatform() {
+        includeTags 'integration'
+    }
 }
 
 jacoco {
