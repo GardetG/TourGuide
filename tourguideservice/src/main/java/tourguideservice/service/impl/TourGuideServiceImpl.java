@@ -23,10 +23,9 @@ import tourguideservice.repository.UserRepository;
 import tourguideservice.service.GpsService;
 import tourguideservice.service.RewardsService;
 import tourguideservice.service.TourGuideService;
-import tourguideservice.service.TripDealsService;
-import tourguideservice.utils.ProviderMapper;
+import tourguideservice.service.proxy.TripServiceProxy;
 import tourguideservice.utils.PreferencesMapper;
-import tripPricer.Provider;
+import tourguideservice.utils.ProviderMapper;
 
 /**
  * Service implementation class for the main service of TourGuide.
@@ -38,11 +37,11 @@ public class TourGuideServiceImpl implements TourGuideService {
 
   private final GpsService gpsService;
   private final RewardsService rewardsService;
-  private final TripDealsService tripDealsService;
+  private final TripServiceProxy tripDealsService;
   private final UserRepository userRepository;
 
   public TourGuideServiceImpl(GpsService gpsService, RewardsService rewardsService,
-                              TripDealsService tripDealsService, UserRepository userRepository) {
+                              TripServiceProxy tripDealsService, UserRepository userRepository) {
     this.gpsService = gpsService;
     this.rewardsService = rewardsService;
     this.tripDealsService = tripDealsService;

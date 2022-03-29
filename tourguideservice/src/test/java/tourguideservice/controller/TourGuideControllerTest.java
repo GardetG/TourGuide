@@ -243,7 +243,7 @@ class TourGuideControllerTest {
 
         // THEN
         .andExpect(status().isUnprocessableEntity())
-        .andExpect(jsonPath("$.userPreferencesDto",
+        .andExpect(jsonPath("$.preferencesDto",
             is("Lower price point cannot be greater than High price point")))
         .andExpect(jsonPath("$.highPricePoint", is("High price point cannot be negative")))
         .andExpect(

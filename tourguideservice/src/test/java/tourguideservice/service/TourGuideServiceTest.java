@@ -37,6 +37,7 @@ import tourguideservice.dto.VisitedLocationDto;
 import tourguideservice.exception.NoLocationFoundException;
 import tourguideservice.exception.UserNotFoundException;
 import tourguideservice.repository.UserRepository;
+import tourguideservice.service.proxy.TripServiceProxy;
 import tourguideservice.utils.EntitiesTestFactory;
 import tripPricer.Provider;
 
@@ -50,7 +51,7 @@ class TourGuideServiceTest {
   @MockBean
   private UserRepository userRepository;
   @MockBean
-  private TripDealsService tripDealsService;
+  private TripServiceProxy tripDealsService;
   @MockBean
   private GpsService gpsService;
   @MockBean
