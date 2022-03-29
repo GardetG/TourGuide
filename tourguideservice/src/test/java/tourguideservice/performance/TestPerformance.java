@@ -1,4 +1,4 @@
-package tourguideservice.integration;
+package tourguideservice.performance;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.time.StopWatch;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,6 +25,7 @@ import tourguideservice.service.GpsService;
 import tourguideservice.service.RewardsService;
 import tourguideservice.service.TourGuideService;
 
+@Tag("performance")
 @SpringBootTest(properties = "tourguide.internaluser.internalUserNumber=100000")
 @ActiveProfiles({"test", "internalUser"})
 class TestPerformance {

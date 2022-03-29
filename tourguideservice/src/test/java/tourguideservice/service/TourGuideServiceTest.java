@@ -249,12 +249,11 @@ class TourGuideServiceTest {
     //Then
     List<Provider> expectedProviders = EntitiesTestFactory.getProviders(user.getUserId());
     assertThat(actualDtos).usingRecursiveComparison().isEqualTo(providers);
-    assertThat(user.getTripDeals()).isEqualTo(expectedProviders);
+    assertThat(user.getTripDeals()).usingRecursiveComparison().isEqualTo(expectedProviders);
     verify(userRepository, times(1)).findByUsername("jon");
+    verify(gpsService, times(1)).getNearbyAttractions(user.getUserId(), 1);
     verify(rewardsService, times(1)).getTotalRewardPoints(user.getUserId());
-    shared.dto.PreferencesDto
-        expectedPreferences = new shared.dto.PreferencesDto(BigDecimal.valueOf(0), BigDecimal.valueOf(Integer.MAX_VALUE),1,1,2,3);
-    verify(tripDealsService, times(1)).getTripDeals(attractionId, expectedPreferences, 10);
+    verify(tripDealsService, times(1)).getTripDeals(any(UUID.class), any(PreferencesDto.class), anyInt());
   }
 
   @DisplayName("Get a non existent user trip deals should throw an exception")

@@ -43,9 +43,23 @@ dependencyManagement {
     }
 }
 
-tasks.named('test') {
-    useJUnitPlatform()
-    exclude '**/integration/**'
+test {
+    useJUnitPlatform() {
+        excludeTags 'integration'
+        excludeTags 'performance'
+    }
+}
+
+task integrationTest(type: Test) {
+    useJUnitPlatform() {
+        includeTags 'integration'
+    }
+}
+
+task performanceTest(type: Test) {
+    useJUnitPlatform() {
+        includeTags 'performance'
+    }
 }
 
 jacoco {
