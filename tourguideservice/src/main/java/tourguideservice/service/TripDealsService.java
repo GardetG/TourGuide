@@ -3,8 +3,8 @@ package tourguideservice.service;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
-import tourguideservice.domain.UserPreferences;
-import tripPricer.Provider;
+import shared.dto.PreferencesDto;
+import shared.dto.ProviderDto;
 
 /**
  * Service Interface to retrieve trip deals for a user.
@@ -20,6 +20,6 @@ public interface TripDealsService {
    * @param rewardPoints of the user
    * @return list of provider
    */
-  List<Provider> getTripDeals(UUID attractionId, UserPreferences preferences, int rewardPoints);
+  List<ProviderDto> getTripDeals(UUID attractionId, PreferencesDto preferences, int rewardPoints);
 
 }

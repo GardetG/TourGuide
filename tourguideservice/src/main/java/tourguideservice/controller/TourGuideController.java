@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import shared.dto.PreferencesDto;
+import shared.dto.ProviderDto;
 import tourguideservice.dto.LocationDto;
 import tourguideservice.dto.NearbyAttractionsListDto;
-import tourguideservice.dto.ProviderDto;
-import tourguideservice.dto.UserPreferencesDto;
 import tourguideservice.dto.UserRewardDto;
 import tourguideservice.exception.UserNotFoundException;
 import tourguideservice.service.TourGuideService;
@@ -87,9 +87,9 @@ public class TourGuideController {
    * @throws UserNotFoundException when user not found
    */
   @RequestMapping("/getUserPreferences")
-  public UserPreferencesDto getUserPreferences(@RequestParam String userName) throws UserNotFoundException {
+  public PreferencesDto getUserPreferences(@RequestParam String userName) throws UserNotFoundException {
     LOGGER.info("Request: Get user {} preferences", userName);
-    UserPreferencesDto preferences = tourGuideService.getUserPreferences(userName);
+    PreferencesDto preferences = tourGuideService.getUserPreferences(userName);
     LOGGER.info("Request: User {} preferences sent", userName);
     return preferences;
   }
@@ -98,16 +98,16 @@ public class TourGuideController {
    * Update user preferences by its userName and the provided values.
    *
    * @param userName of the user
-   * @param userPreferencesDto to update
+   * @param preferencesDto to update
    * @return updated user preferences
    * @throws UserNotFoundException when user not found
    */
   @PutMapping(value = "/setUserPreferences")
-  public UserPreferencesDto getUserPreferences(@RequestParam String userName,
-                                   @Valid @RequestBody UserPreferencesDto userPreferencesDto)
+  public PreferencesDto getUserPreferences(@RequestParam String userName,
+                                           @Valid @RequestBody PreferencesDto preferencesDto)
       throws UserNotFoundException {
     LOGGER.info("Request: Update user {} preferences", userName);
-    UserPreferencesDto preferences = tourGuideService.setUserPreferences(userName, userPreferencesDto);
+    PreferencesDto preferences = tourGuideService.setUserPreferences(userName, preferencesDto);
     LOGGER.info("Request: Update successfully user {} preferences", userName);
     return preferences;
   }

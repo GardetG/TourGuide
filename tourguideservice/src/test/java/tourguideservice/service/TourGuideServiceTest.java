@@ -9,6 +9,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,13 +25,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
+import shared.dto.PreferencesDto;
+import shared.dto.ProviderDto;
 import tourguideservice.domain.User;
 import tourguideservice.domain.UserPreferences;
 import tourguideservice.dto.AttractionDto;
 import tourguideservice.dto.LocationDto;
 import tourguideservice.dto.NearbyAttractionsListDto;
-import tourguideservice.dto.ProviderDto;
-import tourguideservice.dto.UserPreferencesDto;
 import tourguideservice.dto.UserRewardDto;
 import tourguideservice.dto.VisitedLocationDto;
 import tourguideservice.exception.NoLocationFoundException;
@@ -234,22 +235,25 @@ class TourGuideServiceTest {
     Map<AttractionDto, Double> nearbyAttractions = new HashMap<>();
     nearbyAttractions.put(new AttractionDto(attractionId,0,0,"attraction","",""), 0d);
     user.setUserPreferences(new UserPreferences(0, Integer.MAX_VALUE, 1, 1,2,3));
-    List<Provider> providers = EntitiesTestFactory.getProviders(user.getUserId());
+    List<ProviderDto> providers = EntitiesTestFactory.getProvidersDto(user.getUserId());
     when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
     when(gpsService.getNearbyAttractions(any(UUID.class), anyInt())).thenReturn(nearbyAttractions);
     when(rewardsService.getTotalRewardPoints(any(UUID.class))).thenReturn(10);
-    when(tripDealsService.getTripDeals(any(UUID.class), any(UserPreferences.class), anyInt()))
+    when(tripDealsService.getTripDeals(any(UUID.class), any(shared.dto.PreferencesDto.class), anyInt()))
         .thenReturn(providers);
 
     // When
     List<ProviderDto> actualDtos = tourGuideService.getTripDeals("jon");
 
     //Then
+    List<Provider> expectedProviders = EntitiesTestFactory.getProviders(user.getUserId());
     assertThat(actualDtos).usingRecursiveComparison().isEqualTo(providers);
-    assertThat(user.getTripDeals()).isEqualTo(providers);
+    assertThat(user.getTripDeals()).isEqualTo(expectedProviders);
     verify(userRepository, times(1)).findByUsername("jon");
     verify(rewardsService, times(1)).getTotalRewardPoints(user.getUserId());
-    verify(tripDealsService, times(1)).getTripDeals(attractionId, user.getUserPreferences(), 10);
+    shared.dto.PreferencesDto
+        expectedPreferences = new shared.dto.PreferencesDto(BigDecimal.valueOf(0), BigDecimal.valueOf(Integer.MAX_VALUE),1,1,2,3);
+    verify(tripDealsService, times(1)).getTripDeals(attractionId, expectedPreferences, 10);
   }
 
   @DisplayName("Get a non existent user trip deals should throw an exception")
@@ -263,7 +267,7 @@ class TourGuideServiceTest {
         .isInstanceOf(UserNotFoundException.class)
         .hasMessageContaining("User not found");
     verify(userRepository, times(1)).findByUsername("nonExistent");
-    verify(tripDealsService, times(0)).getTripDeals(any(UUID.class),any(UserPreferences.class), anyInt());
+    verify(tripDealsService, times(0)).getTripDeals(any(UUID.class),any(shared.dto.PreferencesDto.class), anyInt());
   }
 
   @DisplayName("Get user preferences should return a user preferences dto")
@@ -272,14 +276,14 @@ class TourGuideServiceTest {
     // Given
     User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
     user.setUserPreferences(new UserPreferences(0,Integer.MAX_VALUE,1,1,2,3));
-    UserPreferencesDto userPreferencesDto = new UserPreferencesDto(0,Integer.MAX_VALUE,1, 1,2,3);
+    PreferencesDto preferencesDto = new PreferencesDto(BigDecimal.ZERO, BigDecimal.valueOf(Integer.MAX_VALUE),1, 1,2,3);
     when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
 
     // When
-    UserPreferencesDto actualDto = tourGuideService.getUserPreferences("jon");
+    PreferencesDto actualDto = tourGuideService.getUserPreferences("jon");
 
     //Then
-    assertThat(actualDto).usingRecursiveComparison().isEqualTo(userPreferencesDto);
+    assertThat(actualDto).usingRecursiveComparison().isEqualTo(preferencesDto);
     verify(userRepository, times(1)).findByUsername("jon");
   }
 
@@ -301,15 +305,15 @@ class TourGuideServiceTest {
   void setUserPreferenceTest() throws Exception {
     // Given
     User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
-    UserPreferencesDto userPreferencesDto = new UserPreferencesDto(0, Integer.MAX_VALUE,1, 1,2,3);
+    PreferencesDto preferencesDto = new PreferencesDto(BigDecimal.ZERO, BigDecimal.valueOf(Integer.MAX_VALUE),1, 1,2,3);
     UserPreferences userPreferences = new UserPreferences(0, Integer.MAX_VALUE,1,1,2,3);
     when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
 
     // When
-    UserPreferencesDto actualDto = tourGuideService.setUserPreferences("jon", userPreferencesDto);
+    PreferencesDto actualDto = tourGuideService.setUserPreferences("jon", preferencesDto);
 
     //Then
-    assertThat(actualDto).isEqualTo(userPreferencesDto);
+    assertThat(actualDto).isEqualTo(preferencesDto);
     assertThat(user.getUserPreferences()).usingRecursiveComparison().isEqualTo(userPreferences);
     verify(userRepository, times(1)).findByUsername("jon");
   }
@@ -318,11 +322,11 @@ class TourGuideServiceTest {
   @Test
   void setUserPreferencesNotFoundTest() {
     // Given
-    UserPreferencesDto userPreferencesDto = new UserPreferencesDto(0, Integer.MAX_VALUE,1, 1,2,3);
+    PreferencesDto preferencesDto = new PreferencesDto(BigDecimal.ZERO, BigDecimal.valueOf(Integer.MAX_VALUE),1, 1,2,3);
     when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
 
     // Then
-    assertThatThrownBy(() -> tourGuideService.setUserPreferences("nonExistent", userPreferencesDto))
+    assertThatThrownBy(() -> tourGuideService.setUserPreferences("nonExistent", preferencesDto))
         .isInstanceOf(UserNotFoundException.class)
         .hasMessageContaining("User not found");
     verify(userRepository, times(1)).findByUsername("nonExistent");
@@ -359,7 +363,7 @@ class TourGuideServiceTest {
   @Test
   void getNearByAttractionsNotFoundTest() {
     // Given
-    UserPreferencesDto userPreferencesDto = new UserPreferencesDto(0, Integer.MAX_VALUE,1, 1,2,3);
+    PreferencesDto preferencesDto = new PreferencesDto(BigDecimal.ZERO, BigDecimal.valueOf(Integer.MAX_VALUE),1, 1,2,3);
     when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
 
     // Then

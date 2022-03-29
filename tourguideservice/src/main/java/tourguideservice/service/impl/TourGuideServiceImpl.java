@@ -7,14 +7,14 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import shared.dto.PreferencesDto;
+import shared.dto.ProviderDto;
 import tourguideservice.domain.User;
 import tourguideservice.domain.UserPreferences;
 import tourguideservice.dto.AttractionDto;
 import tourguideservice.dto.LocationDto;
 import tourguideservice.dto.NearbyAttractionDto;
 import tourguideservice.dto.NearbyAttractionsListDto;
-import tourguideservice.dto.ProviderDto;
-import tourguideservice.dto.UserPreferencesDto;
 import tourguideservice.dto.UserRewardDto;
 import tourguideservice.dto.VisitedLocationDto;
 import tourguideservice.exception.NoLocationFoundException;
@@ -25,7 +25,7 @@ import tourguideservice.service.RewardsService;
 import tourguideservice.service.TourGuideService;
 import tourguideservice.service.TripDealsService;
 import tourguideservice.utils.ProviderMapper;
-import tourguideservice.utils.UserPreferencesMapper;
+import tourguideservice.utils.PreferencesMapper;
 import tripPricer.Provider;
 
 /**
@@ -84,19 +84,19 @@ public class TourGuideServiceImpl implements TourGuideService {
    * {@inheritDoc}
    */
   @Override
-  public UserPreferencesDto getUserPreferences(String username) throws UserNotFoundException {
+  public PreferencesDto getUserPreferences(String username) throws UserNotFoundException {
     User user = getUser(username);
-    return UserPreferencesMapper.toDto(user.getUserPreferences());
+    return PreferencesMapper.toDto(user.getUserPreferences());
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public UserPreferencesDto setUserPreferences(String username, UserPreferencesDto userPreferences)
+  public PreferencesDto setUserPreferences(String username, PreferencesDto userPreferences)
       throws UserNotFoundException {
     User user = getUser(username);
-    user.setUserPreferences(UserPreferencesMapper.toEntity(userPreferences));
+    user.setUserPreferences(PreferencesMapper.toEntity(userPreferences));
     return userPreferences;
   }
 
@@ -109,13 +109,13 @@ public class TourGuideServiceImpl implements TourGuideService {
     UserPreferences preferences = user.getUserPreferences();
     UUID attractionId = getClosestAttraction(user.getUserId()).getAttractionId();
     int rewardPoints = rewardsService.getTotalRewardPoints(user.getUserId());
-    List<Provider> providers = tripDealsService.getTripDeals(
+    List<ProviderDto> providers = tripDealsService.getTripDeals(
         attractionId,
-        preferences,
+        PreferencesMapper.toDto(preferences),
         rewardPoints
     );
-    user.setTripDeals(providers);
-    return ProviderMapper.toDto(providers);
+    user.setTripDeals(ProviderMapper.toEntity(providers));
+    return providers;
   }
 
   /**

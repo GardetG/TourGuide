@@ -1,9 +1,6 @@
 package tourguideservice.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
@@ -17,7 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.jsoniter.output.JsonStream;
-import java.util.Arrays;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -33,11 +30,11 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import shared.dto.PreferencesDto;
+import shared.dto.ProviderDto;
 import tourguideservice.dto.AttractionDto;
 import tourguideservice.dto.LocationDto;
 import tourguideservice.dto.NearbyAttractionsListDto;
-import tourguideservice.dto.ProviderDto;
-import tourguideservice.dto.UserPreferencesDto;
 import tourguideservice.dto.UserRewardDto;
 import tourguideservice.dto.VisitedLocationDto;
 import tourguideservice.exception.UserNotFoundException;
@@ -57,7 +54,7 @@ class TourGuideControllerTest {
   private TourGuideService tourGuideService;
 
   @Captor
-  private ArgumentCaptor<UserPreferencesDto> argumentCaptor;
+  private ArgumentCaptor<PreferencesDto> argumentCaptor;
 
   @DisplayName("GET user location return 200 with user longitude and latitude")
   @Test
@@ -157,9 +154,9 @@ class TourGuideControllerTest {
   @Test
   void getUserPreferencesTest() throws Exception {
     // GIVEN
-    UserPreferencesDto userPreferencesDto =
-        new UserPreferencesDto(0, Integer.MAX_VALUE, 1, 1, 2, 3);
-    when(tourGuideService.getUserPreferences(anyString())).thenReturn(userPreferencesDto);
+    PreferencesDto preferencesDto =
+        new PreferencesDto(BigDecimal.ZERO, BigDecimal.valueOf(Integer.MAX_VALUE), 1, 1, 2, 3);
+    when(tourGuideService.getUserPreferences(anyString())).thenReturn(preferencesDto);
 
     // WHEN
     mockMvc.perform(get("/getUserPreferences?userName=jon"))
@@ -192,16 +189,16 @@ class TourGuideControllerTest {
   @Test
   void setUserPreferencesTest() throws Exception {
     // GIVEN
-    UserPreferencesDto userPreferencesDto =
-        new UserPreferencesDto(0, Integer.MAX_VALUE, 1, 1, 2, 3);
+    PreferencesDto preferencesDto =
+        new PreferencesDto(BigDecimal.ZERO, BigDecimal.valueOf(Integer.MAX_VALUE), 1, 1, 2, 3);
     when(
-        tourGuideService.setUserPreferences(anyString(), any(UserPreferencesDto.class))).thenReturn(
-        userPreferencesDto);
+        tourGuideService.setUserPreferences(anyString(), any(PreferencesDto.class))).thenReturn(
+        preferencesDto);
 
     // WHEN
     mockMvc.perform(put("/setUserPreferences?userName=jon")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(JsonStream.serialize(userPreferencesDto)))
+            .content(JsonStream.serialize(preferencesDto)))
 
         // THEN
         .andExpect(status().isOk())
@@ -209,40 +206,40 @@ class TourGuideControllerTest {
         .andExpect(jsonPath("$.numberOfAdults", is(2)))
         .andExpect(jsonPath("$.numberOfChildren", is(3)));
     verify(tourGuideService, times(1)).setUserPreferences(anyString(), argumentCaptor.capture());
-    assertThat(argumentCaptor.getValue()).usingRecursiveComparison().isEqualTo(userPreferencesDto);
+    assertThat(argumentCaptor.getValue()).usingRecursiveComparison().isEqualTo(preferencesDto);
   }
 
   @DisplayName("PUT not found user preferences should return 404")
   @Test
   void setUserPreferencesNotFoundTest() throws Exception {
     // GIVEN
-    UserPreferencesDto userPreferencesDto =
-        new UserPreferencesDto(0, Integer.MAX_VALUE, 1, 1, 2, 3);
-    when(tourGuideService.setUserPreferences(anyString(), any(UserPreferencesDto.class))).thenThrow(
+    PreferencesDto preferencesDto =
+        new PreferencesDto(BigDecimal.ZERO, BigDecimal.valueOf(Integer.MAX_VALUE), 1, 1, 2, 3);
+    when(tourGuideService.setUserPreferences(anyString(), any(PreferencesDto.class))).thenThrow(
         new UserNotFoundException("User not found"));
 
     // WHEN
     mockMvc.perform(put("/setUserPreferences?userName=nonExistent")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(JsonStream.serialize(userPreferencesDto)))
+            .content(JsonStream.serialize(preferencesDto)))
 
         // THEN
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$", is("User not found")));
     verify(tourGuideService, times(1)).setUserPreferences(anyString(),
-        any(UserPreferencesDto.class));
+        any(PreferencesDto.class));
   }
 
   @DisplayName("PUT invalid user preferences should return 422")
   @Test
   void setUserPreferencesWhenInvalidTest() throws Exception {
     // GIVEN
-    UserPreferencesDto userPreferencesDto = new UserPreferencesDto(0, -1, -1, -1, -1, -1);
+    PreferencesDto preferencesDto = new PreferencesDto(BigDecimal.ZERO, BigDecimal.valueOf(-1), -1, -1, -1, -1);
 
     // WHEN
     mockMvc.perform(put("/setUserPreferences?userName=j")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(JsonStream.serialize(userPreferencesDto)))
+            .content(JsonStream.serialize(preferencesDto)))
 
         // THEN
         .andExpect(status().isUnprocessableEntity())
@@ -255,7 +252,7 @@ class TourGuideControllerTest {
         .andExpect(jsonPath("$.numberOfAdults", is("Number of Adults cannot be negative")))
         .andExpect(jsonPath("$.numberOfChildren", is("Number of Children cannot be negative")));
     verify(tourGuideService, times(0)).setUserPreferences(anyString(),
-        any(UserPreferencesDto.class));
+        any(PreferencesDto.class));
   }
 
   @DisplayName("GET user trip deals should return 200 with list of provider Dto")

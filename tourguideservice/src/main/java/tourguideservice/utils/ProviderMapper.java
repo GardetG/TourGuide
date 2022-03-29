@@ -1,8 +1,9 @@
 package tourguideservice.utils;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
-import tourguideservice.dto.ProviderDto;
+import shared.dto.ProviderDto;
 import tripPricer.Provider;
 
 /**
@@ -24,20 +25,33 @@ public class ProviderMapper {
     return new ProviderDto(
         provider.tripId,
         provider.name,
-        provider.price
+        BigDecimal.valueOf(provider.price)
     );
   }
 
   /**
-   * Map a list of Provider entity into DTOs.
+   * Map a Provider DTO into entity.
    *
-   * @param providers to map
-   * @return corresponding list of ProviderDto mapped
+   * @param providerDto to map
+   * @return corresponding Provider mapped
    */
-  public static List<ProviderDto> toDto(List<Provider> providers) {
-    return providers.stream()
-        .map(ProviderMapper::toDto)
-        .collect(Collectors.toList());
+  public static Provider toEntity(ProviderDto providerDto) {
+    return new Provider(
+        providerDto.getTripId(),
+        providerDto.getName(),
+        providerDto.getPrice().doubleValue()
+    );
   }
 
+  /**
+   * Map a list of Provide Dto into Entity.
+   *
+   * @param providers to map
+   * @return corresponding list of Providers mapped
+   */
+  public static List<Provider> toEntity(List<ProviderDto> providers) {
+    return providers.stream()
+        .map(ProviderMapper::toEntity)
+        .collect(Collectors.toList());
+  }
 }

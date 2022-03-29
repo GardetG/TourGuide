@@ -4,11 +4,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
+import shared.dto.PreferencesDto;
+import shared.dto.ProviderDto;
 import tourguideservice.domain.User;
 import tourguideservice.dto.LocationDto;
 import tourguideservice.dto.NearbyAttractionsListDto;
-import tourguideservice.dto.ProviderDto;
-import tourguideservice.dto.UserPreferencesDto;
 import tourguideservice.dto.UserRewardDto;
 import tourguideservice.dto.VisitedLocationDto;
 import tourguideservice.exception.UserNotFoundException;
@@ -51,7 +51,7 @@ public interface TourGuideService {
    * @return UserPreferencesDto
    * @throws UserNotFoundException when user not found
    */
-  UserPreferencesDto getUserPreferences(String username) throws UserNotFoundException;
+  PreferencesDto getUserPreferences(String username) throws UserNotFoundException;
 
   /**
    * Update the preference of the user defined by the provided userName according to the provided
@@ -62,7 +62,7 @@ public interface TourGuideService {
    * @return updated UserPreferencesDto
    * @throws UserNotFoundException when user not found
    */
-  UserPreferencesDto setUserPreferences(String username, UserPreferencesDto userPreferences) throws UserNotFoundException;
+  PreferencesDto setUserPreferences(String username, PreferencesDto userPreferences) throws UserNotFoundException;
 
   /**
    * Get a list of trip deals providers for the user defined by the provided userName according to

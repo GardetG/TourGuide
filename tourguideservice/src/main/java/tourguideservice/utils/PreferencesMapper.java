@@ -1,14 +1,14 @@
 package tourguideservice.utils;
 
+import shared.dto.PreferencesDto;
 import tourguideservice.domain.UserPreferences;
-import tourguideservice.dto.UserPreferencesDto;
 
 /**
  * Mapper utility class to map UserPreferences DTO and entity.
  */
-public class UserPreferencesMapper {
+public class PreferencesMapper {
 
-  private UserPreferencesMapper() {
+  private PreferencesMapper() {
     throw new IllegalStateException("Utility class");
   }
 
@@ -18,10 +18,10 @@ public class UserPreferencesMapper {
    * @param userPreferences to map
    * @return corresponding UserPreferencesDto mapped
    */
-  public static UserPreferencesDto toDto(UserPreferences userPreferences) {
-    return new UserPreferencesDto(
-        userPreferences.getLowerPricePoint().getNumber().doubleValue(),
-        userPreferences.getHighPricePoint().getNumber().doubleValue(),
+  public static PreferencesDto toDto(UserPreferences userPreferences) {
+    return new PreferencesDto(
+        userPreferences.getLowerPricePoint().getNumberStripped(),
+        userPreferences.getHighPricePoint().getNumberStripped(),
         userPreferences.getTripDuration(),
         userPreferences.getTicketQuantity(),
         userPreferences.getNumberOfAdults(),
@@ -35,10 +35,10 @@ public class UserPreferencesMapper {
    * @param userPreferencesDto to map
    * @return corresponding UserPreferences mapped
    */
-  public static UserPreferences toEntity(UserPreferencesDto userPreferencesDto) {
+  public static UserPreferences toEntity(PreferencesDto userPreferencesDto) {
     return new UserPreferences(
-        userPreferencesDto.getLowerPricePoint(),
-        userPreferencesDto.getHighPricePoint(),
+        userPreferencesDto.getLowerPricePoint().doubleValue(),
+        userPreferencesDto.getHighPricePoint().doubleValue(),
         userPreferencesDto.getTripDuration(),
         userPreferencesDto.getTicketQuantity(),
         userPreferencesDto.getNumberOfAdults(),
