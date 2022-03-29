@@ -1,0 +1,82 @@
+package tourguideservice.service;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
+import tourguideservice.domain.UserPreferences;
+import tourguideservice.utils.EntitiesTestFactory;
+import tripPricer.Provider;
+import tripPricer.TripPricer;
+
+@SpringBootTest
+@ActiveProfiles("test")
+class TripDealsServiceTest {
+
+  @Autowired
+  private TripDealsService tripDealsService;
+
+  @MockBean
+  private TripPricer tripPricer;
+
+  @DisplayName("Get trip deals should return providers list from tripPricer")
+  @Test
+  void getTripDealsTest() {
+    // Given
+    UUID attractionId = UUID.randomUUID();
+    double lowerPricePoint = 0;
+    double highPricePoint = Integer.MAX_VALUE;
+    UserPreferences preferences = new UserPreferences(lowerPricePoint,highPricePoint,1, 1,2,3);
+    int rewardPoint = 100;
+    List<Provider> providers = EntitiesTestFactory.getProviders(attractionId);
+    when(tripPricer.getPrice(anyString(), any(UUID.class), anyInt(), anyInt(),anyInt(),anyInt()))
+        .thenReturn(providers);
+
+    // When
+    List<Provider> actualProviders = tripDealsService.getTripDeals(attractionId, preferences, rewardPoint);
+
+    // Then
+    assertThat(actualProviders)
+        .hasSize(5)
+        .isEqualTo(providers);
+    verify(tripPricer, times(1))
+        .getPrice("test-server-api-key", attractionId, 2,3,1, 100);
+  }
+
+  @DisplayName("Get trip deals should return providers list filtered according preferences")
+  @Test
+  void getTripDealsFilteredTest() {
+    // Given
+    UUID attractionId = UUID.randomUUID();
+    double lowerPricePoint = 25;
+    double highPricePoint = 75;
+    UserPreferences preferences = new UserPreferences(lowerPricePoint, highPricePoint,1, 1,2,3);
+    int rewardPoint = 100;
+    List<Provider> providers = EntitiesTestFactory.getProviders(attractionId);
+    when(tripPricer.getPrice(anyString(), any(UUID.class), anyInt(), anyInt(),anyInt(),anyInt()))
+        .thenReturn(providers);
+
+    // When
+    List<Provider> actualProviders = tripDealsService.getTripDeals(attractionId, preferences, rewardPoint);
+
+    // Then
+    assertThat(actualProviders)
+        .hasSize(3)
+        .containsExactly(providers.get(1), providers.get(2), providers.get(3));
+    verify(tripPricer, times(1))
+        .getPrice("test-server-api-key", attractionId, 2,3,1, 100);
+  }
+
+}

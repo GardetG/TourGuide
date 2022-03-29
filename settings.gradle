@@ -1,3 +1,4 @@
-rootProject.name = 'TourGuide'
+rootProject.name = 'tourguide'
 include(":shared")
 include(":tripservice")
+include(":tourguideservice")
