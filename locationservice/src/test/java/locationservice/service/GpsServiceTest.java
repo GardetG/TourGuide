@@ -53,23 +53,61 @@ class GpsServiceTest {
   @Captor
   ArgumentCaptor<VisitedLocation> visitedLocationCaptor;
 
+  @DisplayName("Get All last location should return list of all users' last location Dto")
+  @Test
+  void getAllLastLocationTest() {
+    // Given
+    UUID user1Id = UUID.randomUUID();
+    UUID user2Id = UUID.randomUUID();
+    VisitedLocation oldVisitedLocation1 = new VisitedLocation(user1Id, new Location(90,-90), new Date());
+    Date date = new Date();
+    VisitedLocation visitedLocation1 = new VisitedLocation(user1Id, new Location(45,-45), date);
+    VisitedLocationDto expectedLocation1 = new VisitedLocationDto(user1Id, new LocationDto(45,-45), date);
+    VisitedLocation visitedLocation2 = new VisitedLocation(user2Id, new Location(45,-45), date);
+    VisitedLocationDto expectedLocation2 = new VisitedLocationDto(user2Id, new LocationDto(45,-45), date);
+    when(locationHistoryRepository.findAll()).thenReturn(List.of(visitedLocation1, oldVisitedLocation1, visitedLocation2));
+
+    // When
+    List<VisitedLocationDto> actualLocations = gpsService.getAllLastLocation();
+
+    // Then
+    assertThat(actualLocations).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(expectedLocation1, expectedLocation2);
+    verify(locationHistoryRepository, times(1)).findAll();
+  }
+
+  @DisplayName("Get all users' last location when no location registered should return an empty list")
+  @Test
+  void getAllLastLocationWhenEmptyTest() {
+    // Given
+    UUID userId = UUID.randomUUID();
+    when(locationHistoryRepository.findAll()).thenReturn(Collections.emptyList());
+
+    // When
+    List<VisitedLocationDto> actualLocations = gpsService.getAllLastLocation();
+
+    // Then
+    assertThat(actualLocations).isEmpty();
+    verify(locationHistoryRepository, times(1)).findAll();
+  }
+
   @DisplayName("Get last location should return last location Dto")
   @Test
   void getLastLocationTest() throws Exception {
     // Given
     UUID userId = UUID.randomUUID();
+    VisitedLocation oldVisitedLocation = new VisitedLocation(userId, new Location(90,-90), new Date());
     Date date = new Date();
     VisitedLocation visitedLocation = new VisitedLocation(userId, new Location(45,-45), date);
     VisitedLocationDto expectedLocation = new VisitedLocationDto(userId, new LocationDto(45,-45), date);
-    when(locationHistoryRepository.findFirstByIdOrderByDateDesc(any(UUID.class)))
-        .thenReturn(Optional.of(visitedLocation));
+    when(locationHistoryRepository.findById(any(UUID.class))).thenReturn(List.of(visitedLocation, oldVisitedLocation));
 
     // When
     VisitedLocationDto actualLocation = gpsService.getLastLocation(userId);
 
     // Then
     assertThat(actualLocation).usingRecursiveComparison().isEqualTo(expectedLocation);
-    verify(locationHistoryRepository, times(1)).findFirstByIdOrderByDateDesc(userId);
+    verify(locationHistoryRepository, times(1)).findById(userId);
   }
 
   @DisplayName("Get last location when no location registered should throw an exception")
@@ -77,14 +115,13 @@ class GpsServiceTest {
   void getLastLocationWhenEmptyTest() {
     // Given
     UUID userId = UUID.randomUUID();
-    when(locationHistoryRepository.findFirstByIdOrderByDateDesc(any(UUID.class)))
-        .thenReturn(Optional.empty());
+    when(locationHistoryRepository.findById(any(UUID.class))).thenReturn(Collections.emptyList());
 
     // Then
     assertThatThrownBy(() -> gpsService.getLastLocation(userId))
         .isInstanceOf(NoLocationFoundException.class)
         .hasMessageContaining("No location registered for the user yet");
-    verify(locationHistoryRepository, times(1)).findFirstByIdOrderByDateDesc(userId);
+    verify(locationHistoryRepository, times(1)).findById(userId);
   }
 
   @DisplayName("Track user location should registered and return current visited location")
@@ -215,7 +252,7 @@ class GpsServiceTest {
     Attraction attraction3 = new Attraction("attraction3", "", "", 0, 45);
     AttractionDto expectedAttraction1 = new AttractionDto(attraction2.attractionId, "attraction2", "","",0,0 );
     AttractionDto expectedAttraction2 = new AttractionDto(attraction3.attractionId, "attraction3", "","",0,45);
-    when(locationHistoryRepository.findFirstByIdOrderByDateDesc(any(UUID.class))).thenReturn(Optional.of(location));
+    when(locationHistoryRepository.findById(any(UUID.class))).thenReturn(List.of(location));
     when(gpsUtil.getAttractions()).thenReturn(Arrays.asList(attraction1, attraction2, attraction3));
 
     // When
@@ -228,7 +265,7 @@ class GpsServiceTest {
         .containsExactly(
             new AttractionWithDistanceDto(expectedAttraction1, 0d),
             new AttractionWithDistanceDto(expectedAttraction2, 2700d * LocationServiceProperties.STATUTE_MILES_PER_NAUTICAL_MILE));
-    verify(locationHistoryRepository, times(1)).findFirstByIdOrderByDateDesc(userId);
+    verify(locationHistoryRepository, times(1)).findById(userId);
     verify(gpsUtil, times(1)).getAttractions();
   }
 
@@ -238,13 +275,13 @@ class GpsServiceTest {
     // Given
     UUID userId = UUID.randomUUID();
     int limit = 2;
-    when(locationHistoryRepository.findFirstByIdOrderByDateDesc(any(UUID.class))).thenReturn(Optional.empty());
+    when(locationHistoryRepository.findById(any(UUID.class))).thenReturn(Collections.emptyList());
 
     // Then
     assertThatThrownBy(() -> gpsService.getNearbyAttractions(userId,limit))
         .isInstanceOf(NoLocationFoundException.class)
         .hasMessageContaining("No location registered for the user yet");
-    verify(locationHistoryRepository, times(1)).findFirstByIdOrderByDateDesc(userId);
+    verify(locationHistoryRepository, times(1)).findById(userId);
     verify(gpsUtil, times(0)).getAttractions();
   }
 
@@ -259,7 +296,7 @@ class GpsServiceTest {
     assertThatThrownBy(() -> gpsService.getNearbyAttractions(userId,limit))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("Limit must be positive");
-    verify(locationHistoryRepository, times(0)).findFirstByIdOrderByDateDesc(any(UUID.class));
+    verify(locationHistoryRepository, times(0)).findById(any(UUID.class));
     verify(gpsUtil, times(0)).getAttractions();
   }
 
