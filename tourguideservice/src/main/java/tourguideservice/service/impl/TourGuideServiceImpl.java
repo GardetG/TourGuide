@@ -11,12 +11,12 @@ import shared.dto.PreferencesDto;
 import shared.dto.ProviderDto;
 import tourguideservice.domain.User;
 import tourguideservice.domain.UserPreferences;
-import tourguideservice.dto.AttractionDto;
-import tourguideservice.dto.LocationDto;
+import shared.dto.AttractionDto;
+import shared.dto.LocationDto;
 import tourguideservice.dto.NearbyAttractionDto;
 import tourguideservice.dto.NearbyAttractionsListDto;
 import tourguideservice.dto.UserRewardDto;
-import tourguideservice.dto.VisitedLocationDto;
+import shared.dto.VisitedLocationDto;
 import shared.exception.NoLocationFoundException;
 import tourguideservice.exception.UserNotFoundException;
 import tourguideservice.repository.UserRepository;
@@ -137,7 +137,7 @@ public class TourGuideServiceImpl implements TourGuideService {
         ))
         .collect(Collectors.toList());
     return new NearbyAttractionsListDto(
-        new LocationDto(userLocation.getLongitude(), userLocation.getLatitude()),
+        new LocationDto(userLocation.getLatitude(), userLocation.getLongitude()),
         attractions
     );
   }

@@ -29,11 +29,11 @@ import shared.dto.PreferencesDto;
 import shared.dto.ProviderDto;
 import tourguideservice.domain.User;
 import tourguideservice.domain.UserPreferences;
-import tourguideservice.dto.AttractionDto;
-import tourguideservice.dto.LocationDto;
+import shared.dto.AttractionDto;
+import shared.dto.LocationDto;
 import tourguideservice.dto.NearbyAttractionsListDto;
 import tourguideservice.dto.UserRewardDto;
-import tourguideservice.dto.VisitedLocationDto;
+import shared.dto.VisitedLocationDto;
 import shared.exception.NoLocationFoundException;
 import tourguideservice.exception.UserNotFoundException;
 import tourguideservice.repository.UserRepository;
@@ -154,7 +154,7 @@ class TourGuideServiceTest {
   void getUserRewardsTest() throws Exception {
     // Given
     User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
-    AttractionDto attractionDto = new AttractionDto(UUID.randomUUID(), -45,45, "Test1", "city", "state");
+    AttractionDto attractionDto = new AttractionDto(UUID.randomUUID(), "Test1", "city", "state",45, -45);
     VisitedLocationDto visitedLocationDto = new VisitedLocationDto(user.getUserId(), new LocationDto(-45,45), new Date());
     UserRewardDto reward = new UserRewardDto(visitedLocationDto, attractionDto, 10);
     when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
@@ -234,7 +234,7 @@ class TourGuideServiceTest {
     User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
     UUID attractionId = UUID.randomUUID();
     Map<AttractionDto, Double> nearbyAttractions = new HashMap<>();
-    nearbyAttractions.put(new AttractionDto(attractionId,0,0,"attraction","",""), 0d);
+    nearbyAttractions.put(new AttractionDto(attractionId,"attraction","","",0,0), 0d);
     user.setUserPreferences(new UserPreferences(0, Integer.MAX_VALUE, 1, 1,2,3));
     List<ProviderDto> providers = EntitiesTestFactory.getProvidersDto(user.getUserId());
     when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
@@ -395,7 +395,7 @@ class TourGuideServiceTest {
     // Given
     UUID userId = UUID.randomUUID();
     VisitedLocationDto visitedLocation = new VisitedLocationDto(userId, new LocationDto(0,0), new Date());
-    AttractionDto attraction = new AttractionDto(UUID.randomUUID(),0,0,"attraction", "", "");
+    AttractionDto attraction = new AttractionDto(UUID.randomUUID(),"attraction", "", "", 0,0);
     Map<AttractionDto, VisitedLocationDto> attractionToReward = new HashMap<>();
     attractionToReward.put(attraction, visitedLocation);
     when(gpsService.getVisitedAttractions(any(UUID.class))).thenReturn(attractionToReward);

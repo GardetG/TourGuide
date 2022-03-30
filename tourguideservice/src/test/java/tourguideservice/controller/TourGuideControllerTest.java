@@ -32,11 +32,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import shared.dto.PreferencesDto;
 import shared.dto.ProviderDto;
-import tourguideservice.dto.AttractionDto;
-import tourguideservice.dto.LocationDto;
+import shared.dto.AttractionDto;
+import shared.dto.LocationDto;
 import tourguideservice.dto.NearbyAttractionsListDto;
 import tourguideservice.dto.UserRewardDto;
-import tourguideservice.dto.VisitedLocationDto;
+import shared.dto.VisitedLocationDto;
 import tourguideservice.exception.UserNotFoundException;
 import tourguideservice.service.TourGuideService;
 import tourguideservice.utils.EntitiesTestFactory;
@@ -68,8 +68,8 @@ class TourGuideControllerTest {
 
         // THEN
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.longitude", is(45.0)))
-        .andExpect(jsonPath("$.latitude", is(-45.0)));
+        .andExpect(jsonPath("$.latitude", is(45.0)))
+        .andExpect(jsonPath("$.longitude", is(-45.0)));
     verify(tourGuideService, times(1)).getUserLocation("jon");
   }
 
@@ -103,10 +103,10 @@ class TourGuideControllerTest {
 
         // THEN
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.00000000-0000-0000-0000-000000000001.longitude", is(0.0)))
         .andExpect(jsonPath("$.00000000-0000-0000-0000-000000000001.latitude", is(0.0)))
-        .andExpect(jsonPath("$.00000000-0000-0000-0000-000000000002.longitude", is(45.0)))
-        .andExpect(jsonPath("$.00000000-0000-0000-0000-000000000002.latitude", is(-45.0)));
+        .andExpect(jsonPath("$.00000000-0000-0000-0000-000000000001.longitude", is(0.0)))
+        .andExpect(jsonPath("$.00000000-0000-0000-0000-000000000002.latitude", is(45.0)))
+        .andExpect(jsonPath("$.00000000-0000-0000-0000-000000000002.longitude", is(-45.0)));
     verify(tourGuideService, times(1)).getAllCurrentLocations();
   }
 
@@ -115,7 +115,7 @@ class TourGuideControllerTest {
   void getRewardsTest() throws Exception {
     // GIVEN
     VisitedLocationDto visitedLocationDto = new VisitedLocationDto(UUID.randomUUID(), new LocationDto(45,-45), new Date());
-    AttractionDto attractionDto = new AttractionDto(UUID.randomUUID(), 50,-50,"Test1", "city", "state");
+    AttractionDto attractionDto = new AttractionDto(UUID.randomUUID(), "Test1", "city", "state",50,-50);
     UserRewardDto userRewardDto = new UserRewardDto(visitedLocationDto, attractionDto, 10);
     when(tourGuideService.getUserRewards(anyString())).thenReturn(List.of(userRewardDto));
 
@@ -302,8 +302,8 @@ class TourGuideControllerTest {
 
         // THEN
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.userLocation.longitude", is(45.0)))
-        .andExpect(jsonPath("$.userLocation.latitude", is(-45.0)))
+        .andExpect(jsonPath("$.userLocation.latitude", is(45.0)))
+        .andExpect(jsonPath("$.userLocation.longitude", is(-45.0)))
         .andExpect(jsonPath("$.attractions", hasSize(5)));
     verify(tourGuideService, times(1)).getNearByAttractions("jon");
   }

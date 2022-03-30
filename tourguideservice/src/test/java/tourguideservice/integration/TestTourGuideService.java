@@ -18,10 +18,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import shared.dto.ProviderDto;
 import tourguideservice.domain.User;
-import tourguideservice.dto.AttractionDto;
-import tourguideservice.dto.LocationDto;
+import shared.dto.AttractionDto;
+import shared.dto.LocationDto;
 import tourguideservice.dto.NearbyAttractionsListDto;
-import tourguideservice.dto.VisitedLocationDto;
+import shared.dto.VisitedLocationDto;
 import tourguideservice.service.GpsService;
 import tourguideservice.service.TourGuideService;
 import tourguideservice.tracker.Tracker;
@@ -124,7 +124,7 @@ class TestTourGuideService {
     AttractionDto attraction = gpsService.getAttraction().get(0);
     gpsService.addLocation(new VisitedLocationDto(
         user.getUserId(),
-        new LocationDto(attraction.getLongitude(), attraction.getLatitude()),
+        new LocationDto(attraction.getLatitude(), attraction.getLongitude()),
         new Date()
     ));
 

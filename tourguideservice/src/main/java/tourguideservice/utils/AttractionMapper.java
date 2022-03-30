@@ -1,7 +1,7 @@
 package tourguideservice.utils;
 
 import gpsUtil.location.Attraction;
-import tourguideservice.dto.AttractionDto;
+import shared.dto.AttractionDto;
 
 /**
  * Mapper utility class to map Attraction DTO and entity.
@@ -21,11 +21,11 @@ public class AttractionMapper {
   public static AttractionDto toDto(Attraction attraction) {
     return new AttractionDto(
         attraction.attractionId,
-        attraction.longitude,
-        attraction.latitude,
         attraction.attractionName,
         attraction.city,
-        attraction.state
+        attraction.state,
+        attraction.latitude,
+        attraction.longitude
     );
   }
 

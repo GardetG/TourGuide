@@ -8,7 +8,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import shared.dto.ProviderDto;
-import tourguideservice.dto.AttractionDto;
+import shared.dto.AttractionDto;
 import tourguideservice.dto.NearbyAttractionDto;
 import tripPricer.Provider;
 
@@ -32,7 +32,7 @@ public class EntitiesTestFactory {
   // Return a Map of 5 Attractions with distance for testing purposes
   public static Map<AttractionDto, Double> getAttractionsWithDistance() {
     return IntStream.range(0,5)
-        .mapToObj(index -> new AttractionDto(UUID.randomUUID(),index*50,0, "Attraction"+index, "", ""))
+        .mapToObj(index -> new AttractionDto(UUID.randomUUID(),"Attraction"+index, "", "", 0, index*50))
         .collect(Collectors.toMap(Function.identity(), AttractionDto::getLongitude));
   }
 

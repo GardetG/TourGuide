@@ -13,8 +13,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import tourguideservice.domain.User;
-import tourguideservice.dto.LocationDto;
-import tourguideservice.dto.VisitedLocationDto;
+import shared.dto.LocationDto;
+import shared.dto.VisitedLocationDto;
 import tourguideservice.repository.UserRepository;
 import tourguideservice.service.GpsService;
 
@@ -60,7 +60,7 @@ public class InternalTestHelper {
 	private void generateUserLocationHistory(User user) {
 		IntStream.range(0, 3).forEach(i-> gpsService.addLocation(new VisitedLocationDto(
 				user.getUserId(),
-				new LocationDto(generateRandomLatitude(), generateRandomLongitude()),
+				new LocationDto(generateRandomLongitude(), generateRandomLatitude()),
 				getRandomTime()
 		)));
 	}

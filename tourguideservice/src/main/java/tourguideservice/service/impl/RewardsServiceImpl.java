@@ -10,9 +10,9 @@ import org.springframework.stereotype.Service;
 
 import rewardCentral.RewardCentral;
 import tourguideservice.domain.UserReward;
-import tourguideservice.dto.AttractionDto;
+import shared.dto.AttractionDto;
 import tourguideservice.dto.UserRewardDto;
-import tourguideservice.dto.VisitedLocationDto;
+import shared.dto.VisitedLocationDto;
 import tourguideservice.repository.RewardsRepository;
 import tourguideservice.service.RewardsService;
 import tourguideservice.utils.AttractionMapper;

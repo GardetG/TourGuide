@@ -1,4 +1,4 @@
-package tourguideservice.dto;
+package shared.dto;
 
 import java.util.Date;
 import java.util.UUID;

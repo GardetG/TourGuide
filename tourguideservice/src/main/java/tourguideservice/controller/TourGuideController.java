@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import shared.dto.PreferencesDto;
 import shared.dto.ProviderDto;
-import tourguideservice.dto.LocationDto;
+import shared.dto.LocationDto;
 import tourguideservice.dto.NearbyAttractionsListDto;
 import tourguideservice.dto.UserRewardDto;
 import tourguideservice.exception.UserNotFoundException;

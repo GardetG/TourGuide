@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
-import tourguideservice.dto.AttractionDto;
+import shared.dto.AttractionDto;
 import tourguideservice.dto.UserRewardDto;
-import tourguideservice.dto.VisitedLocationDto;
+import shared.dto.VisitedLocationDto;
 
 /**
  * Service Interface to calculate and retrieve users rewards.

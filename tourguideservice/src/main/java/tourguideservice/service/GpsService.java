@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
-import tourguideservice.dto.AttractionDto;
-import tourguideservice.dto.VisitedLocationDto;
+import shared.dto.AttractionDto;
+import shared.dto.VisitedLocationDto;
 import shared.exception.NoLocationFoundException;
 
 /**

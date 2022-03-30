@@ -30,9 +30,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import tourguideservice.config.TourGuideProperties;
-import tourguideservice.dto.AttractionDto;
-import tourguideservice.dto.LocationDto;
-import tourguideservice.dto.VisitedLocationDto;
+import shared.dto.AttractionDto;
+import shared.dto.LocationDto;
+import shared.dto.VisitedLocationDto;
 import shared.exception.NoLocationFoundException;
 import tourguideservice.repository.LocationHistoryRepository;
 
@@ -58,7 +58,7 @@ class GpsServiceTest {
     UUID userId = UUID.randomUUID();
     Date date = new Date();
     VisitedLocation visitedLocation = new VisitedLocation(userId, new Location(45,-45), date);
-    VisitedLocationDto expectedLocation = new VisitedLocationDto(userId, new LocationDto(-45,45), date);
+    VisitedLocationDto expectedLocation = new VisitedLocationDto(userId, new LocationDto(45,-45), date);
     when(locationHistoryRepository.findFirstByIdOrderByDateDesc(any(UUID.class)))
         .thenReturn(Optional.of(visitedLocation));
 
@@ -92,7 +92,7 @@ class GpsServiceTest {
     UUID userId = UUID.randomUUID();
     Date date = new Date();
     VisitedLocation visitedLocation = new VisitedLocation(userId, new Location(45,-45), date);
-    VisitedLocationDto expectedLocation = new VisitedLocationDto(userId, new LocationDto(-45,45), date);
+    VisitedLocationDto expectedLocation = new VisitedLocationDto(userId, new LocationDto(45,-45), date);
     when(gpsUtil.getUserLocation(any(UUID.class))).thenReturn(visitedLocation);
 
     // When
@@ -111,7 +111,7 @@ class GpsServiceTest {
   void getAttractionTest() {
     // Given
     Attraction attraction = new Attraction("attraction", "","",45,-45);
-    AttractionDto attractionDto = new AttractionDto(attraction.attractionId,-45,45,"attraction","","");
+    AttractionDto attractionDto = new AttractionDto(attraction.attractionId,"attraction","","", 45,-45);
     when(gpsUtil.getAttractions()).thenReturn(Collections.singletonList(attraction));
 
     // When
@@ -128,7 +128,7 @@ class GpsServiceTest {
     // Given
     UUID userId = UUID.randomUUID();
     Date date = new Date();
-    VisitedLocationDto locationDto = new VisitedLocationDto(userId, new LocationDto(45, -45), date);
+    VisitedLocationDto locationDto = new VisitedLocationDto(userId, new LocationDto(-45, 45), date);
     VisitedLocation expectedLocation = new VisitedLocation(userId, new Location(-45,45), date);
 
     // When
@@ -148,7 +148,7 @@ class GpsServiceTest {
     VisitedLocation location2 = new VisitedLocation(userId, new Location(0,0), new Date());
     VisitedLocationDto locationDto = new VisitedLocationDto(userId, new LocationDto(0,0), location1.timeVisited);
     Attraction attraction1 = new Attraction("attraction1", "","",0,0);
-    AttractionDto attractionDto1 = new AttractionDto(attraction1.attractionId,0,0,"attraction1","","");
+    AttractionDto attractionDto1 = new AttractionDto(attraction1.attractionId,"attraction1","","",0,0);
     when(locationHistoryRepository.findById(any(UUID.class))).thenReturn(Arrays.asList(location1, location2));
     when(gpsUtil.getAttractions()).thenReturn(Collections.singletonList(attraction1));
 
@@ -212,8 +212,8 @@ class GpsServiceTest {
     Attraction attraction1 = new Attraction("attraction1", "", "", 0, -90);
     Attraction attraction2 = new Attraction("attraction2", "", "", 0, 0);
     Attraction attraction3 = new Attraction("attraction3", "", "", 0, 45);
-    AttractionDto expectedAttraction1 = new AttractionDto(attraction2.attractionId, 0,0, "attraction2", "","");
-    AttractionDto expectedAttraction2 = new AttractionDto(attraction3.attractionId, 45,0, "attraction3", "","");
+    AttractionDto expectedAttraction1 = new AttractionDto(attraction2.attractionId, "attraction2", "","",0,0 );
+    AttractionDto expectedAttraction2 = new AttractionDto(attraction3.attractionId, "attraction3", "","",0,45);
     when(locationHistoryRepository.findFirstByIdOrderByDateDesc(any(UUID.class))).thenReturn(Optional.of(location));
     when(gpsUtil.getAttractions()).thenReturn(Arrays.asList(attraction1, attraction2, attraction3));
 

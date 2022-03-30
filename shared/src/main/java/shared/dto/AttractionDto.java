@@ -1,5 +1,7 @@
-package tourguideservice.dto;
+package shared.dto;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.UUID;
 
 /**
@@ -10,21 +12,26 @@ public class AttractionDto {
   /**
    * Constructor for an instance of AttractionDto with longitude and latitude, id and name.
    *
-   * @param attractionId of the attraction
-   * @param longitude of the attraction location
-   * @param latitude of the attraction location
+   * @param attractionId   of the attraction
    * @param attractionName of the attraction
-   * @param city of the attraction
-   * @param state of the attraction
+   * @param city           of the attraction
+   * @param state          of the attraction
+   * @param latitude       of the attraction location
+   * @param longitude      of the attraction location
    */
-  public AttractionDto(UUID attractionId, double longitude, double latitude,
-                       String attractionName, String city, String state) {
+  @JsonCreator
+  public AttractionDto(@JsonProperty("attractionId") UUID attractionId,
+                       @JsonProperty("attractionName") String attractionName,
+                       @JsonProperty("city") String city,
+                       @JsonProperty("state") String state,
+                       @JsonProperty("latitude") double latitude,
+                       @JsonProperty("longitude") double longitude) {
     this.attractionId = attractionId;
-    this.longitude = longitude;
-    this.latitude = latitude;
     this.attractionName = attractionName;
     this.city = city;
     this.state = state;
+    this.latitude = latitude;
+    this.longitude = longitude;
   }
 
   private final UUID attractionId;

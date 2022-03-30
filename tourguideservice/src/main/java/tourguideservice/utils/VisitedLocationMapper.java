@@ -1,7 +1,7 @@
 package tourguideservice.utils;
 
 import gpsUtil.location.VisitedLocation;
-import tourguideservice.dto.VisitedLocationDto;
+import shared.dto.VisitedLocationDto;
 
 /**
  * Mapper utility class to map VisitedLocation DTO and entity.

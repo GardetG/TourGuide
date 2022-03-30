@@ -18,9 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import tourguideservice.domain.User;
-import tourguideservice.dto.AttractionDto;
-import tourguideservice.dto.LocationDto;
-import tourguideservice.dto.VisitedLocationDto;
+import shared.dto.AttractionDto;
+import shared.dto.LocationDto;
+import shared.dto.VisitedLocationDto;
 import tourguideservice.service.GpsService;
 import tourguideservice.service.RewardsService;
 import tourguideservice.service.TourGuideService;
@@ -95,7 +95,7 @@ class TestPerformance {
 		AttractionDto attraction = gpsService.getAttraction().get(0);
 		allUsers.forEach(u -> gpsService.addLocation(new VisitedLocationDto(
 				u.getUserId(),
-				new LocationDto(attraction.getLongitude(), attraction.getLatitude()),
+				new LocationDto( attraction.getLatitude(), attraction.getLongitude()),
 				new Date()
 		)));
 

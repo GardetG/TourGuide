@@ -7,10 +7,10 @@ import org.springframework.stereotype.Service;
 import shared.dto.PreferencesDto;
 import shared.dto.ProviderDto;
 import tourguideservice.domain.User;
-import tourguideservice.dto.LocationDto;
+import shared.dto.LocationDto;
 import tourguideservice.dto.NearbyAttractionsListDto;
 import tourguideservice.dto.UserRewardDto;
-import tourguideservice.dto.VisitedLocationDto;
+import shared.dto.VisitedLocationDto;
 import tourguideservice.exception.UserNotFoundException;
 
 /**
