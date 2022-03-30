@@ -4,9 +4,8 @@ import gpsUtil.GpsUtil;
 import gpsUtil.location.Attraction;
 import gpsUtil.location.Location;
 import gpsUtil.location.VisitedLocation;
+import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -19,6 +18,8 @@ import locationservice.utils.VisitedLocationMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import shared.dto.AttractionDto;
+import shared.dto.AttractionWithDistanceDto;
+import shared.dto.VisitedAttractionDto;
 import shared.dto.VisitedLocationDto;
 import shared.exception.NoLocationFoundException;
 
@@ -84,18 +85,18 @@ public class GpsServiceImpl implements GpsService {
    * {@inheritDoc}
    */
   @Override
-  public Map<AttractionDto, VisitedLocationDto> getVisitedAttractions(UUID userId) {
+  public List<VisitedAttractionDto> getVisitedAttractions(UUID userId) {
     List<Attraction> attractions = gpsUtil.getAttractions();
     List<VisitedLocation> visitedLocations = locationHistoryRepository.findById(userId);
-    Map<AttractionDto, VisitedLocationDto>  visitedAttraction = new HashMap<>();
+    List<VisitedAttractionDto> visitedAttraction = new ArrayList<>();
     attractions.forEach(attraction -> visitedLocations
         .stream()
         .filter(visitedLocation -> isInRangeOfAttraction(visitedLocation, attraction))
         .findFirst()
-        .ifPresent(visitedLocation -> visitedAttraction.put(
+        .ifPresent(visitedLocation -> visitedAttraction.add(new VisitedAttractionDto(
             AttractionMapper.toDto(attraction),
             VisitedLocationMapper.toDto(visitedLocation)
-            ))
+        )))
     );
     return visitedAttraction;
   }
@@ -104,7 +105,7 @@ public class GpsServiceImpl implements GpsService {
    * {@inheritDoc}
    */
   @Override
-  public Map<AttractionDto, Double> getNearbyAttractions(UUID userId, int limit)
+  public List<AttractionWithDistanceDto> getNearbyAttractions(UUID userId, int limit)
       throws NoLocationFoundException {
     if (limit < 0) {
       throw new IllegalArgumentException("Limit must be positive");
@@ -114,7 +115,8 @@ public class GpsServiceImpl implements GpsService {
         .stream()
         .sorted(Comparator.comparingDouble(Map.Entry::getValue))
         .limit(limit)
-        .collect(Collectors.toMap(e -> AttractionMapper.toDto(e.getKey()), Map.Entry::getValue, (e1,e2) -> e1, LinkedHashMap::new));
+        .map(e -> new AttractionWithDistanceDto(AttractionMapper.toDto(e.getKey()), e.getValue()))
+        .collect(Collectors.toList());
   }
 
   /**
@@ -131,11 +133,12 @@ public class GpsServiceImpl implements GpsService {
         + Math.cos(lat1) * Math.cos(lat2) * Math.cos(lon1 - lon2));
 
     double nauticalMiles = 60 * Math.toDegrees(angle);
-    return  LocationServiceProperties.STATUTE_MILES_PER_NAUTICAL_MILE * nauticalMiles;
+    return LocationServiceProperties.STATUTE_MILES_PER_NAUTICAL_MILE * nauticalMiles;
   }
 
   private boolean isInRangeOfAttraction(VisitedLocation visitedLocation, Attraction attraction) {
-    return getDistance(attraction, visitedLocation.location) < properties.getProximityThresholdInMiles();
+    return getDistance(attraction, visitedLocation.location) <
+        properties.getProximityThresholdInMiles();
   }
 
   private VisitedLocation getLastVisitedLocation(UUID userId) throws NoLocationFoundException {
