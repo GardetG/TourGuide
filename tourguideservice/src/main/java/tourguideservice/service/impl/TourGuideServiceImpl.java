@@ -17,7 +17,7 @@ import tourguideservice.dto.NearbyAttractionDto;
 import tourguideservice.dto.NearbyAttractionsListDto;
 import tourguideservice.dto.UserRewardDto;
 import tourguideservice.dto.VisitedLocationDto;
-import tourguideservice.exception.NoLocationFoundException;
+import shared.exception.NoLocationFoundException;
 import tourguideservice.exception.UserNotFoundException;
 import tourguideservice.repository.UserRepository;
 import tourguideservice.service.GpsService;

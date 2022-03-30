@@ -33,7 +33,7 @@ import tourguideservice.config.TourGuideProperties;
 import tourguideservice.dto.AttractionDto;
 import tourguideservice.dto.LocationDto;
 import tourguideservice.dto.VisitedLocationDto;
-import tourguideservice.exception.NoLocationFoundException;
+import shared.exception.NoLocationFoundException;
 import tourguideservice.repository.LocationHistoryRepository;
 
 @SpringBootTest

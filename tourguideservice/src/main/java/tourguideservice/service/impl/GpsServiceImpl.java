@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 import tourguideservice.config.TourGuideProperties;
 import tourguideservice.dto.AttractionDto;
 import tourguideservice.dto.VisitedLocationDto;
-import tourguideservice.exception.NoLocationFoundException;
+import shared.exception.NoLocationFoundException;
 import tourguideservice.repository.LocationHistoryRepository;
 import tourguideservice.service.GpsService;
 import tourguideservice.utils.AttractionMapper;

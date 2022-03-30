@@ -7,7 +7,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import tourguideservice.dto.AttractionDto;
 import tourguideservice.dto.VisitedLocationDto;
-import tourguideservice.exception.NoLocationFoundException;
+import shared.exception.NoLocationFoundException;
 
 /**
  * Service Interface to retrieve users and attractions location and manage distance calculation.
