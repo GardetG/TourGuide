@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,41 @@ class LocationHistoryRepositoryTest {
   @Autowired
   private LocationHistoryRepository locationHistoryRepository;
 
-  @DisplayName("Find by Id should return list of all user visited locations")
+  @BeforeEach
+  private void setUp() {
+    locationHistoryRepository.deleteAll();
+  }
+
+  @DisplayName("Find all should return list of all visited locations")
+  @Test
+  void findAll() {
+    // Given
+    VisitedLocation visitedLocation1 = new VisitedLocation(UUID.randomUUID(), new Location(45,-45), new Date());
+    VisitedLocation visitedLocation2 = new VisitedLocation(UUID.randomUUID(), new Location(45,-45), new Date());
+    locationHistoryRepository.save(visitedLocation1);
+    locationHistoryRepository.save(visitedLocation2);
+
+    // When
+    List<VisitedLocation> expectedList = locationHistoryRepository.findAll();
+
+    // Then
+    assertThat(expectedList)
+        .hasSize(2)
+        .containsOnly(visitedLocation1, visitedLocation2);
+  }
+
+
+  @DisplayName("Find all when no visited location persisted should return an empty list")
+  @Test
+  void findAllWhenEmpty() {
+    // When
+    List<VisitedLocation> expectedList = locationHistoryRepository.findAll();
+
+    // Then
+    assertThat(expectedList).isEmpty();
+  }
+
+  @DisplayName("Find by Id should return list of all the user's visited locations")
   @Test
   void findByIdTest() {
     // Given
@@ -38,7 +73,7 @@ class LocationHistoryRepositoryTest {
         .containsOnly(visitedLocation);
   }
 
-  @DisplayName("Find by Id when user non found should return an empty list")
+  @DisplayName("Find by Id when user not found should return an empty list")
   @Test
   void findByIdWhenUserNotFoundTest() {
     // Given
@@ -51,7 +86,7 @@ class LocationHistoryRepositoryTest {
     assertThat(expectedList).isEmpty();
   }
 
-  @DisplayName("Save visited location for user should add the visited location to the Repository")
+  @DisplayName("Save visited location for user should persist the visited location")
   @Test
   void saveTest() {
     // Given
