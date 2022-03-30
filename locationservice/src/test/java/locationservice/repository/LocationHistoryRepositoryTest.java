@@ -100,38 +100,4 @@ class LocationHistoryRepositoryTest {
     assertThat(locationHistoryRepository.findById(userId)).containsOnly(visitedLocation);
   }
 
-  @DisplayName("Finding last visited location should return the most recent visited location")
-  @Test
-  void findFirstByIdOrderByDateDescTest() {
-    // Given
-    UUID userId = UUID.randomUUID();
-    VisitedLocation firstLocation = new VisitedLocation(userId, new Location(45,-45), new Date(0));
-    VisitedLocation lastLocation = new VisitedLocation(userId, new Location(45,-45), new Date(200));
-    VisitedLocation location = new VisitedLocation(userId, new Location(45,-45), new Date(100));
-    locationHistoryRepository.save(firstLocation);
-    locationHistoryRepository.save(lastLocation);
-    locationHistoryRepository.save(location);
-
-    // When
-    Optional<VisitedLocation> actualVisitedLocation = locationHistoryRepository.findFirstByIdOrderByDateDesc(userId);
-
-    // Then
-    assertThat(actualVisitedLocation)
-        .isPresent()
-        .contains(lastLocation);
-  }
-
-  @DisplayName("Finding last visited location when user not found should return an empty optional")
-  @Test
-  void findFirstByIdOrderByDateDescWhenUserNotFoundTest() {
-    // Given
-    UUID userId = UUID.randomUUID();
-
-    // When
-    Optional<VisitedLocation> actualVisitedLocation = locationHistoryRepository.findFirstByIdOrderByDateDesc(userId);
-
-    // Then
-    assertThat(actualVisitedLocation).isEmpty();
-  }
-
 }

@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -43,13 +42,6 @@ public class LocationHistoryRepositoryImpl implements LocationHistoryRepository 
         .stream()
         .sorted(Comparator.comparing(visitedLocation -> visitedLocation.timeVisited))
         .collect(Collectors.toList());
-  }
-
-  @Override
-  public Optional<VisitedLocation> findFirstByIdOrderByDateDesc(UUID userId) {
-    return findById(userId)
-        .stream()
-        .max(Comparator.comparing(visitedLocation -> visitedLocation.timeVisited));
   }
 
   /**

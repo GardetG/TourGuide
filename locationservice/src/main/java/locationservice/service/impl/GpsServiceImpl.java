@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import locationservice.config.LocationServiceProperties;
@@ -47,8 +48,26 @@ public class GpsServiceImpl implements GpsService {
    */
   @Override
   public VisitedLocationDto getLastLocation(UUID userId) throws NoLocationFoundException {
-    VisitedLocation lastLocation = getLastVisitedLocation(userId);
+    VisitedLocation lastLocation = findUserLastVisitedLocation(userId);
     return VisitedLocationMapper.toDto(lastLocation);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public List<VisitedLocationDto> getAllLastLocation() {
+    return locationHistoryRepository.findAll()
+        .stream()
+        .collect(Collectors.groupingBy(visitedLocation -> visitedLocation.userId))
+        .values()
+        .stream()
+        .map(this::findMostRecentVisitedLocation)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .map(VisitedLocationMapper::toDto)
+        .collect(Collectors.toList());
+
   }
 
   /**
@@ -65,20 +84,20 @@ public class GpsServiceImpl implements GpsService {
    * {@inheritDoc}
    */
   @Override
-  public List<AttractionDto> getAttraction() {
-    return gpsUtil.getAttractions()
-        .stream()
-        .map(AttractionMapper::toDto)
-        .collect(Collectors.toList());
+  public void addLocation(VisitedLocationDto visitedLocationDto) {
+    VisitedLocation visitedLocation = VisitedLocationMapper.toEntity(visitedLocationDto);
+    locationHistoryRepository.save(visitedLocation);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void addLocation(VisitedLocationDto visitedLocationDto) {
-    VisitedLocation visitedLocation = VisitedLocationMapper.toEntity(visitedLocationDto);
-    locationHistoryRepository.save(visitedLocation);
+  public List<AttractionDto> getAttraction() {
+    return gpsUtil.getAttractions()
+        .stream()
+        .map(AttractionMapper::toDto)
+        .collect(Collectors.toList());
   }
 
   /**
@@ -110,7 +129,7 @@ public class GpsServiceImpl implements GpsService {
     if (limit < 0) {
       throw new IllegalArgumentException("Limit must be positive");
     }
-    VisitedLocation visitedLocation = getLastVisitedLocation(userId);
+    VisitedLocation visitedLocation = findUserLastVisitedLocation(userId);
     return getAttractionsWithDistances(visitedLocation.location).entrySet()
         .stream()
         .sorted(Comparator.comparingDouble(Map.Entry::getValue))
@@ -141,11 +160,6 @@ public class GpsServiceImpl implements GpsService {
         properties.getProximityThresholdInMiles();
   }
 
-  private VisitedLocation getLastVisitedLocation(UUID userId) throws NoLocationFoundException {
-    return locationHistoryRepository.findFirstByIdOrderByDateDesc(userId)
-        .orElseThrow(() -> new NoLocationFoundException("No location registered for the user yet"));
-  }
-
   private Map<Attraction, Double> getAttractionsWithDistances(Location location) {
     List<Attraction> attractions = gpsUtil.getAttractions();
     return attractions.stream()
@@ -153,6 +167,17 @@ public class GpsServiceImpl implements GpsService {
             attraction -> attraction,
             attraction -> getDistance(attraction, location)
         ));
+  }
+
+  private Optional<VisitedLocation> findMostRecentVisitedLocation(List<VisitedLocation> visitedLocations) {
+    return visitedLocations
+        .stream()
+        .max(Comparator.comparing(visitedLocation -> visitedLocation.timeVisited));
+  }
+
+  private VisitedLocation findUserLastVisitedLocation(UUID userId) throws NoLocationFoundException {
+    return findMostRecentVisitedLocation(locationHistoryRepository.findById(userId))
+        .orElseThrow(() -> new NoLocationFoundException("No location registered for the user yet"));
   }
 
 }

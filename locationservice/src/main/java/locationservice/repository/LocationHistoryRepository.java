@@ -2,7 +2,6 @@ package locationservice.repository;
 
 import gpsUtil.location.VisitedLocation;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import org.springframework.stereotype.Repository;
 
@@ -26,8 +25,6 @@ public interface LocationHistoryRepository {
    * @return List of visited location
    */
   List<VisitedLocation> findById(UUID userId);
-
-  Optional<VisitedLocation> findFirstByIdOrderByDateDesc(UUID userId);
 
   /**
    * Persist a visited location.
