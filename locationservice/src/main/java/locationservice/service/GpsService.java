@@ -2,10 +2,11 @@ package locationservice.service;
 
 import gpsUtil.location.Location;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import shared.dto.AttractionDto;
+import shared.dto.AttractionWithDistanceDto;
+import shared.dto.VisitedAttractionDto;
 import shared.dto.VisitedLocationDto;
 import shared.exception.NoLocationFoundException;
 
@@ -48,26 +49,26 @@ public interface GpsService {
   void addLocation(VisitedLocationDto visitedLocationDto);
 
   /**
-   * Return a map of the visited attractions of the user and the corresponding visited location that
-   * was in range of the attraction.
+   * Return a list of the visited attractions of the user and the corresponding visited location
+   * that was in range of the attraction.
    *
    * @param userId of the user
-   * @return Map of the attraction Dto and corresponding visited location Dto
+   * @return List of attractions and corresponding visited location Dto
    */
-  Map<AttractionDto, VisitedLocationDto> getVisitedAttractions(UUID userId);
+  List<VisitedAttractionDto> getVisitedAttractions(UUID userId);
 
   /**
-   * Return a map of attractions and their distance from the user sorted from the closest to the
-   * farthest. The limit truncate the list to keep only the closest records.
+   * Return a list of the nearest attractions and their distance from the user, sorted from the
+   * closest to the farthest. The limit truncate the list to keep only the nearest attractions.
    * The limit can't be negative or would throw an IllegalArgumentException.
    *
    * @param userId of the user
    * @param limit number of records
-   * @return Map of attraction Dto with distance
+   * @return List of attraction with distance Dto
    * @throws NoLocationFoundException when no user location found
    * @throws IllegalArgumentException when limit is negative
    */
-  Map<AttractionDto, Double> getNearbyAttractions(UUID userId, int limit)
+  List<AttractionWithDistanceDto> getNearbyAttractions(UUID userId, int limit)
       throws NoLocationFoundException;
 
   /**

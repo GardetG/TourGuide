@@ -32,7 +32,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import shared.dto.AttractionDto;
+import shared.dto.AttractionWithDistanceDto;
 import shared.dto.LocationDto;
+import shared.dto.VisitedAttractionDto;
 import shared.dto.VisitedLocationDto;
 import shared.exception.NoLocationFoundException;
 
@@ -153,14 +155,13 @@ class GpsServiceTest {
     when(gpsUtil.getAttractions()).thenReturn(Collections.singletonList(attraction1));
 
     // When
-    Map<AttractionDto, VisitedLocationDto> visitedAttractions = gpsService.getVisitedAttractions(userId);
+    List<VisitedAttractionDto> visitedAttractions = gpsService.getVisitedAttractions(userId);
 
     // Then
-    assertThat(visitedAttractions).hasSize(1);
-    assertThat(visitedAttractions.keySet()).usingRecursiveFieldByFieldElementComparator()
-        .containsOnly(attractionDto1);
-    assertThat(visitedAttractions.values()).usingRecursiveFieldByFieldElementComparator()
-        .containsOnly(locationDto);
+    assertThat(visitedAttractions)
+        .hasSize(1)
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(new VisitedAttractionDto(attractionDto1, locationDto));
     verify(locationHistoryRepository, times(1)).findById(userId);
     verify(gpsUtil, times(1)).getAttractions();
   }
@@ -176,7 +177,7 @@ class GpsServiceTest {
     when(gpsUtil.getAttractions()).thenReturn(Collections.singletonList(attraction));
 
     // When
-    Map<AttractionDto, VisitedLocationDto> visitedAttractions = gpsService.getVisitedAttractions(userId);
+    List<VisitedAttractionDto> visitedAttractions = gpsService.getVisitedAttractions(userId);
 
     // Then
     assertThat(visitedAttractions).isEmpty();
@@ -194,7 +195,7 @@ class GpsServiceTest {
     when(gpsUtil.getAttractions()).thenReturn(Collections.singletonList(attraction));
 
     // When
-    Map<AttractionDto, VisitedLocationDto> visitedAttractions = gpsService.getVisitedAttractions(userId);
+    List<VisitedAttractionDto> visitedAttractions = gpsService.getVisitedAttractions(userId);
 
     // Then
     assertThat(visitedAttractions).isEmpty();
@@ -218,15 +219,15 @@ class GpsServiceTest {
     when(gpsUtil.getAttractions()).thenReturn(Arrays.asList(attraction1, attraction2, attraction3));
 
     // When
-    Map<AttractionDto, Double> attractionsWithDistance = gpsService.getNearbyAttractions(userId, limit);
+    List<AttractionWithDistanceDto> attractionsWithDistance = gpsService.getNearbyAttractions(userId, limit);
 
     // Then
     assertThat(attractionsWithDistance)
         .hasSize(limit)
-        .containsValues(0d, 2700d * LocationServiceProperties.STATUTE_MILES_PER_NAUTICAL_MILE);
-    assertThat(attractionsWithDistance.keySet())
         .usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(expectedAttraction1, expectedAttraction2);
+        .containsExactly(
+            new AttractionWithDistanceDto(expectedAttraction1, 0d),
+            new AttractionWithDistanceDto(expectedAttraction2, 2700d * LocationServiceProperties.STATUTE_MILES_PER_NAUTICAL_MILE));
     verify(locationHistoryRepository, times(1)).findFirstByIdOrderByDateDesc(userId);
     verify(gpsUtil, times(1)).getAttractions();
   }
