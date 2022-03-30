@@ -11,25 +11,26 @@ public class LocationDto {
   /**
    * Constructor for an instance of LocationDto with longitude and latitude.
    *
-   * @param longitude of the location
    * @param latitude  of the location
+   * @param longitude of the location
    */
   @JsonCreator
-  public LocationDto(@JsonProperty("longitude") double longitude,
-                     @JsonProperty("latitude") double latitude) {
-    this.longitude = longitude;
+  public LocationDto(@JsonProperty("latitude") double latitude,
+                     @JsonProperty("longitude") double longitude) {
     this.latitude = latitude;
+    this.longitude = longitude;
   }
 
-  private final double longitude;
   private final double latitude;
+  private final double longitude;
+
+  public double getLatitude() {
+    return latitude;
+  }
 
   public double getLongitude() {
     return longitude;
   }
 
-  public double getLatitude() {
-    return latitude;
-  }
 
 }

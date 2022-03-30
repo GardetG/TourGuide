@@ -35,22 +35,14 @@ public class AttractionDto {
   }
 
   private final UUID attractionId;
-  private final double longitude;
-  private final double latitude;
   private final String attractionName;
   private final String city;
   private final String state;
+  private final double latitude;
+  private final double longitude;
 
   public UUID getAttractionId() {
     return attractionId;
-  }
-
-  public double getLongitude() {
-    return longitude;
-  }
-
-  public double getLatitude() {
-    return latitude;
   }
 
   public String getAttractionName() {
@@ -63,6 +55,14 @@ public class AttractionDto {
 
   public String getState() {
     return state;
+  }
+
+  public double getLatitude() {
+    return latitude;
+  }
+
+  public double getLongitude() {
+    return longitude;
   }
 
 }
