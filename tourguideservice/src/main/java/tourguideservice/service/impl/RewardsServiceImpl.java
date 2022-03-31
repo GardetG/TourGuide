@@ -1,18 +1,14 @@
 package tourguideservice.service.impl;
 
 import java.util.List;
-
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import rewardCentral.RewardCentral;
+import shared.dto.VisitedAttractionDto;
 import tourguideservice.domain.UserReward;
-import shared.dto.AttractionDto;
 import tourguideservice.dto.UserRewardDto;
-import shared.dto.VisitedLocationDto;
 import tourguideservice.repository.RewardsRepository;
 import tourguideservice.service.RewardsService;
 import tourguideservice.utils.AttractionMapper;
@@ -62,13 +58,13 @@ public class RewardsServiceImpl implements RewardsService {
 	 */
 	@Override
 	public void calculateRewards(UUID userId,
-								 Map<AttractionDto, VisitedLocationDto> visitedAttractionsToReward) {
-		List<UserReward> rewards =  visitedAttractionsToReward.entrySet()
+								 List<VisitedAttractionDto> visitedAttractionsToReward) {
+		List<UserReward> rewards =  visitedAttractionsToReward
 				.stream()
-				.map(entry -> new UserReward(
-						VisitedLocationMapper.toEntity(entry.getValue()),
-						AttractionMapper.toEntity(entry.getKey()),
-						getRewardPoints(entry.getKey().getAttractionId(), entry.getValue()
+				.map(visitedAttraction -> new UserReward(
+						VisitedLocationMapper.toEntity(visitedAttraction.getVisitedLocation()),
+						AttractionMapper.toEntity(visitedAttraction.getAttraction()),
+						getRewardPoints(visitedAttraction.getAttraction().getAttractionId(), visitedAttraction.getVisitedLocation()
 								.getUserId())
 				))
 				.collect(Collectors.toList());
