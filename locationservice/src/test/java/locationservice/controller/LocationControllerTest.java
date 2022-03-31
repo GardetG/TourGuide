@@ -1,6 +1,7 @@
 package locationservice.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -9,12 +10,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -28,9 +27,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import shared.dto.AttractionDto;
+import shared.dto.AttractionWithDistanceDto;
 import shared.dto.LocationDto;
-import shared.dto.PreferencesDto;
-import shared.dto.ProviderDto;
+import shared.dto.VisitedAttractionDto;
 import shared.dto.VisitedLocationDto;
 import shared.exception.NoLocationFoundException;
 
@@ -105,6 +105,29 @@ class LocationControllerTest {
     verify(gpsService, times(1)).trackUserLocation(userId);
   }
 
+  @DisplayName("GET attractions return 200 with list of all attractions")
+  @Test
+  void getAttractionsTest() throws Exception {
+    // GIVEN
+    AttractionDto attraction1 = new AttractionDto(UUID.randomUUID(), "attraction1","city1", "state1",45,-45);
+    AttractionDto attraction2 = new AttractionDto(UUID.randomUUID(), "attraction2","city2", "state2",0,0);
+    when(gpsService.getAttractions()).thenReturn(List.of(attraction1, attraction2));
+
+    // WHEN
+    mockMvc.perform(get("/getAttractions"))
+
+        // THEN
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(2)))
+        .andExpect(jsonPath("$[0].attractionId", is(attraction1.getAttractionId().toString())))
+        .andExpect(jsonPath("$[0].attractionName", is("attraction1")))
+        .andExpect(jsonPath("$[0].city", is("city1")))
+        .andExpect(jsonPath("$[0].state", is("state1")))
+        .andExpect(jsonPath("$[0].latitude", is(45.0)))
+        .andExpect(jsonPath("$[0].longitude", is(-45.0)));
+    verify(gpsService, times(1)).getAttractions();
+  }
+
   @DisplayName("POST visited location should return 200")
   @Test
   void addLocationTest() throws Exception {
@@ -144,6 +167,63 @@ class LocationControllerTest {
         .andExpect(jsonPath("$.['location.longitude']'", is("Longitude can't be less than -180")))
         .andExpect(jsonPath("$.timeVisited", is("Time visited is mandatory")));
     verify(gpsService, times(0)).addLocation(any(VisitedLocationDto.class));
+  }
+
+  @DisplayName("GET visited attractions should return 200 with list of visited attractions")
+  @Test
+  void getVisitedAttractionsTest() throws Exception {
+    // GIVEN
+    UUID userId = UUID.randomUUID();
+    Date date = new Date();
+    AttractionDto attraction1 = new AttractionDto(UUID.randomUUID(), "attraction1","city1", "state1",50,-50);
+    AttractionDto attraction2 = new AttractionDto(UUID.randomUUID(), "attraction2","city2", "state2",0,0);
+    VisitedLocationDto visitedLocation = new VisitedLocationDto(userId, new LocationDto(45,-45), date);
+    when(gpsService.getVisitedAttractions(any(UUID.class))).thenReturn(List.of(
+        new VisitedAttractionDto(attraction1, visitedLocation),
+        new VisitedAttractionDto(attraction2, visitedLocation)
+    ));
+
+    // WHEN
+    mockMvc.perform(get("/getVisitedAttractions?userId=" + userId))
+
+        // THEN
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(2)))
+        .andExpect(jsonPath("$[0].attraction.attractionId", is(attraction1.getAttractionId().toString())))
+        .andExpect(jsonPath("$[0].attraction.attractionName", is("attraction1")))
+        .andExpect(jsonPath("$[0].attraction.latitude", is(50.0)))
+        .andExpect(jsonPath("$[0].attraction.longitude", is(-50.0)))
+        .andExpect(jsonPath("$[0].visitedLocation.userId", is(userId.toString())))
+        .andExpect(jsonPath("$[0].visitedLocation.location.latitude", is(45.0)))
+        .andExpect(jsonPath("$[0].visitedLocation.location.longitude", is(-45.0)));
+    verify(gpsService, times(1)).getVisitedAttractions(userId);
+  }
+
+  @DisplayName("GET nearby attractions should return 200 with list of attractions with distance")
+  @Test
+  void getNearbyAttractionsTest() throws Exception {
+    // GIVEN
+    UUID userId = UUID.randomUUID();
+    Date date = new Date();
+    AttractionDto attraction1 = new AttractionDto(UUID.randomUUID(), "attraction1","city1", "state1",50,-50);
+    AttractionDto attraction2 = new AttractionDto(UUID.randomUUID(), "attraction2","city2", "state2",0,0);
+    when(gpsService.getNearbyAttractions(any(UUID.class), anyInt())).thenReturn(List.of(
+        new AttractionWithDistanceDto(attraction1, 10d),
+        new AttractionWithDistanceDto(attraction2, 15d)
+    ));
+
+    // WHEN
+    mockMvc.perform(get("/getNearbyAttractions?userId=" + userId + "&limit=2"))
+
+        // THEN
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(2)))
+        .andExpect(jsonPath("$[0].attraction.attractionId", is(attraction1.getAttractionId().toString())))
+        .andExpect(jsonPath("$[0].attraction.attractionName", is("attraction1")))
+        .andExpect(jsonPath("$[0].attraction.latitude", is(50.0)))
+        .andExpect(jsonPath("$[0].attraction.longitude", is(-50.0)))
+        .andExpect(jsonPath("$[0].distance", is(10.0)));
+    verify(gpsService, times(1)).getNearbyAttractions(userId, 2);
   }
 
 }
