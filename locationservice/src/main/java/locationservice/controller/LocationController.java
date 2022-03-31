@@ -7,6 +7,7 @@ import locationservice.service.GpsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,6 +22,7 @@ import shared.exception.NoLocationFoundException;
 /**
  * Controller Class exposing LocationService API end points.
  */
+@Validated
 @RestController
 public class LocationController {
 
@@ -40,7 +42,7 @@ public class LocationController {
   @GetMapping("/getLastLocation")
   public VisitedLocationDto getLastLocation(@RequestParam UUID userId) throws NoLocationFoundException {
     LOGGER.info("Request: Get user {} last location", userId);
-    VisitedLocationDto visitedLocation = gpsService.getLastLocation(userId);
+    VisitedLocationDto visitedLocation = gpsService.getUserLastVisitedLocation(userId);
     LOGGER.info("Response: User {} last location sent", userId);
     return visitedLocation;
   }
@@ -78,10 +80,11 @@ public class LocationController {
    * @param visitedLocationDto visited location to add
    */
   @PostMapping("/addLocation")
-  public void addLocation(@Valid @RequestBody VisitedLocationDto visitedLocationDto){
-    LOGGER.info("Request: Add user {} new location", visitedLocationDto.getUserId());
-    gpsService.addLocation(visitedLocationDto);
-    LOGGER.info("Response: User {} new location added", visitedLocationDto.getUserId());
+  public void addLocation(@RequestParam UUID userId,
+                          @RequestBody List<@Valid VisitedLocationDto> visitedLocationDto){
+    LOGGER.info("Request: Add locations to user {}", userId);
+    gpsService.addVisitedLocation(userId, visitedLocationDto);
+    LOGGER.info("Response: Location added to user {}", userId);
   }
   /**
    * Return a list of the visited attractions of the user and the corresponding visited location

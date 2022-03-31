@@ -16,6 +16,8 @@ import locationservice.repository.LocationHistoryRepository;
 import locationservice.service.GpsService;
 import locationservice.utils.AttractionMapper;
 import locationservice.utils.VisitedLocationMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import shared.dto.AttractionDto;
@@ -30,6 +32,8 @@ import shared.exception.NoLocationFoundException;
  */
 @Service
 public class GpsServiceImpl implements GpsService {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(GpsServiceImpl.class);
 
   private final GpsUtil gpsUtil;
   private final LocationServiceProperties properties;
@@ -47,7 +51,8 @@ public class GpsServiceImpl implements GpsService {
    * {@inheritDoc}
    */
   @Override
-  public VisitedLocationDto getLastLocation(UUID userId) throws NoLocationFoundException {
+  public VisitedLocationDto getUserLastVisitedLocation(UUID userId)
+      throws NoLocationFoundException {
     VisitedLocation lastLocation = findUserLastVisitedLocation(userId);
     return VisitedLocationMapper.toDto(lastLocation);
   }
@@ -56,11 +61,13 @@ public class GpsServiceImpl implements GpsService {
    * {@inheritDoc}
    */
   @Override
-  public List<VisitedLocationDto> getAllLastLocation() {
-    return locationHistoryRepository.findAll()
+  public List<VisitedLocationDto> getAllUserLastVisitedLocation() {
+    // Group visited locations by users
+    Map<UUID, List<VisitedLocation>> visitedLocationsByUser = locationHistoryRepository.findAll()
         .stream()
-        .collect(Collectors.groupingBy(visitedLocation -> visitedLocation.userId))
-        .values()
+        .collect(Collectors.groupingBy(visitedLocation -> visitedLocation.userId));
+    // For each user return the most recent visited location
+    return visitedLocationsByUser.values()
         .stream()
         .map(this::findMostRecentVisitedLocation)
         .filter(Optional::isPresent)
@@ -84,16 +91,22 @@ public class GpsServiceImpl implements GpsService {
    * {@inheritDoc}
    */
   @Override
-  public void addLocation(VisitedLocationDto visitedLocationDto) {
-    VisitedLocation visitedLocation = VisitedLocationMapper.toEntity(visitedLocationDto);
-    locationHistoryRepository.save(visitedLocation);
+  public void addVisitedLocation(UUID userId, List<VisitedLocationDto> visitedLocationDtos) {
+    visitedLocationDtos.forEach(visitedLocationDto -> {
+      if (visitedLocationDto.getUserId() != userId) {
+        LOGGER.warn("User Id and visited location to add user Id mismatch");
+        return;
+      }
+      VisitedLocation visitedLocation = VisitedLocationMapper.toEntity(visitedLocationDto);
+      locationHistoryRepository.save(visitedLocation);
+    });
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public List<AttractionDto> getAttraction() {
+  public List<AttractionDto> getAttractions() {
     return gpsUtil.getAttractions()
         .stream()
         .map(AttractionMapper::toDto)
@@ -108,6 +121,7 @@ public class GpsServiceImpl implements GpsService {
     List<Attraction> attractions = gpsUtil.getAttractions();
     List<VisitedLocation> visitedLocations = locationHistoryRepository.findById(userId);
     List<VisitedAttractionDto> visitedAttraction = new ArrayList<>();
+    // For each attraction we search the first visited location in range
     attractions.forEach(attraction -> visitedLocations
         .stream()
         .filter(visitedLocation -> isInRangeOfAttraction(visitedLocation, attraction))
@@ -169,7 +183,8 @@ public class GpsServiceImpl implements GpsService {
         ));
   }
 
-  private Optional<VisitedLocation> findMostRecentVisitedLocation(List<VisitedLocation> visitedLocations) {
+  private Optional<VisitedLocation> findMostRecentVisitedLocation(
+      List<VisitedLocation> visitedLocations) {
     return visitedLocations
         .stream()
         .max(Comparator.comparing(visitedLocation -> visitedLocation.timeVisited));
@@ -177,7 +192,10 @@ public class GpsServiceImpl implements GpsService {
 
   private VisitedLocation findUserLastVisitedLocation(UUID userId) throws NoLocationFoundException {
     return findMostRecentVisitedLocation(locationHistoryRepository.findById(userId))
-        .orElseThrow(() -> new NoLocationFoundException("No location registered for the user yet"));
+        .orElseThrow(() -> {
+          LOGGER.error("No location registered for the user {}", userId);
+          return new NoLocationFoundException("No location registered for the user yet");
+        });
   }
 
 }

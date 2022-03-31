@@ -16,8 +16,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import locationservice.config.LocationServiceProperties;
 import locationservice.repository.LocationHistoryRepository;
@@ -68,11 +66,11 @@ class GpsServiceTest {
     when(locationHistoryRepository.findAll()).thenReturn(List.of(visitedLocation1, oldVisitedLocation1, visitedLocation2));
 
     // When
-    List<VisitedLocationDto> actualLocations = gpsService.getAllLastLocation();
+    List<VisitedLocationDto> actualLocations = gpsService.getAllUserLastVisitedLocation();
 
     // Then
     assertThat(actualLocations).usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(expectedLocation1, expectedLocation2);
+        .containsOnly(expectedLocation1, expectedLocation2);
     verify(locationHistoryRepository, times(1)).findAll();
   }
 
@@ -84,7 +82,7 @@ class GpsServiceTest {
     when(locationHistoryRepository.findAll()).thenReturn(Collections.emptyList());
 
     // When
-    List<VisitedLocationDto> actualLocations = gpsService.getAllLastLocation();
+    List<VisitedLocationDto> actualLocations = gpsService.getAllUserLastVisitedLocation();
 
     // Then
     assertThat(actualLocations).isEmpty();
@@ -103,7 +101,7 @@ class GpsServiceTest {
     when(locationHistoryRepository.findById(any(UUID.class))).thenReturn(List.of(visitedLocation, oldVisitedLocation));
 
     // When
-    VisitedLocationDto actualLocation = gpsService.getLastLocation(userId);
+    VisitedLocationDto actualLocation = gpsService.getUserLastVisitedLocation(userId);
 
     // Then
     assertThat(actualLocation).usingRecursiveComparison().isEqualTo(expectedLocation);
@@ -118,7 +116,7 @@ class GpsServiceTest {
     when(locationHistoryRepository.findById(any(UUID.class))).thenReturn(Collections.emptyList());
 
     // Then
-    assertThatThrownBy(() -> gpsService.getLastLocation(userId))
+    assertThatThrownBy(() -> gpsService.getUserLastVisitedLocation(userId))
         .isInstanceOf(NoLocationFoundException.class)
         .hasMessageContaining("No location registered for the user yet");
     verify(locationHistoryRepository, times(1)).findById(userId);
@@ -147,14 +145,14 @@ class GpsServiceTest {
 
   @DisplayName("Get attractions should return list of attraction Dto")
   @Test
-  void getAttractionTest() {
+  void getAttractionsTest() {
     // Given
     Attraction attraction = new Attraction("attraction", "","",45,-45);
     AttractionDto attractionDto = new AttractionDto(attraction.attractionId,"attraction","","", 45,-45);
     when(gpsUtil.getAttractions()).thenReturn(Collections.singletonList(attraction));
 
     // When
-    List<AttractionDto> attractions = gpsService.getAttraction();
+    List<AttractionDto> attractions = gpsService.getAttractions();
 
     // Then
     assertThat(attractions).usingRecursiveFieldByFieldElementComparator().containsExactly(attractionDto);
@@ -171,11 +169,27 @@ class GpsServiceTest {
     VisitedLocation expectedLocation = new VisitedLocation(userId, new Location(-45,45), date);
 
     // When
-    gpsService.addLocation(locationDto);
+    gpsService.addVisitedLocation(userId, List.of(locationDto));
 
     // Then
     verify(locationHistoryRepository, times(1)).save(visitedLocationCaptor.capture());
     assertThat(visitedLocationCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedLocation);
+  }
+
+  @DisplayName("Add location to user should save visited location in repository")
+  @Test
+  void addLocationWhenIdMismatchTest() {
+    // Given
+    UUID userId = UUID.randomUUID();
+    Date date = new Date();
+    VisitedLocationDto locationDto = new VisitedLocationDto(UUID.randomUUID(), new LocationDto(-45, 45), date);
+    VisitedLocation expectedLocation = new VisitedLocation(userId, new Location(-45,45), date);
+
+    // When
+    gpsService.addVisitedLocation(userId, List.of(locationDto));
+
+    // Then
+    verify(locationHistoryRepository, times(0)).save(any(VisitedLocation.class));
   }
 
   @DisplayName("Get visited locations should return map of attractions and first in range visited location")

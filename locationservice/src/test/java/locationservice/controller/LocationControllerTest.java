@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -37,14 +38,14 @@ import shared.exception.NoLocationFoundException;
 @WebMvcTest
 class LocationControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+  @Autowired
+  private MockMvc mockMvc;
 
-    @MockBean
-    private GpsService gpsService;
+  @MockBean
+  private GpsService gpsService;
 
-    @Captor
-  ArgumentCaptor<VisitedLocationDto> visitedLocationCaptor;
+  @Captor
+  ArgumentCaptor<List<VisitedLocationDto>> visitedLocationsCaptor;
 
   @DisplayName("GET last location should return 200 with user last visited location")
   @Test
@@ -53,7 +54,7 @@ class LocationControllerTest {
     UUID userId = UUID.randomUUID();
     Date date = new Date();
     VisitedLocationDto visitedLocation = new VisitedLocationDto(userId, new LocationDto(45,-45), date);
-    when(gpsService.getLastLocation(any(UUID.class))).thenReturn(visitedLocation);
+    when(gpsService.getUserLastVisitedLocation(any(UUID.class))).thenReturn(visitedLocation);
 
     // WHEN
     mockMvc.perform(get("/getLastLocation?userId=" + userId))
@@ -64,7 +65,7 @@ class LocationControllerTest {
         .andExpect(jsonPath("$.location.latitude", is(45.0)))
         .andExpect(jsonPath("$.location.longitude", is(-45.0)))
         .andExpect(jsonPath("$.timeVisited").isNotEmpty());
-    verify(gpsService, times(1)).getLastLocation(userId);
+    verify(gpsService, times(1)).getUserLastVisitedLocation(userId);
   }
 
   @DisplayName("GET last location when no location registered should return 409 conflict")
@@ -72,7 +73,7 @@ class LocationControllerTest {
   void getTripDealsTest() throws Exception {
     // GIVEN
     UUID userId = UUID.randomUUID();
-    when(gpsService.getLastLocation(any(UUID.class)))
+    when(gpsService.getUserLastVisitedLocation(any(UUID.class)))
         .thenThrow(new NoLocationFoundException("No location registered for the user yet"));
 
     // WHEN
@@ -81,7 +82,7 @@ class LocationControllerTest {
         // THEN
         .andExpect(status().isConflict())
         .andExpect(jsonPath("$", is("No location registered for the user yet")));
-    verify(gpsService, times(1)).getLastLocation(userId);
+    verify(gpsService, times(1)).getUserLastVisitedLocation(userId);
   }
 
   @DisplayName("GET track location should return 200 with user current visited location")
@@ -138,14 +139,15 @@ class LocationControllerTest {
     VisitedLocationDto visitedLocation = new VisitedLocationDto(userId, new LocationDto(45,-45), date);
 
     // WHEN
-    mockMvc.perform(post("/addLocation")
+    mockMvc.perform(post("/addLocation?userId=" + userId)
             .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(visitedLocation)))
+            .content(objectMapper.writeValueAsString(List.of(visitedLocation))))
 
         // THEN
         .andExpect(status().isOk());
-    verify(gpsService, times(1)).addLocation(visitedLocationCaptor.capture());
-    assertThat(visitedLocationCaptor.getValue()).usingRecursiveComparison().isEqualTo(visitedLocation);
+    verify(gpsService, times(1)).addVisitedLocation(any(UUID.class), visitedLocationsCaptor.capture());
+    assertThat(visitedLocationsCaptor.getValue()).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(visitedLocation);
   }
 
   @DisplayName("POST invalid visited location should return 422")
@@ -153,20 +155,21 @@ class LocationControllerTest {
   void addLocationWhenInvalidTest() throws Exception {
     // GIVEN
     ObjectMapper objectMapper = new ObjectMapper();
-    VisitedLocationDto visitedLocation = new VisitedLocationDto(null, new LocationDto(100,-200), null);
+    UUID userId = UUID.randomUUID();
+    VisitedLocationDto visitedLocation = new VisitedLocationDto(null, new LocationDto(100, -200), null);
 
     // WHEN
-    mockMvc.perform(post("/addLocation")
+    mockMvc.perform(post("/addLocation?userId=" + userId)
             .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(visitedLocation)))
+            .content(objectMapper.writeValueAsString(List.of(visitedLocation))))
 
         // THEN
         .andExpect(status().isUnprocessableEntity())
         .andExpect(jsonPath("$.userId", is("User id is mandatory")))
-        .andExpect(jsonPath("$.['location.latitude']", is("Latitude can't be more than 90")))
-        .andExpect(jsonPath("$.['location.longitude']'", is("Longitude can't be less than -180")))
+        .andExpect(jsonPath("$.latitude", is("Latitude can't be more than 90")))
+        .andExpect(jsonPath("$.longitude", is("Longitude can't be less than -180")))
         .andExpect(jsonPath("$.timeVisited", is("Time visited is mandatory")));
-    verify(gpsService, times(0)).addLocation(any(VisitedLocationDto.class));
+    verify(gpsService, times(0)).addVisitedLocation(any(UUID.class), anyList());
   }
 
   @DisplayName("GET visited attractions should return 200 with list of visited attractions")

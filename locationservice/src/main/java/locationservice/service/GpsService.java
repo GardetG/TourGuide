@@ -24,14 +24,14 @@ public interface GpsService {
    * @return Visited location Dto
    * @throws NoLocationFoundException when no location found
    */
-  VisitedLocationDto getLastLocation(UUID userId) throws NoLocationFoundException;
+  VisitedLocationDto getUserLastVisitedLocation(UUID userId) throws NoLocationFoundException;
 
   /**
    * Get the last visited location registered of each user.
    *
    * @return List of visited location Dto
    */
-  List<VisitedLocationDto> getAllLastLocation();
+  List<VisitedLocationDto> getAllUserLastVisitedLocation();
 
   /**
    * Track the current location of the user and registered it.
@@ -42,18 +42,18 @@ public interface GpsService {
   VisitedLocationDto trackUserLocation(UUID userId);
 
   /**
-   * Add to the user a new location.
-   *
-   * @param visitedLocationDto visited location to add
+   * Add to the user a list of new visited locations.
+   * @param userId of the user
+   * @param visitedLocationDtos to add
    */
+  void addVisitedLocation(UUID userId, List<VisitedLocationDto> visitedLocationDtos);
 
-  void addLocation(VisitedLocationDto visitedLocationDto);
   /**
    * Get the list of attractions.
    *
    * @return list of attraction Dto
    */
-  List<AttractionDto> getAttraction();
+  List<AttractionDto> getAttractions();
 
   /**
    * Return a list of the visited attractions of the user and the corresponding visited location
