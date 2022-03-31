@@ -1,5 +1,6 @@
 package locationservice.controller;
 
+import java.util.List;
 import java.util.UUID;
 import javax.validation.Valid;
 import locationservice.service.GpsService;
@@ -11,6 +12,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import shared.dto.AttractionDto;
+import shared.dto.AttractionWithDistanceDto;
+import shared.dto.VisitedAttractionDto;
 import shared.dto.VisitedLocationDto;
 import shared.exception.NoLocationFoundException;
 
@@ -56,16 +60,62 @@ public class LocationController {
   }
 
   /**
+   * Get the list of attractions.
+   *
+   * @return HTTP 200 with list of attraction Dto
+   */
+  @GetMapping("/getAttractions")
+  public List<AttractionDto> getAttractions() {
+    LOGGER.info("Request: Get list of all attractions");
+    List<AttractionDto> attraction = gpsService.getAttractions();
+    LOGGER.info("Response: List of all attractions sent");
+    return attraction;
+  }
+
+  /**
    * Add to user a new location.
    *
    * @param visitedLocationDto visited location to add
    */
   @PostMapping("/addLocation")
-  void addLocation(@Valid @RequestBody VisitedLocationDto visitedLocationDto){
+  public void addLocation(@Valid @RequestBody VisitedLocationDto visitedLocationDto){
     LOGGER.info("Request: Add user {} new location", visitedLocationDto.getUserId());
     gpsService.addLocation(visitedLocationDto);
     LOGGER.info("Response: User {} new location added", visitedLocationDto.getUserId());
   }
+  /**
+   * Return a list of the visited attractions of the user and the corresponding visited location
+   * that was in range of the attraction.
+   *
+   * @param userId of the user
+   * @return HTTP 200 with List of attractions and corresponding visited location Dto
+   */
+  @GetMapping("/getVisitedAttractions")
+  public List<VisitedAttractionDto> getVisitedAttractions(@RequestParam UUID userId) {
+    LOGGER.info("Request: Get user {} visited attractions", userId);
+    List<VisitedAttractionDto> visitedAttractions = gpsService.getVisitedAttractions(userId);
+    LOGGER.info("Response: User {} visited attractions sent", userId);
+    return visitedAttractions;
+  }
 
+  /**
+   * Return a list of the nearest attractions and their distance from the user, sorted from the
+   * closest to the farthest. The limit truncate the list to keep only the nearest attractions.
+   * The limit can't be negative or would throw an IllegalArgumentException.
+   *
+   * @param userId of the user
+   * @param limit number of records
+   * @return HTTP 200 with List of attraction with distance Dto
+   * @throws NoLocationFoundException when no user location found
+   * @throws IllegalArgumentException when limit is negative
+   */
+  @GetMapping("/getNearbyAttractions")
+  List<AttractionWithDistanceDto> getNearbyAttractions(@RequestParam UUID userId, @RequestParam int limit)
+      throws NoLocationFoundException {
+    LOGGER.info("Request: Get {} nearest attractions from user {}", limit, userId);
+    List<AttractionWithDistanceDto> attractionsWithDistance = gpsService.getNearbyAttractions(userId, limit);
+    LOGGER.info("Response: {} nearest attractions from user {} sent", limit, userId);
+    return attractionsWithDistance;
+  }
 
 }
