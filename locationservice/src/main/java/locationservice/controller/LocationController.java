@@ -1,11 +1,14 @@
 package locationservice.controller;
 
 import java.util.UUID;
+import javax.validation.Valid;
 import locationservice.service.GpsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import shared.dto.VisitedLocationDto;
@@ -52,6 +55,17 @@ public class LocationController {
     return visitedLocation;
   }
 
+  /**
+   * Add to user a new location.
+   *
+   * @param visitedLocationDto visited location to add
+   */
+  @PostMapping("/addLocation")
+  void addLocation(@Valid @RequestBody VisitedLocationDto visitedLocationDto){
+    LOGGER.info("Request: Add user {} new location", visitedLocationDto.getUserId());
+    gpsService.addLocation(visitedLocationDto);
+    LOGGER.info("Response: User {} new location added", visitedLocationDto.getUserId());
+  }
 
 
 }
