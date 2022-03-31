@@ -39,12 +39,25 @@ public class LocationController {
    * @return HTTP 200 with last visited location Dto
    * @throws NoLocationFoundException when no location found
    */
-  @GetMapping("/getLastLocation")
+  @GetMapping("/getUserLastVisitedLocation")
   public VisitedLocationDto getLastLocation(@RequestParam UUID userId) throws NoLocationFoundException {
     LOGGER.info("Request: Get user {} last location", userId);
     VisitedLocationDto visitedLocation = gpsService.getUserLastVisitedLocation(userId);
     LOGGER.info("Response: User {} last location sent", userId);
     return visitedLocation;
+  }
+
+  /**
+   * Get the last visited location registered for each user.
+   *
+   * @return HTTP 200 with list of last visited location Dto
+   */
+  @GetMapping("/getAllUserLastVisitedLocation")
+  public List<VisitedLocationDto> getLastLocation() {
+    LOGGER.info("Request: Get all users' last location");
+    List<VisitedLocationDto> visitedLocations = gpsService.getAllUserLastVisitedLocation();
+    LOGGER.info("Response: All users' last location sent");
+    return visitedLocations;
   }
 
   /**

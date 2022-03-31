@@ -57,7 +57,7 @@ class LocationControllerTest {
     when(gpsService.getUserLastVisitedLocation(any(UUID.class))).thenReturn(visitedLocation);
 
     // WHEN
-    mockMvc.perform(get("/getLastLocation?userId=" + userId))
+    mockMvc.perform(get("/getUserLastVisitedLocation?userId=" + userId))
 
         // THEN
         .andExpect(status().isOk())
@@ -68,16 +68,33 @@ class LocationControllerTest {
     verify(gpsService, times(1)).getUserLastVisitedLocation(userId);
   }
 
+  @DisplayName("GET all user last location should return 200 with list of last visited location")
+  @Test
+  void getAllUserLastVisitedLocationTest() throws Exception {
+    // GIVEN
+    VisitedLocationDto visitedLocation1 = new VisitedLocationDto(UUID.randomUUID(), new LocationDto(45,-45), new Date());
+    VisitedLocationDto visitedLocation2 = new VisitedLocationDto(UUID.randomUUID(), new LocationDto(45,-45), new Date());
+    when(gpsService.getAllUserLastVisitedLocation()).thenReturn(List.of(visitedLocation1, visitedLocation2));
+
+    // WHEN
+    mockMvc.perform(get("/getAllUserLastVisitedLocation"))
+
+        // THEN
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(2)));
+    verify(gpsService, times(1)).getAllUserLastVisitedLocation();
+  }
+
   @DisplayName("GET last location when no location registered should return 409 conflict")
   @Test
-  void getTripDealsTest() throws Exception {
+  void getLastLocationWhenNoLocationTest() throws Exception {
     // GIVEN
     UUID userId = UUID.randomUUID();
     when(gpsService.getUserLastVisitedLocation(any(UUID.class)))
         .thenThrow(new NoLocationFoundException("No location registered for the user yet"));
 
     // WHEN
-    mockMvc.perform(get("/getLastLocation?userId=" + userId))
+    mockMvc.perform(get("/getUserLastVisitedLocation?userId=" + userId))
 
         // THEN
         .andExpect(status().isConflict())
