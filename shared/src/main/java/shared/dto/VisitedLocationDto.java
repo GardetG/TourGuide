@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
 import java.util.UUID;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 /**
  * Dto Class for a VisitedLocation.
@@ -26,8 +28,12 @@ public class VisitedLocationDto {
     this.timeVisited = timeVisited;
   }
 
+  @NotNull(message = "User id is mandatory")
   private final UUID userId;
+  @Valid
+  @NotNull(message = "Location is mandatory")
   private final LocationDto location;
+  @NotNull(message = "Time visited is mandatory")
   private final Date timeVisited;
 
   public UUID getUserId() {
