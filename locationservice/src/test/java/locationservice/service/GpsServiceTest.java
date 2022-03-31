@@ -57,7 +57,7 @@ class GpsServiceTest {
     // Given
     UUID user1Id = UUID.randomUUID();
     UUID user2Id = UUID.randomUUID();
-    VisitedLocation oldVisitedLocation1 = new VisitedLocation(user1Id, new Location(90,-90), new Date());
+    VisitedLocation oldVisitedLocation1 = new VisitedLocation(user1Id, new Location(90,-90), new Date(0));
     Date date = new Date();
     VisitedLocation visitedLocation1 = new VisitedLocation(user1Id, new Location(45,-45), date);
     VisitedLocationDto expectedLocation1 = new VisitedLocationDto(user1Id, new LocationDto(45,-45), date);
@@ -94,7 +94,7 @@ class GpsServiceTest {
   void getLastLocationTest() throws Exception {
     // Given
     UUID userId = UUID.randomUUID();
-    VisitedLocation oldVisitedLocation = new VisitedLocation(userId, new Location(90,-90), new Date());
+    VisitedLocation oldVisitedLocation = new VisitedLocation(userId, new Location(90,-90), new Date(0));
     Date date = new Date();
     VisitedLocation visitedLocation = new VisitedLocation(userId, new Location(45,-45), date);
     VisitedLocationDto expectedLocation = new VisitedLocationDto(userId, new LocationDto(45,-45), date);

@@ -93,7 +93,7 @@ public class GpsServiceImpl implements GpsService {
   @Override
   public void addVisitedLocation(UUID userId, List<VisitedLocationDto> visitedLocationDtos) {
     visitedLocationDtos.forEach(visitedLocationDto -> {
-      if (visitedLocationDto.getUserId() != userId) {
+      if (!visitedLocationDto.getUserId().equals(userId)) {
         LOGGER.warn("User Id and visited location to add user Id mismatch");
         return;
       }

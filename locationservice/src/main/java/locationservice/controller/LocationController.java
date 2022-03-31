@@ -92,7 +92,7 @@ public class LocationController {
    *
    * @param visitedLocationDto visited location to add
    */
-  @PostMapping("/addLocation")
+  @PostMapping("/addVisitedLocation")
   public void addLocation(@RequestParam UUID userId,
                           @RequestBody List<@Valid VisitedLocationDto> visitedLocationDto){
     LOGGER.info("Request: Add locations to user {}", userId);

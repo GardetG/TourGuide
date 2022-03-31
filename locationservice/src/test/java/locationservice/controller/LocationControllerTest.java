@@ -156,7 +156,7 @@ class LocationControllerTest {
     VisitedLocationDto visitedLocation = new VisitedLocationDto(userId, new LocationDto(45,-45), date);
 
     // WHEN
-    mockMvc.perform(post("/addLocation?userId=" + userId)
+    mockMvc.perform(post("/addVisitedLocation?userId=" + userId)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(List.of(visitedLocation))))
 
@@ -176,7 +176,7 @@ class LocationControllerTest {
     VisitedLocationDto visitedLocation = new VisitedLocationDto(null, new LocationDto(100, -200), null);
 
     // WHEN
-    mockMvc.perform(post("/addLocation?userId=" + userId)
+    mockMvc.perform(post("/addVisitedLocation?userId=" + userId)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(List.of(visitedLocation))))
 
