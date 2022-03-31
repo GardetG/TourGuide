@@ -1,4 +1,4 @@
-package tourguideservice.tracker;
+package tourguideservice.service.tracker;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -34,9 +34,6 @@ public class Tracker implements Runnable {
     this.trackingPollingInterval = properties.getTrackingPollingInterval();
     addShutDownHook();
     LOGGER.debug("Tracker Ready and Waiting");
-    if (properties.isTrackingOnStart()) {
-      startTracking();
-    }
   }
 
   /**

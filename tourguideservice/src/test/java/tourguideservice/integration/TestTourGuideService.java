@@ -24,7 +24,7 @@ import tourguideservice.dto.NearbyAttractionsListDto;
 import shared.dto.VisitedLocationDto;
 import tourguideservice.service.GpsService;
 import tourguideservice.service.TourGuideService;
-import tourguideservice.tracker.Tracker;
+import tourguideservice.service.tracker.Tracker;
 
 @Tag("integration")
 @SpringBootTest(properties = "tourguide.internaluser.internalUserNumber=1")
