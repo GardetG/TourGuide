@@ -26,6 +26,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import rewardCentral.RewardCentral;
+import shared.dto.VisitedAttractionDto;
 import tourguideservice.domain.UserReward;
 import shared.dto.AttractionDto;
 import shared.dto.LocationDto;
@@ -131,8 +132,7 @@ class RewardServiceTest {
     Date date = new Date();
     AttractionDto attraction = new AttractionDto(attractionId, "attraction", "", "",0,0);
     VisitedLocationDto location = new VisitedLocationDto(userId, new LocationDto(0,0), date);
-    Map<AttractionDto, VisitedLocationDto> attractionToReward = new HashMap<>();
-    attractionToReward.put(attraction, location);
+    List<VisitedAttractionDto> attractionToReward = List.of(new VisitedAttractionDto(attraction, location));
     when(rewardCentral.getAttractionRewardPoints(any(UUID.class), any(UUID.class))).thenReturn(10);
 
     // When
@@ -151,7 +151,7 @@ class RewardServiceTest {
   void calculateRewardsWhenEmptyTest() {
     // Given
     UUID userId = UUID.randomUUID();
-    Map<AttractionDto, VisitedLocationDto> attractionToReward = new HashMap<>();
+    List<VisitedAttractionDto> attractionToReward = new ArrayList<>();
 
     // When
     rewardsService.calculateRewards(userId, attractionToReward);
