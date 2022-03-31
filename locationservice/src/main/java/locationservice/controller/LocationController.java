@@ -40,7 +40,7 @@ public class LocationController {
    * @throws NoLocationFoundException when no location found
    */
   @GetMapping("/getUserLastVisitedLocation")
-  public VisitedLocationDto getLastLocation(@RequestParam UUID userId) throws NoLocationFoundException {
+  public VisitedLocationDto getUserLastVisitedLocation(@RequestParam UUID userId) throws NoLocationFoundException {
     LOGGER.info("Request: Get user {} last location", userId);
     VisitedLocationDto visitedLocation = gpsService.getUserLastVisitedLocation(userId);
     LOGGER.info("Response: User {} last location sent", userId);
@@ -53,7 +53,7 @@ public class LocationController {
    * @return HTTP 200 with list of last visited location Dto
    */
   @GetMapping("/getAllUserLastVisitedLocation")
-  public List<VisitedLocationDto> getLastLocation() {
+  public List<VisitedLocationDto> getAllUserLastVisitedLocation() {
     LOGGER.info("Request: Get all users' last location");
     List<VisitedLocationDto> visitedLocations = gpsService.getAllUserLastVisitedLocation();
     LOGGER.info("Response: All users' last location sent");
@@ -93,7 +93,7 @@ public class LocationController {
    * @param visitedLocationDto visited location to add
    */
   @PostMapping("/addVisitedLocation")
-  public void addLocation(@RequestParam UUID userId,
+  public void addVisitedLocation(@RequestParam UUID userId,
                           @RequestBody List<@Valid VisitedLocationDto> visitedLocationDto){
     LOGGER.info("Request: Add locations to user {}", userId);
     gpsService.addVisitedLocation(userId, visitedLocationDto);
