@@ -34,7 +34,8 @@ import tourguideservice.dto.UserRewardDto;
 import shared.dto.VisitedLocationDto;
 import tourguideservice.repository.RewardsRepository;
 
-@SpringBootTest
+@SpringBootTest(properties = {"tourguide.test.trackingOnStart=false",
+    "tourguide.test.useInternalUser=false"})
 @ActiveProfiles("test")
 class RewardServiceTest {
 

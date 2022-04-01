@@ -18,8 +18,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import tourguideservice.service.tracker.Tracker;
 
 @Tag("integration")
-@SpringBootTest(properties = "tourguide.internaluser.internalUserNumber=1")
-@ActiveProfiles({"test", "internalUser"})
+@SpringBootTest(properties = {"tourguide.test.trackingOnStart=false",
+    "tourguide.test.internalUserNumber=1"})
+@ActiveProfiles("test")
 @AutoConfigureMockMvc
 class TourGuideServiceIntegrationTest {
 

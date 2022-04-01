@@ -26,7 +26,7 @@ import tourguideservice.service.TourGuideService;
 import tourguideservice.service.proxy.LocationServiceProxy;
 
 @Tag("performance")
-@SpringBootTest(properties = "tourguide.internaluser.internalUserNumber=100000")
+@SpringBootTest(properties = "tourguide.test.internalUserNumber=100000")
 @ActiveProfiles({"test", "internalUser"})
 class TestPerformance {
 

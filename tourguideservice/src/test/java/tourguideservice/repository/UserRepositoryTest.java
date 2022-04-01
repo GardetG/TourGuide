@@ -11,7 +11,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import tourguideservice.domain.User;
 
-@SpringBootTest
+@SpringBootTest(properties = {"tourguide.test.trackingOnStart=false",
+    "tourguide.test.useInternalUser=false"})
 @ActiveProfiles("test")
 class UserRepositoryTest {
 
