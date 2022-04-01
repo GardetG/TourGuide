@@ -27,7 +27,7 @@ public interface LocationServiceProxy {
   @GetMapping("/trackUserLocation")
   VisitedLocationDto trackUserLocation(@RequestParam UUID userId);
 
-  @GetMapping("/getAttraction")
+  @GetMapping("/getAttractions")
   List<AttractionDto> getAttractions();
 
   @PostMapping("/addVisitedLocation")
