@@ -1,6 +1,7 @@
 package tourguideservice.dto;
 
 import java.util.List;
+import shared.dto.LocationDto;
 
 /**
  * Dto class for retrieving the closest attractions from a user, with user location, and the list of

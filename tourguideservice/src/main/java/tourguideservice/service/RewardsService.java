@@ -1,12 +1,10 @@
 package tourguideservice.service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
-import tourguideservice.dto.AttractionDto;
+import shared.dto.VisitedAttractionDto;
 import tourguideservice.dto.UserRewardDto;
-import tourguideservice.dto.VisitedLocationDto;
 
 /**
  * Service Interface to calculate and retrieve users rewards.
@@ -37,7 +35,7 @@ public interface RewardsService {
    * @param userId of the user
    * @param visitedAttractionsToReward attractions to reward
    */
-  void calculateRewards(UUID userId, Map<AttractionDto, VisitedLocationDto> visitedAttractionsToReward);
+  void calculateRewards(UUID userId, List<VisitedAttractionDto> visitedAttractionsToReward);
 
   /**
    * Return the number of reward points earned when the user visit the attraction.

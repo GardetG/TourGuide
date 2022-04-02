@@ -1,4 +1,4 @@
-package tourguideservice.service;
+package locationservice.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -16,9 +16,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
+import locationservice.config.LocationServiceProperties;
+import locationservice.repository.LocationHistoryRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -29,12 +29,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
-import tourguideservice.config.TourGuideProperties;
-import tourguideservice.dto.AttractionDto;
-import tourguideservice.dto.LocationDto;
-import tourguideservice.dto.VisitedLocationDto;
-import tourguideservice.exception.NoLocationFoundException;
-import tourguideservice.repository.LocationHistoryRepository;
+import shared.dto.AttractionDto;
+import shared.dto.AttractionWithDistanceDto;
+import shared.dto.LocationDto;
+import shared.dto.VisitedAttractionDto;
+import shared.dto.VisitedLocationDto;
+import shared.exception.NoLocationFoundException;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -51,23 +51,61 @@ class GpsServiceTest {
   @Captor
   ArgumentCaptor<VisitedLocation> visitedLocationCaptor;
 
+  @DisplayName("Get All last location should return list of all users' last location Dto")
+  @Test
+  void getAllLastLocationTest() {
+    // Given
+    UUID user1Id = UUID.randomUUID();
+    UUID user2Id = UUID.randomUUID();
+    VisitedLocation oldVisitedLocation1 = new VisitedLocation(user1Id, new Location(90,-90), new Date(0));
+    Date date = new Date();
+    VisitedLocation visitedLocation1 = new VisitedLocation(user1Id, new Location(45,-45), date);
+    VisitedLocationDto expectedLocation1 = new VisitedLocationDto(user1Id, new LocationDto(45,-45), date);
+    VisitedLocation visitedLocation2 = new VisitedLocation(user2Id, new Location(45,-45), date);
+    VisitedLocationDto expectedLocation2 = new VisitedLocationDto(user2Id, new LocationDto(45,-45), date);
+    when(locationHistoryRepository.findAll()).thenReturn(List.of(visitedLocation1, oldVisitedLocation1, visitedLocation2));
+
+    // When
+    List<VisitedLocationDto> actualLocations = gpsService.getAllUserLastVisitedLocation();
+
+    // Then
+    assertThat(actualLocations).usingRecursiveFieldByFieldElementComparator()
+        .containsOnly(expectedLocation1, expectedLocation2);
+    verify(locationHistoryRepository, times(1)).findAll();
+  }
+
+  @DisplayName("Get all users' last location when no location registered should return an empty list")
+  @Test
+  void getAllLastLocationWhenEmptyTest() {
+    // Given
+    UUID userId = UUID.randomUUID();
+    when(locationHistoryRepository.findAll()).thenReturn(Collections.emptyList());
+
+    // When
+    List<VisitedLocationDto> actualLocations = gpsService.getAllUserLastVisitedLocation();
+
+    // Then
+    assertThat(actualLocations).isEmpty();
+    verify(locationHistoryRepository, times(1)).findAll();
+  }
+
   @DisplayName("Get last location should return last location Dto")
   @Test
   void getLastLocationTest() throws Exception {
     // Given
     UUID userId = UUID.randomUUID();
+    VisitedLocation oldVisitedLocation = new VisitedLocation(userId, new Location(90,-90), new Date(0));
     Date date = new Date();
     VisitedLocation visitedLocation = new VisitedLocation(userId, new Location(45,-45), date);
-    VisitedLocationDto expectedLocation = new VisitedLocationDto(userId, new LocationDto(-45,45), date);
-    when(locationHistoryRepository.findFirstByIdOrderByDateDesc(any(UUID.class)))
-        .thenReturn(Optional.of(visitedLocation));
+    VisitedLocationDto expectedLocation = new VisitedLocationDto(userId, new LocationDto(45,-45), date);
+    when(locationHistoryRepository.findById(any(UUID.class))).thenReturn(List.of(visitedLocation, oldVisitedLocation));
 
     // When
-    VisitedLocationDto actualLocation = gpsService.getLastLocation(userId);
+    VisitedLocationDto actualLocation = gpsService.getUserLastVisitedLocation(userId);
 
     // Then
     assertThat(actualLocation).usingRecursiveComparison().isEqualTo(expectedLocation);
-    verify(locationHistoryRepository, times(1)).findFirstByIdOrderByDateDesc(userId);
+    verify(locationHistoryRepository, times(1)).findById(userId);
   }
 
   @DisplayName("Get last location when no location registered should throw an exception")
@@ -75,14 +113,13 @@ class GpsServiceTest {
   void getLastLocationWhenEmptyTest() {
     // Given
     UUID userId = UUID.randomUUID();
-    when(locationHistoryRepository.findFirstByIdOrderByDateDesc(any(UUID.class)))
-        .thenReturn(Optional.empty());
+    when(locationHistoryRepository.findById(any(UUID.class))).thenReturn(Collections.emptyList());
 
     // Then
-    assertThatThrownBy(() -> gpsService.getLastLocation(userId))
+    assertThatThrownBy(() -> gpsService.getUserLastVisitedLocation(userId))
         .isInstanceOf(NoLocationFoundException.class)
         .hasMessageContaining("No location registered for the user yet");
-    verify(locationHistoryRepository, times(1)).findFirstByIdOrderByDateDesc(userId);
+    verify(locationHistoryRepository, times(1)).findById(userId);
   }
 
   @DisplayName("Track user location should registered and return current visited location")
@@ -92,7 +129,7 @@ class GpsServiceTest {
     UUID userId = UUID.randomUUID();
     Date date = new Date();
     VisitedLocation visitedLocation = new VisitedLocation(userId, new Location(45,-45), date);
-    VisitedLocationDto expectedLocation = new VisitedLocationDto(userId, new LocationDto(-45,45), date);
+    VisitedLocationDto expectedLocation = new VisitedLocationDto(userId, new LocationDto(45,-45), date);
     when(gpsUtil.getUserLocation(any(UUID.class))).thenReturn(visitedLocation);
 
     // When
@@ -108,14 +145,14 @@ class GpsServiceTest {
 
   @DisplayName("Get attractions should return list of attraction Dto")
   @Test
-  void getAttractionTest() {
+  void getAttractionsTest() {
     // Given
     Attraction attraction = new Attraction("attraction", "","",45,-45);
-    AttractionDto attractionDto = new AttractionDto(attraction.attractionId,-45,45,"attraction","","");
+    AttractionDto attractionDto = new AttractionDto(attraction.attractionId,"attraction","","", 45,-45);
     when(gpsUtil.getAttractions()).thenReturn(Collections.singletonList(attraction));
 
     // When
-    List<AttractionDto> attractions = gpsService.getAttraction();
+    List<AttractionDto> attractions = gpsService.getAttractions();
 
     // Then
     assertThat(attractions).usingRecursiveFieldByFieldElementComparator().containsExactly(attractionDto);
@@ -128,15 +165,31 @@ class GpsServiceTest {
     // Given
     UUID userId = UUID.randomUUID();
     Date date = new Date();
-    VisitedLocationDto locationDto = new VisitedLocationDto(userId, new LocationDto(45, -45), date);
+    VisitedLocationDto locationDto = new VisitedLocationDto(userId, new LocationDto(-45, 45), date);
     VisitedLocation expectedLocation = new VisitedLocation(userId, new Location(-45,45), date);
 
     // When
-    gpsService.addLocation(locationDto);
+    gpsService.addVisitedLocation(userId, List.of(locationDto));
 
     // Then
     verify(locationHistoryRepository, times(1)).save(visitedLocationCaptor.capture());
     assertThat(visitedLocationCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedLocation);
+  }
+
+  @DisplayName("Add location to user should save visited location in repository")
+  @Test
+  void addLocationWhenIdMismatchTest() {
+    // Given
+    UUID userId = UUID.randomUUID();
+    Date date = new Date();
+    VisitedLocationDto locationDto = new VisitedLocationDto(UUID.randomUUID(), new LocationDto(-45, 45), date);
+    VisitedLocation expectedLocation = new VisitedLocation(userId, new Location(-45,45), date);
+
+    // When
+    gpsService.addVisitedLocation(userId, List.of(locationDto));
+
+    // Then
+    verify(locationHistoryRepository, times(0)).save(any(VisitedLocation.class));
   }
 
   @DisplayName("Get visited locations should return map of attractions and first in range visited location")
@@ -148,19 +201,18 @@ class GpsServiceTest {
     VisitedLocation location2 = new VisitedLocation(userId, new Location(0,0), new Date());
     VisitedLocationDto locationDto = new VisitedLocationDto(userId, new LocationDto(0,0), location1.timeVisited);
     Attraction attraction1 = new Attraction("attraction1", "","",0,0);
-    AttractionDto attractionDto1 = new AttractionDto(attraction1.attractionId,0,0,"attraction1","","");
+    AttractionDto attractionDto1 = new AttractionDto(attraction1.attractionId,"attraction1","","",0,0);
     when(locationHistoryRepository.findById(any(UUID.class))).thenReturn(Arrays.asList(location1, location2));
     when(gpsUtil.getAttractions()).thenReturn(Collections.singletonList(attraction1));
 
     // When
-    Map<AttractionDto, VisitedLocationDto> visitedAttractions = gpsService.getVisitedAttractions(userId);
+    List<VisitedAttractionDto> visitedAttractions = gpsService.getVisitedAttractions(userId);
 
     // Then
-    assertThat(visitedAttractions).hasSize(1);
-    assertThat(visitedAttractions.keySet()).usingRecursiveFieldByFieldElementComparator()
-        .containsOnly(attractionDto1);
-    assertThat(visitedAttractions.values()).usingRecursiveFieldByFieldElementComparator()
-        .containsOnly(locationDto);
+    assertThat(visitedAttractions)
+        .hasSize(1)
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(new VisitedAttractionDto(attractionDto1, locationDto));
     verify(locationHistoryRepository, times(1)).findById(userId);
     verify(gpsUtil, times(1)).getAttractions();
   }
@@ -176,7 +228,7 @@ class GpsServiceTest {
     when(gpsUtil.getAttractions()).thenReturn(Collections.singletonList(attraction));
 
     // When
-    Map<AttractionDto, VisitedLocationDto> visitedAttractions = gpsService.getVisitedAttractions(userId);
+    List<VisitedAttractionDto> visitedAttractions = gpsService.getVisitedAttractions(userId);
 
     // Then
     assertThat(visitedAttractions).isEmpty();
@@ -194,7 +246,7 @@ class GpsServiceTest {
     when(gpsUtil.getAttractions()).thenReturn(Collections.singletonList(attraction));
 
     // When
-    Map<AttractionDto, VisitedLocationDto> visitedAttractions = gpsService.getVisitedAttractions(userId);
+    List<VisitedAttractionDto> visitedAttractions = gpsService.getVisitedAttractions(userId);
 
     // Then
     assertThat(visitedAttractions).isEmpty();
@@ -212,22 +264,22 @@ class GpsServiceTest {
     Attraction attraction1 = new Attraction("attraction1", "", "", 0, -90);
     Attraction attraction2 = new Attraction("attraction2", "", "", 0, 0);
     Attraction attraction3 = new Attraction("attraction3", "", "", 0, 45);
-    AttractionDto expectedAttraction1 = new AttractionDto(attraction2.attractionId, 0,0, "attraction2", "","");
-    AttractionDto expectedAttraction2 = new AttractionDto(attraction3.attractionId, 45,0, "attraction3", "","");
-    when(locationHistoryRepository.findFirstByIdOrderByDateDesc(any(UUID.class))).thenReturn(Optional.of(location));
+    AttractionDto expectedAttraction1 = new AttractionDto(attraction2.attractionId, "attraction2", "","",0,0 );
+    AttractionDto expectedAttraction2 = new AttractionDto(attraction3.attractionId, "attraction3", "","",0,45);
+    when(locationHistoryRepository.findById(any(UUID.class))).thenReturn(List.of(location));
     when(gpsUtil.getAttractions()).thenReturn(Arrays.asList(attraction1, attraction2, attraction3));
 
     // When
-    Map<AttractionDto, Double> attractionsWithDistance = gpsService.getNearbyAttractions(userId, limit);
+    List<AttractionWithDistanceDto> attractionsWithDistance = gpsService.getNearbyAttractions(userId, limit);
 
     // Then
     assertThat(attractionsWithDistance)
         .hasSize(limit)
-        .containsValues(0d, 2700d * TourGuideProperties.STATUTE_MILES_PER_NAUTICAL_MILE);
-    assertThat(attractionsWithDistance.keySet())
         .usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(expectedAttraction1, expectedAttraction2);
-    verify(locationHistoryRepository, times(1)).findFirstByIdOrderByDateDesc(userId);
+        .containsExactly(
+            new AttractionWithDistanceDto(expectedAttraction1, 0d),
+            new AttractionWithDistanceDto(expectedAttraction2, 2700d * LocationServiceProperties.STATUTE_MILES_PER_NAUTICAL_MILE));
+    verify(locationHistoryRepository, times(1)).findById(userId);
     verify(gpsUtil, times(1)).getAttractions();
   }
 
@@ -237,13 +289,13 @@ class GpsServiceTest {
     // Given
     UUID userId = UUID.randomUUID();
     int limit = 2;
-    when(locationHistoryRepository.findFirstByIdOrderByDateDesc(any(UUID.class))).thenReturn(Optional.empty());
+    when(locationHistoryRepository.findById(any(UUID.class))).thenReturn(Collections.emptyList());
 
     // Then
     assertThatThrownBy(() -> gpsService.getNearbyAttractions(userId,limit))
         .isInstanceOf(NoLocationFoundException.class)
         .hasMessageContaining("No location registered for the user yet");
-    verify(locationHistoryRepository, times(1)).findFirstByIdOrderByDateDesc(userId);
+    verify(locationHistoryRepository, times(1)).findById(userId);
     verify(gpsUtil, times(0)).getAttractions();
   }
 
@@ -258,7 +310,7 @@ class GpsServiceTest {
     assertThatThrownBy(() -> gpsService.getNearbyAttractions(userId,limit))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("Limit must be positive");
-    verify(locationHistoryRepository, times(0)).findFirstByIdOrderByDateDesc(any(UUID.class));
+    verify(locationHistoryRepository, times(0)).findById(any(UUID.class));
     verify(gpsUtil, times(0)).getAttractions();
   }
 
@@ -277,7 +329,7 @@ class GpsServiceTest {
     // Then
     assertThat(actualDistance)
         .isEqualTo(gpsService.getDistance(locationRef, location))
-        .isEqualTo(distance * TourGuideProperties.STATUTE_MILES_PER_NAUTICAL_MILE);
+        .isEqualTo(distance * LocationServiceProperties.STATUTE_MILES_PER_NAUTICAL_MILE);
   }
 
 }

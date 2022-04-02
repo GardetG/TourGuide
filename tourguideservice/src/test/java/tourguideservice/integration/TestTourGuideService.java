@@ -18,13 +18,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import shared.dto.ProviderDto;
 import tourguideservice.domain.User;
-import tourguideservice.dto.AttractionDto;
-import tourguideservice.dto.LocationDto;
+import shared.dto.AttractionDto;
+import shared.dto.LocationDto;
 import tourguideservice.dto.NearbyAttractionsListDto;
-import tourguideservice.dto.VisitedLocationDto;
-import tourguideservice.service.GpsService;
+import shared.dto.VisitedLocationDto;
 import tourguideservice.service.TourGuideService;
-import tourguideservice.tracker.Tracker;
+import tourguideservice.service.proxy.LocationServiceProxy;
+import tourguideservice.service.tracker.Tracker;
 
 @Tag("integration")
 @SpringBootTest(properties = "tourguide.internaluser.internalUserNumber=1")
@@ -34,7 +34,7 @@ class TestTourGuideService {
   @Autowired
   private TourGuideService tourGuideService;
   @Autowired
-  private GpsService gpsService;
+  private LocationServiceProxy locationServiceProxy;
   @Autowired
   private Tracker tracker;
 
@@ -121,12 +121,12 @@ class TestTourGuideService {
     // Given
     String userName = "internalUser0";
     User user = tourGuideService.getUser(userName);
-    AttractionDto attraction = gpsService.getAttraction().get(0);
-    gpsService.addLocation(new VisitedLocationDto(
+    AttractionDto attraction = locationServiceProxy.getAttractions().get(0);
+    locationServiceProxy.addVisitedLocation(List.of(new VisitedLocationDto(
         user.getUserId(),
-        new LocationDto(attraction.getLongitude(), attraction.getLatitude()),
+        new LocationDto(attraction.getLatitude(), attraction.getLongitude()),
         new Date()
-    ));
+    )), user.getUserId());
 
     // When
     tourGuideService.calculateRewards(user.getUserId());

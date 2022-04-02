@@ -18,102 +18,108 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import tourguideservice.domain.User;
-import tourguideservice.dto.AttractionDto;
-import tourguideservice.dto.LocationDto;
-import tourguideservice.dto.VisitedLocationDto;
-import tourguideservice.service.GpsService;
+import shared.dto.AttractionDto;
+import shared.dto.LocationDto;
+import shared.dto.VisitedLocationDto;
 import tourguideservice.service.RewardsService;
 import tourguideservice.service.TourGuideService;
+import tourguideservice.service.proxy.LocationServiceProxy;
 
 @Tag("performance")
-@SpringBootTest(properties = "tourguide.internaluser.internalUserNumber=100000")
-@ActiveProfiles({"test", "internalUser"})
+@SpringBootTest(properties = {"tourguide.test.trackingOnStart=false",
+		"tourguide.test.internalUserNumber=100"})
+@ActiveProfiles({"test"})
 class TestPerformance {
 
-	/*
-	 * A note on performance improvements:
-	 *     
-	 *     The number of users generated for the high volume tests can be easily adjusted via this method:
-	 *     
-	 *     		InternalTestHelper.setInternalUserNumber(100000);
-	 *     
-	 *     
-	 *     These tests can be modified to suit new solutions, just as long as the performance metrics
-	 *     at the end of the tests remains consistent. 
-	 * 
-	 *     These are performance metrics that we are trying to hit:
-	 *     
-	 *     highVolumeTrackLocation: 100,000 users within 15 minutes:
-	 *     		assertTrue(TimeUnit.MINUTES.toSeconds(15) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
-     *
-     *     highVolumeGetRewards: 100,000 users within 20 minutes:
-	 *          assertTrue(TimeUnit.MINUTES.toSeconds(20) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
-	 */
+  /*
+   * A note on performance improvements:
+   *
+   *     The number of users generated for the high volume tests can be easily adjusted via this method:
+   *
+   *     		InternalTestHelper.setInternalUserNumber(100000);
+   *
+   *
+   *     These tests can be modified to suit new solutions, just as long as the performance metrics
+   *     at the end of the tests remains consistent.
+   *
+   *     These are performance metrics that we are trying to hit:
+   *
+   *     highVolumeTrackLocation: 100,000 users within 15 minutes:
+   *     		assertTrue(TimeUnit.MINUTES.toSeconds(15) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
+   *
+   *     highVolumeGetRewards: 100,000 users within 20 minutes:
+   *          assertTrue(TimeUnit.MINUTES.toSeconds(20) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
+   */
 
-	@Autowired
-	private TourGuideService tourGuideService;
-	@Autowired
-	private GpsService gpsService;
-	@Autowired
-	private RewardsService rewardsService;
+  @Autowired
+  private TourGuideService tourGuideService;
+  @Autowired
+  private LocationServiceProxy locationServiceProxy;
+  @Autowired
+  private RewardsService rewardsService;
 
-	@BeforeAll
-	public static void setDefaultLocale() {
-		Locale.setDefault(Locale.UK);
-	}
+  @BeforeAll
+  public static void setDefaultLocale() {
+    Locale.setDefault(Locale.UK);
+  }
 
-	@Test
-	void highVolumeTrackLocation() {
-		// Given
-		List<User> allUsers = tourGuideService.getAllUsers();
+  @Test
+  void highVolumeTrackLocation() {
+    // Given
+    List<User> allUsers = tourGuideService.getAllUsers();
 
-		// When
-	    StopWatch stopWatch = new StopWatch();
-		stopWatch.start();
+    // When
+    StopWatch stopWatch = new StopWatch();
+    stopWatch.start();
 
-		ExecutorService executor = Executors.newFixedThreadPool(200);
-		List<CompletableFuture<?>> result = allUsers.stream()
-				.map(user -> CompletableFuture.runAsync(() -> tourGuideService.trackUserLocation(user.getUserId()), executor))
-				.collect(Collectors.toList());
-		result.forEach(CompletableFuture::join);
-		stopWatch.stop();
+    ExecutorService executor = Executors.newFixedThreadPool(200);
+    List<CompletableFuture<?>> result = allUsers.stream()
+        .map(user -> CompletableFuture.runAsync(
+            () -> tourGuideService.trackUserLocation(user.getUserId()), executor))
+        .collect(Collectors.toList());
+    result.forEach(CompletableFuture::join);
+    stopWatch.stop();
 
-		// Then
-		System.out.println("highVolumeTrackLocation: Time Elapsed: " + TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");
-		assertTrue(TimeUnit.MINUTES.toSeconds(15) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
-	}
+    // Then
+    System.out.println("highVolumeTrackLocation: Time Elapsed: " +
+        TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");
+    assertTrue(
+        TimeUnit.MINUTES.toSeconds(15) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
+  }
 
-	@Test
-	void highVolumeGetRewards() {
-		// Given
-		List<User> allUsers = tourGuideService.getAllUsers();
+  @Test
+  void highVolumeGetRewards() {
+    // Given
+    List<User> allUsers = tourGuideService.getAllUsers();
 
-		// When
-		StopWatch stopWatch = new StopWatch();
-		stopWatch.start();
+    // When
+    StopWatch stopWatch = new StopWatch();
+    stopWatch.start();
 
-		AttractionDto attraction = gpsService.getAttraction().get(0);
-		allUsers.forEach(u -> gpsService.addLocation(new VisitedLocationDto(
-				u.getUserId(),
-				new LocationDto(attraction.getLongitude(), attraction.getLatitude()),
-				new Date()
-		)));
+    AttractionDto attraction = locationServiceProxy.getAttractions().get(0);
+    allUsers.forEach(u -> locationServiceProxy.addVisitedLocation(
+        List.of(new VisitedLocationDto(u.getUserId(),new LocationDto(attraction.getLatitude(), attraction.getLongitude()), new Date())),
+        u.getUserId()
+    ));
 
-		ExecutorService executor = Executors.newFixedThreadPool(200);
-		List<CompletableFuture<?>> result = allUsers.stream()
-				.map(user -> CompletableFuture.runAsync(() -> tourGuideService.calculateRewards(user.getUserId()), executor))
-				.collect(Collectors.toList());
-		result.forEach(CompletableFuture::join);
+    ExecutorService executor = Executors.newFixedThreadPool(200);
+    List<CompletableFuture<?>> result = allUsers.stream()
+        .map(user -> CompletableFuture.runAsync(
+            () -> tourGuideService.calculateRewards(user.getUserId()), executor))
+        .collect(Collectors.toList());
+    result.forEach(CompletableFuture::join);
 
-		for(User user : allUsers) {
-			assertTrue(rewardsService.getAllRewards(user.getUserId()).size() > 0);
-		}
-		stopWatch.stop();
+    for (User user : allUsers) {
+      assertTrue(rewardsService.getAllRewards(user.getUserId()).size() > 0);
+    }
+    stopWatch.stop();
 
-		// Then
+    // Then
 
-		System.out.println("highVolumeGetRewards: Time Elapsed: " + TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");
-		assertTrue(TimeUnit.MINUTES.toSeconds(20) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
-	}
+    System.out.println("highVolumeGetRewards: Time Elapsed: " +
+        TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");
+    assertTrue(
+        TimeUnit.MINUTES.toSeconds(20) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
+  }
 
 }

@@ -26,14 +26,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import rewardCentral.RewardCentral;
+import shared.dto.VisitedAttractionDto;
 import tourguideservice.domain.UserReward;
-import tourguideservice.dto.AttractionDto;
-import tourguideservice.dto.LocationDto;
+import shared.dto.AttractionDto;
+import shared.dto.LocationDto;
 import tourguideservice.dto.UserRewardDto;
-import tourguideservice.dto.VisitedLocationDto;
+import shared.dto.VisitedLocationDto;
 import tourguideservice.repository.RewardsRepository;
 
-@SpringBootTest
+@SpringBootTest(properties = {"tourguide.test.trackingOnStart=false",
+    "tourguide.test.useInternalUser=false"})
 @ActiveProfiles("test")
 class RewardServiceTest {
 
@@ -59,8 +61,8 @@ class RewardServiceTest {
         new Attraction("Test1", "city", "state",45,-45),
         10);
     UserRewardDto expectedDto = new UserRewardDto(
-        new VisitedLocationDto(userId, new LocationDto(-45,45), date),
-        new AttractionDto(reward.attraction.attractionId, -45,45, "Test1", "city", "state"),
+        new VisitedLocationDto(userId, new LocationDto(45,-45), date),
+        new AttractionDto(reward.attraction.attractionId, "Test1", "city", "state",45,-45),
         10);
     when(rewardsRepository.findById(any(UUID.class))).thenReturn(Collections.singletonList(reward));
 
@@ -129,10 +131,9 @@ class RewardServiceTest {
     UUID userId = UUID.randomUUID();
     UUID attractionId = UUID.randomUUID();
     Date date = new Date();
-    AttractionDto attraction = new AttractionDto(attractionId, 0,0, "attraction", "", "");
+    AttractionDto attraction = new AttractionDto(attractionId, "attraction", "", "",0,0);
     VisitedLocationDto location = new VisitedLocationDto(userId, new LocationDto(0,0), date);
-    Map<AttractionDto, VisitedLocationDto> attractionToReward = new HashMap<>();
-    attractionToReward.put(attraction, location);
+    List<VisitedAttractionDto> attractionToReward = List.of(new VisitedAttractionDto(attraction, location));
     when(rewardCentral.getAttractionRewardPoints(any(UUID.class), any(UUID.class))).thenReturn(10);
 
     // When
@@ -151,7 +152,7 @@ class RewardServiceTest {
   void calculateRewardsWhenEmptyTest() {
     // Given
     UUID userId = UUID.randomUUID();
-    Map<AttractionDto, VisitedLocationDto> attractionToReward = new HashMap<>();
+    List<VisitedAttractionDto> attractionToReward = new ArrayList<>();
 
     // When
     rewardsService.calculateRewards(userId, attractionToReward);

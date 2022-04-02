@@ -1,5 +1,8 @@
 package tourguideservice.dto;
 
+import shared.dto.AttractionDto;
+import shared.dto.VisitedLocationDto;
+
 /**
  * Dto Class for a user reward.
  */

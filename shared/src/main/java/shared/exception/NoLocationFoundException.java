@@ -1,4 +1,4 @@
-package tourguideservice.exception;
+package shared.exception;
 
 /**
  * Exception thrown when no visited location found for the requested user.

@@ -3,9 +3,9 @@ package tourguideservice.utils;
 import java.util.List;
 import java.util.stream.Collectors;
 import tourguideservice.domain.UserReward;
-import tourguideservice.dto.AttractionDto;
+import shared.dto.AttractionDto;
 import tourguideservice.dto.UserRewardDto;
-import tourguideservice.dto.VisitedLocationDto;
+import shared.dto.VisitedLocationDto;
 
 /**
  * Mapper utility class to map UserReward DTO and entity.
@@ -28,14 +28,7 @@ public class UserRewardMapper {
         LocationMapper.toDto(userReward.visitedLocation.location),
         userReward.visitedLocation.timeVisited
     );
-    AttractionDto attraction = new AttractionDto(
-        userReward.attraction.attractionId,
-        userReward.attraction.longitude,
-        userReward.attraction.latitude,
-        userReward.attraction.attractionName,
-        userReward.attraction.city,
-        userReward.attraction.state
-    );
+    AttractionDto attraction = AttractionMapper.toDto(userReward.attraction);
     return new UserRewardDto(
         visitedLocation,
         attraction,

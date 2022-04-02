@@ -1,7 +1,7 @@
 package tourguideservice.utils;
 
 import gpsUtil.location.Location;
-import tourguideservice.dto.LocationDto;
+import shared.dto.LocationDto;
 
 /**
  * Mapper utility class to map Location DTO and entity.
@@ -20,8 +20,8 @@ public class LocationMapper {
    */
   public static LocationDto toDto(Location location) {
     return new LocationDto(
-        location.longitude,
-        location.latitude
+        location.latitude,
+        location.longitude
     );
   }
 
