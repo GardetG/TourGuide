@@ -68,7 +68,7 @@ class TourGuideServiceTest {
     User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
     LocationDto location = new LocationDto(45, -45);
     when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
-    when(locationServiceProxy.getLastLocation(any(UUID.class)))
+    when(locationServiceProxy.getLastVisitedLocation(any(UUID.class)))
         .thenReturn(new VisitedLocationDto(user.getUserId(), location, new Date()));
 
     // When
@@ -77,7 +77,7 @@ class TourGuideServiceTest {
     //Then
     assertThat(actualDto).usingRecursiveComparison().isEqualTo(location);
     verify(userRepository, times(1)).findByUsername("jon");
-    verify(locationServiceProxy, times(1)).getLastLocation(user.getUserId());
+    verify(locationServiceProxy, times(1)).getLastVisitedLocation(user.getUserId());
   }
 
   @DisplayName("Get user location when no location registered should return last tracked location dto")
@@ -87,7 +87,7 @@ class TourGuideServiceTest {
     User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
     LocationDto location = new LocationDto(45, -45);
     when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
-    when(locationServiceProxy.getLastLocation(any(UUID.class))).thenThrow(
+    when(locationServiceProxy.getLastVisitedLocation(any(UUID.class))).thenThrow(
         new NoLocationFoundException("No user locations found"));
     when(locationServiceProxy.trackUserLocation(any(UUID.class))).thenReturn(
         new VisitedLocationDto(user.getUserId(), location, new Date()));
@@ -98,7 +98,7 @@ class TourGuideServiceTest {
     //Then
     assertThat(actualDto).usingRecursiveComparison().isEqualTo(location);
     verify(userRepository, times(1)).findByUsername("jon");
-    verify(locationServiceProxy, times(1)).getLastLocation(user.getUserId());
+    verify(locationServiceProxy, times(1)).getLastVisitedLocation(user.getUserId());
     verify(locationServiceProxy, times(1)).trackUserLocation(user.getUserId());
   }
 
@@ -132,8 +132,7 @@ class TourGuideServiceTest {
     expectedMap.put(user2.getUserId(), user2Location.getLocation());
 
     when(userRepository.findAll()).thenReturn(Arrays.asList(user, user2));
-    when(locationServiceProxy.getLastLocation(any(UUID.class))).thenReturn(user1Location)
-        .thenReturn(user2Location);
+    when(locationServiceProxy.getAllUserLastVisitedLocation()).thenReturn(List.of(user1Location, user2Location));
 
     // When
     Map<UUID, LocationDto> actualMap = tourGuideService.getAllCurrentLocations();
@@ -141,22 +140,21 @@ class TourGuideServiceTest {
     // Then
     assertThat(actualMap.entrySet()).usingRecursiveFieldByFieldElementComparator()
         .isEqualTo(expectedMap.entrySet());
-    verify(userRepository, times(1)).findAll();
-    verify(locationServiceProxy, times(2)).getLastLocation(any(UUID.class));
+    verify(locationServiceProxy, times(1)).getAllUserLastVisitedLocation();
   }
 
   @DisplayName("Get all users current locations when no users available should return an empty map")
   @Test
   void getAllCurrentLocationsWhenEmptyTest() {
     // Given
-    when(userRepository.findAll()).thenReturn(new ArrayList<>());
+    when(locationServiceProxy.getAllUserLastVisitedLocation()).thenReturn(new ArrayList<>());
 
     // When
     Map<UUID, LocationDto> actualMap = tourGuideService.getAllCurrentLocations();
 
     // Then
     assertThat(actualMap).isEmpty();
-    verify(userRepository, times(1)).findAll();
+    verify(locationServiceProxy, times(1)).getAllUserLastVisitedLocation();
   }
 
   @DisplayName("Get user rewards should return list of reward dto")
@@ -362,7 +360,7 @@ class TourGuideServiceTest {
     VisitedLocationDto userLocation =
         new VisitedLocationDto(user.getUserId(), new LocationDto(0, 0), new Date());
     when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
-    when(locationServiceProxy.getLastLocation(any(UUID.class))).thenReturn(userLocation);
+    when(locationServiceProxy.getLastVisitedLocation(any(UUID.class))).thenReturn(userLocation);
     when(locationServiceProxy.getNearbyAttractions(any(UUID.class), anyInt()))
         .thenReturn(EntitiesTestFactory.getAttractionsWithDistance());
     when(rewardsService.getRewardPoints(any(UUID.class), any(UUID.class))).thenReturn(100);
@@ -379,7 +377,7 @@ class TourGuideServiceTest {
         .usingRecursiveFieldByFieldElementComparator()
         .hasSameElementsAs(EntitiesTestFactory.getAttractionsDto());
     verify(userRepository, times(1)).findByUsername("jon");
-    verify(locationServiceProxy, times(1)).getLastLocation(user.getUserId());
+    verify(locationServiceProxy, times(1)).getLastVisitedLocation(user.getUserId());
     verify(locationServiceProxy, times(1)).getNearbyAttractions(user.getUserId(), 5);
     verify(rewardsService, times(5)).getRewardPoints(any(UUID.class), any(UUID.class));
   }

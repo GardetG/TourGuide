@@ -128,8 +128,8 @@ class TourGuideControllerTest {
         .andExpect(jsonPath("$[0].visitedLocation.location.longitude", is(-45.0)))
         .andExpect(jsonPath("$[0].visitedLocation.location.latitude", is(45.0)))
         .andExpect(jsonPath("$[0].attraction.attractionName", is("Test1")))
-        .andExpect(jsonPath("$[0].attraction.longitude", is(50.0)))
-        .andExpect(jsonPath("$[0].attraction.latitude", is(-50.0)))
+        .andExpect(jsonPath("$[0].attraction.longitude", is(-50.0)))
+        .andExpect(jsonPath("$[0].attraction.latitude", is(50.0)))
         .andExpect(jsonPath("$[0].rewardPoints", is(10)));
     verify(tourGuideService, times(1)).getUserRewards("jon");
   }

@@ -65,10 +65,10 @@ public class TourGuideServiceImpl implements TourGuideService {
    */
   @Override
   public Map<UUID, LocationDto> getAllCurrentLocations() {
-    return getAllUsers().stream()
+    return locationServiceProxy.getAllUserLastVisitedLocation().stream()
         .collect(Collectors.toMap(
-            User::getUserId,
-            user -> getLastVisitedLocation(user.getUserId()).getLocation()
+            VisitedLocationDto::getUserId,
+            VisitedLocationDto::getLocation
         ));
   }
 
@@ -181,7 +181,7 @@ public class TourGuideServiceImpl implements TourGuideService {
 
   private VisitedLocationDto getLastVisitedLocation(UUID userId) {
     try {
-      return locationServiceProxy.getLastLocation(userId);
+      return locationServiceProxy.getLastVisitedLocation(userId);
     } catch (NoLocationFoundException e) {
       LOGGER.warn("User {} location not found, track current location", userId);
       return trackUserLocation(userId);

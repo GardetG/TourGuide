@@ -19,10 +19,10 @@ import shared.exception.NoLocationFoundException;
 public interface LocationServiceProxy {
 
   @GetMapping("/getUserLastVisitedLocation")
-  VisitedLocationDto getLastLocation(@RequestParam UUID userId) throws NoLocationFoundException;
+  VisitedLocationDto getLastVisitedLocation(@RequestParam UUID userId) throws NoLocationFoundException;
 
   @GetMapping("/getAllUserLastVisitedLocation")
-  List<VisitedLocationDto> getLastLocation();
+  List<VisitedLocationDto> getAllUserLastVisitedLocation();
 
   @GetMapping("/trackUserLocation")
   VisitedLocationDto trackUserLocation(@RequestParam UUID userId);
