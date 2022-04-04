@@ -1,7 +1,7 @@
-package tourguideservice.dto;
+package shared.dto;
 
-import shared.dto.AttractionDto;
-import shared.dto.VisitedLocationDto;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Dto Class for a user reward.
@@ -13,11 +13,13 @@ public class UserRewardDto {
    * the number of reward points earned.
    *
    * @param visitedLocation linked to the reward
-   * @param attraction linked to the reward
-   * @param rewardPoints earned
+   * @param attraction      linked to the reward
+   * @param rewardPoints    earned
    */
-  public UserRewardDto(VisitedLocationDto visitedLocation, AttractionDto attraction,
-                       int rewardPoints) {
+  @JsonCreator
+  public UserRewardDto(@JsonProperty("visitedLocation") VisitedLocationDto visitedLocation,
+                       @JsonProperty("attraction") AttractionDto attraction,
+                       @JsonProperty("rewardPoints") int rewardPoints) {
     this.visitedLocation = visitedLocation;
     this.attraction = attraction;
     this.rewardPoints = rewardPoints;
