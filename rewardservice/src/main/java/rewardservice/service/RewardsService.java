@@ -1,10 +1,10 @@
-package tourguideservice.service;
+package rewardservice.service;
 
 import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
+import shared.dto.UserRewardDto;
 import shared.dto.VisitedAttractionDto;
-import tourguideservice.dto.UserRewardDto;
 
 /**
  * Service Interface to calculate and retrieve users rewards.
