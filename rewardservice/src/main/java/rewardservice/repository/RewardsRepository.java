@@ -1,9 +1,9 @@
-package tourguideservice.repository;
+package rewardservice.repository;
 
 import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Repository;
-import tourguideservice.domain.UserReward;
+import rewardservice.domain.UserReward;
 
 /**
  * Repository Class for User rewards.
