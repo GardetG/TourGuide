@@ -1,4 +1,4 @@
-package tourguideservice.service;
+package rewardservice.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -6,17 +6,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import gpsUtil.location.Attraction;
-import gpsUtil.location.Location;
-import gpsUtil.location.VisitedLocation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -26,13 +22,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import rewardCentral.RewardCentral;
+import rewardservice.domain.Attraction;
+import rewardservice.domain.Location;
+import rewardservice.domain.UserReward;
+import rewardservice.domain.VisitedLocation;
+import rewardservice.repository.RewardsRepository;
 import shared.dto.VisitedAttractionDto;
-import tourguideservice.domain.UserReward;
 import shared.dto.AttractionDto;
 import shared.dto.LocationDto;
-import tourguideservice.dto.UserRewardDto;
+import shared.dto.UserRewardDto;
 import shared.dto.VisitedLocationDto;
-import tourguideservice.repository.RewardsRepository;
 
 @SpringBootTest(properties = {"tourguide.test.trackingOnStart=false",
     "tourguide.test.useInternalUser=false"})
@@ -141,10 +140,10 @@ class RewardServiceTest {
 
     //Then
     verify(rewardsRepository, times(1)).save(userRewardCaptor.capture());
-    assertThat(userRewardCaptor.getValue().visitedLocation)
+    Assertions.assertThat(userRewardCaptor.getValue().visitedLocation)
         .usingRecursiveComparison().isEqualTo(new VisitedLocation(userId, new Location(0,0), date));
-    assertThat(userRewardCaptor.getValue().attraction.attractionName).isEqualTo("attraction");
-    assertThat(userRewardCaptor.getValue().getRewardPoints()).isEqualTo(10);
+    Assertions.assertThat(userRewardCaptor.getValue().attraction.attractionName).isEqualTo("attraction");
+    Assertions.assertThat(userRewardCaptor.getValue().getRewardPoints()).isEqualTo(10);
   }
 
   @DisplayName("Calculate reward when no attraction to reward should not registered any reward")
