@@ -1,4 +1,4 @@
-package tourguideservice.repository.impl;
+package rewardservice.repository.impl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,8 +6,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import org.springframework.stereotype.Repository;
-import tourguideservice.domain.UserReward;
-import tourguideservice.repository.RewardsRepository;
+import rewardservice.domain.UserReward;
+import rewardservice.repository.RewardsRepository;
 
 /**
  * Repository Class for User rewards.
