@@ -1,19 +1,20 @@
-package tourguideservice.repository;
+package rewardservice.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import gpsUtil.location.Attraction;
-import gpsUtil.location.Location;
-import gpsUtil.location.VisitedLocation;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import tourguideservice.domain.UserReward;
+import rewardservice.domain.Attraction;
+import rewardservice.domain.Location;
+import rewardservice.domain.UserReward;
+import rewardservice.domain.VisitedLocation;
 
 @SpringBootTest(properties = {"tourguide.test.trackingOnStart=false",
     "tourguide.test.useInternalUser=false"})
@@ -37,7 +38,7 @@ class RewardsRepositoryTest {
     List<UserReward> expectedList = rewardsRepository.findById(userId);
 
     // Then
-    assertThat(expectedList)
+    Assertions.assertThat(expectedList)
         .hasSize(1)
         .containsOnly(reward);
   }
@@ -52,7 +53,7 @@ class RewardsRepositoryTest {
     List<UserReward> expectedList = rewardsRepository.findById(userId);
 
     // Then
-    assertThat(expectedList).isEmpty();
+    Assertions.assertThat(expectedList).isEmpty();
   }
 
   @DisplayName("Save a reward for a user should add the reward to the Repository")
