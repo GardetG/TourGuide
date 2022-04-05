@@ -49,8 +49,10 @@ public class Tracker implements Runnable {
    * Shut down the Tracker thread
    */
   public void stopTracking() {
-    executorService.shutdownNow();
-    LOGGER.debug("Tracker stopping");
+    if (executorService != null) {
+      executorService.shutdownNow();
+      LOGGER.debug("Tracker stopping");
+    }
   }
 
   @Override
