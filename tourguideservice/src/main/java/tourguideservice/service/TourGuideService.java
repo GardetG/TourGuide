@@ -9,7 +9,7 @@ import shared.dto.ProviderDto;
 import tourguideservice.domain.User;
 import shared.dto.LocationDto;
 import tourguideservice.dto.NearbyAttractionsListDto;
-import tourguideservice.dto.UserRewardDto;
+import shared.dto.UserRewardDto;
 import shared.dto.VisitedLocationDto;
 import tourguideservice.exception.UserNotFoundException;
 

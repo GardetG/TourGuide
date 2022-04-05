@@ -5,8 +5,8 @@ plugins {
     id 'jacoco'
 }
 
-group = 'com.tourguide'
-version = '0.0.1-SNAPSHOT'
+group = 'org.tourguide'
+version = '1.0-SNAPSHOT'
 sourceCompatibility = '11'
 
 repositories {
@@ -16,48 +16,27 @@ repositories {
     }
 }
 
-ext {
-    set('springCloudVersion', "2021.0.1")
-}
-
 dependencies {
     implementation project(':shared')
 
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-    implementation 'io.github.openfeign:feign-okhttp'
 
-    implementation 'org.javamoney:moneta:1.4.2'
-    implementation 'com.jsoniter:jsoniter:0.9.23'
-    implementation 'org.apache.commons:commons-lang3:3.12.0'
+    implementation name: 'RewardCentral'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-}
-
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-    }
 }
 
 test {
     useJUnitPlatform() {
         excludeTags 'integration'
-        excludeTags 'performance'
     }
 }
 
 task integrationTest(type: Test) {
     useJUnitPlatform() {
         includeTags 'integration'
-    }
-}
-
-task performanceTest(type: Test) {
-    useJUnitPlatform() {
-        includeTags 'performance'
     }
 }
 

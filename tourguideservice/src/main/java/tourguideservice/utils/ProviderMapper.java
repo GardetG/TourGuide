@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 import shared.dto.ProviderDto;
-import tripPricer.Provider;
+import tourguideservice.domain.Provider;
 
 /**
  * Mapper utility class to map Provider DTO and entity.

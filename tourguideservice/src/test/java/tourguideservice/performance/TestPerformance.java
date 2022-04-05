@@ -21,13 +21,13 @@ import tourguideservice.domain.User;
 import shared.dto.AttractionDto;
 import shared.dto.LocationDto;
 import shared.dto.VisitedLocationDto;
-import tourguideservice.service.RewardsService;
 import tourguideservice.service.TourGuideService;
 import tourguideservice.service.proxy.LocationServiceProxy;
+import tourguideservice.service.proxy.RewardServiceProxy;
 
 @Tag("performance")
 @SpringBootTest(properties = {"tourguide.test.trackingOnStart=false",
-		"tourguide.test.internalUserNumber=100"})
+    "tourguide.test.internalUserNumber=10"})
 @ActiveProfiles({"test"})
 class TestPerformance {
 
@@ -56,7 +56,7 @@ class TestPerformance {
   @Autowired
   private LocationServiceProxy locationServiceProxy;
   @Autowired
-  private RewardsService rewardsService;
+  private RewardServiceProxy rewardServiceProxy;
 
   @BeforeAll
   public static void setDefaultLocale() {
@@ -90,17 +90,23 @@ class TestPerformance {
   @Test
   void highVolumeGetRewards() {
     // Given
+    ExecutorService testExecutor = Executors.newFixedThreadPool(200);
     List<User> allUsers = tourGuideService.getAllUsers();
+    AttractionDto attraction = locationServiceProxy.getAttractions().get(0);
+    LocationDto attractionLocation = new LocationDto(attraction.getLatitude(), attraction.getLongitude());
+
+    // Add a location near the first attraction
+    List<CompletableFuture<Void>> usersInit = allUsers.stream()
+        .map(user -> CompletableFuture.runAsync(() -> locationServiceProxy.addVisitedLocation(
+            List.of(new VisitedLocationDto(user.getUserId(), attractionLocation, new Date())),
+            user.getUserId()
+        ), testExecutor))
+        .collect(Collectors.toList());
+    usersInit.forEach(CompletableFuture::join);
 
     // When
     StopWatch stopWatch = new StopWatch();
     stopWatch.start();
-
-    AttractionDto attraction = locationServiceProxy.getAttractions().get(0);
-    allUsers.forEach(u -> locationServiceProxy.addVisitedLocation(
-        List.of(new VisitedLocationDto(u.getUserId(),new LocationDto(attraction.getLatitude(), attraction.getLongitude()), new Date())),
-        u.getUserId()
-    ));
 
     ExecutorService executor = Executors.newFixedThreadPool(200);
     List<CompletableFuture<?>> result = allUsers.stream()
@@ -109,17 +115,22 @@ class TestPerformance {
         .collect(Collectors.toList());
     result.forEach(CompletableFuture::join);
 
-    for (User user : allUsers) {
-      assertTrue(rewardsService.getAllRewards(user.getUserId()).size() > 0);
-    }
     stopWatch.stop();
 
     // Then
+    List<CompletableFuture<Integer>> rewardListSize = allUsers.stream()
+        .map(user -> CompletableFuture.supplyAsync(() -> rewardServiceProxy.getAllRewards(user.getUserId()).size()
+            ,testExecutor))
+        .collect(Collectors.toList());
+
+    for ( CompletableFuture<Integer> rewardSize : rewardListSize) {
+      assertTrue(rewardSize.join() > 0);
+    }
 
     System.out.println("highVolumeGetRewards: Time Elapsed: " +
         TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");
-    assertTrue(
-        TimeUnit.MINUTES.toSeconds(20) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
+
+    assertTrue(TimeUnit.MINUTES.toSeconds(20) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
   }
 
 }
