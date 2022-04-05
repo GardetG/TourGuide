@@ -29,6 +29,7 @@ import shared.dto.AttractionWithDistanceDto;
 import shared.dto.PreferencesDto;
 import shared.dto.ProviderDto;
 import shared.dto.VisitedAttractionDto;
+import tourguideservice.domain.Provider;
 import tourguideservice.domain.User;
 import tourguideservice.domain.UserPreferences;
 import shared.dto.AttractionDto;
@@ -44,7 +45,6 @@ import tourguideservice.service.proxy.LocationServiceProxy;
 import tourguideservice.service.proxy.RewardServiceProxy;
 import tourguideservice.service.proxy.TripServiceProxy;
 import tourguideservice.utils.EntitiesTestFactory;
-import tripPricer.Provider;
 
 @SpringBootTest(properties = {"tourguide.test.trackingOnStart=false",
     "tourguide.test.useInternalUser=false"})

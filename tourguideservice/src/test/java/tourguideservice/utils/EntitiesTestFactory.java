@@ -2,16 +2,14 @@ package tourguideservice.utils;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import shared.dto.AttractionDto;
 import shared.dto.AttractionWithDistanceDto;
 import shared.dto.ProviderDto;
-import shared.dto.AttractionDto;
+import tourguideservice.domain.Provider;
 import tourguideservice.dto.NearbyAttractionDto;
-import tripPricer.Provider;
 
 public class EntitiesTestFactory {
 
