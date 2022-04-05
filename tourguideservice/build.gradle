@@ -31,10 +31,7 @@ dependencies {
 
     implementation 'org.javamoney:moneta:1.4.2'
     implementation 'com.jsoniter:jsoniter:0.9.23'
-
-    implementation name: 'gpsUtil'
-    implementation name: 'RewardCentral'
-    implementation name: 'TripPricer'
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
