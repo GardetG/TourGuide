@@ -17,14 +17,14 @@ import shared.dto.AttractionDto;
 import shared.dto.LocationDto;
 import tourguideservice.dto.NearbyAttractionDto;
 import tourguideservice.dto.NearbyAttractionsListDto;
-import tourguideservice.dto.UserRewardDto;
+import shared.dto.UserRewardDto;
 import shared.dto.VisitedLocationDto;
 import shared.exception.NoLocationFoundException;
 import tourguideservice.exception.UserNotFoundException;
 import tourguideservice.repository.UserRepository;
-import tourguideservice.service.RewardsService;
 import tourguideservice.service.TourGuideService;
 import tourguideservice.service.proxy.LocationServiceProxy;
+import tourguideservice.service.proxy.RewardServiceProxy;
 import tourguideservice.service.proxy.TripServiceProxy;
 import tourguideservice.utils.PreferencesMapper;
 import tourguideservice.utils.ProviderMapper;
@@ -38,14 +38,15 @@ public class TourGuideServiceImpl implements TourGuideService {
   private static final Logger LOGGER = LoggerFactory.getLogger(TourGuideServiceImpl.class);
 
   private final LocationServiceProxy locationServiceProxy;
-  private final RewardsService rewardsService;
+  private final RewardServiceProxy rewardServiceProxy;
   private final TripServiceProxy tripServiceProxy;
   private final UserRepository userRepository;
 
-  public TourGuideServiceImpl(LocationServiceProxy locationServiceProxy, RewardsService rewardsService,
+  public TourGuideServiceImpl(LocationServiceProxy locationServiceProxy,
+                              RewardServiceProxy rewardServiceProxy,
                               TripServiceProxy tripServiceProxy, UserRepository userRepository) {
     this.locationServiceProxy = locationServiceProxy;
-    this.rewardsService = rewardsService;
+    this.rewardServiceProxy = rewardServiceProxy;
     this.tripServiceProxy = tripServiceProxy;
     this.userRepository = userRepository;
   }
@@ -78,7 +79,7 @@ public class TourGuideServiceImpl implements TourGuideService {
   @Override
   public List<UserRewardDto> getUserRewards(String userName) throws UserNotFoundException {
     UUID userId = getUser(userName).getUserId();
-    return rewardsService.getAllRewards(userId);
+    return rewardServiceProxy.getAllRewards(userId);
   }
 
   /**
@@ -109,7 +110,7 @@ public class TourGuideServiceImpl implements TourGuideService {
     User user = getUser(userName);
     UserPreferences preferences = user.getUserPreferences();
     UUID attractionId = getClosestAttraction(user.getUserId()).getAttractionId();
-    int rewardPoints = rewardsService.getTotalRewardPoints(user.getUserId());
+    int rewardPoints = rewardServiceProxy.getTotalRewardPoints(user.getUserId());
     List<ProviderDto> providers = tripServiceProxy.getTripDeals(
         attractionId,
         PreferencesMapper.toDto(preferences),
@@ -123,7 +124,8 @@ public class TourGuideServiceImpl implements TourGuideService {
    * {@inheritDoc}
    */
   @Override
-  public NearbyAttractionsListDto getNearByAttractions(String userName) throws UserNotFoundException {
+  public NearbyAttractionsListDto getNearByAttractions(String userName)
+      throws UserNotFoundException {
     UUID userId = getUser(userName).getUserId();
     LocationDto userLocation = getLastVisitedLocation(userId).getLocation();
     List<AttractionWithDistanceDto> nearbyAttractions = retrieveNearbyAttractions(userId, 5);
@@ -135,7 +137,8 @@ public class TourGuideServiceImpl implements TourGuideService {
             attractionWithDistance.getAttraction().getLatitude(),
             attractionWithDistance.getAttraction().getLongitude(),
             attractionWithDistance.getDistance(),
-            rewardsService.getRewardPoints(attractionWithDistance.getAttraction().getAttractionId(), userId)
+            rewardServiceProxy.getRewardPoints(
+                attractionWithDistance.getAttraction().getAttractionId(), userId)
         ))
         .collect(Collectors.toList());
     return new NearbyAttractionsListDto(
@@ -171,8 +174,9 @@ public class TourGuideServiceImpl implements TourGuideService {
    */
   @Override
   public void calculateRewards(UUID userId) {
-    List<VisitedAttractionDto> attractionToReward = locationServiceProxy.getVisitedAttractions(userId);
-    rewardsService.calculateRewards(userId, attractionToReward);
+    List<VisitedAttractionDto> attractionToReward =
+        locationServiceProxy.getVisitedAttractions(userId);
+    rewardServiceProxy.calculateRewards(userId, attractionToReward);
   }
 
   public void addUser(User user) {

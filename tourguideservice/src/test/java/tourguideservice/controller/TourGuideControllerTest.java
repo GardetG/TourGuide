@@ -35,7 +35,7 @@ import shared.dto.ProviderDto;
 import shared.dto.AttractionDto;
 import shared.dto.LocationDto;
 import tourguideservice.dto.NearbyAttractionsListDto;
-import tourguideservice.dto.UserRewardDto;
+import shared.dto.UserRewardDto;
 import shared.dto.VisitedLocationDto;
 import tourguideservice.exception.UserNotFoundException;
 import tourguideservice.service.TourGuideService;

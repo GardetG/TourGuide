@@ -1,4 +1,4 @@
-package tourguideservice.service;
+package tourguideservice.utils.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -34,12 +34,14 @@ import tourguideservice.domain.UserPreferences;
 import shared.dto.AttractionDto;
 import shared.dto.LocationDto;
 import tourguideservice.dto.NearbyAttractionsListDto;
-import tourguideservice.dto.UserRewardDto;
+import shared.dto.UserRewardDto;
 import shared.dto.VisitedLocationDto;
 import shared.exception.NoLocationFoundException;
 import tourguideservice.exception.UserNotFoundException;
 import tourguideservice.repository.UserRepository;
+import tourguideservice.service.TourGuideService;
 import tourguideservice.service.proxy.LocationServiceProxy;
+import tourguideservice.service.proxy.RewardServiceProxy;
 import tourguideservice.service.proxy.TripServiceProxy;
 import tourguideservice.utils.EntitiesTestFactory;
 import tripPricer.Provider;
@@ -59,7 +61,7 @@ class TourGuideServiceTest {
   @MockBean
   private LocationServiceProxy locationServiceProxy;
   @MockBean
-  private RewardsService rewardsService;
+  private RewardServiceProxy rewardServiceProxy;
 
   @DisplayName("Get user location should return last location dto")
   @Test
@@ -168,7 +170,7 @@ class TourGuideServiceTest {
         new VisitedLocationDto(user.getUserId(), new LocationDto(-45, 45), new Date());
     UserRewardDto reward = new UserRewardDto(visitedLocationDto, attractionDto, 10);
     when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
-    when(rewardsService.getAllRewards(any(UUID.class))).thenReturn(
+    when(rewardServiceProxy.getAllRewards(any(UUID.class))).thenReturn(
         Collections.singletonList(reward));
 
     // When
@@ -177,7 +179,7 @@ class TourGuideServiceTest {
     //Then
     assertThat(actualDto).usingRecursiveFieldByFieldElementComparator().containsExactly(reward);
     verify(userRepository, times(1)).findByUsername("jon");
-    verify(rewardsService, times(1)).getAllRewards(user.getUserId());
+    verify(rewardServiceProxy, times(1)).getAllRewards(user.getUserId());
   }
 
   @DisplayName("Get user rewards of non found user should throw an exception")
@@ -191,7 +193,7 @@ class TourGuideServiceTest {
         .isInstanceOf(UserNotFoundException.class)
         .hasMessageContaining("User not found");
     verify(userRepository, times(1)).findByUsername("nonExistent");
-    verify(rewardsService, times(0)).getAllRewards(any(UUID.class));
+    verify(rewardServiceProxy, times(0)).getAllRewards(any(UUID.class));
   }
 
   @DisplayName("Get all users should return a list of all users")
@@ -253,7 +255,7 @@ class TourGuideServiceTest {
     when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
     when(locationServiceProxy.getNearbyAttractions(any(UUID.class), anyInt())).thenReturn(
         nearbyAttractions);
-    when(rewardsService.getTotalRewardPoints(any(UUID.class))).thenReturn(10);
+    when(rewardServiceProxy.getTotalRewardPoints(any(UUID.class))).thenReturn(10);
     when(tripServiceProxy.getTripDeals(any(UUID.class), any(shared.dto.PreferencesDto.class),
         anyInt()))
         .thenReturn(providers);
@@ -267,7 +269,7 @@ class TourGuideServiceTest {
     assertThat(user.getTripDeals()).usingRecursiveComparison().isEqualTo(expectedProviders);
     verify(userRepository, times(1)).findByUsername("jon");
     verify(locationServiceProxy, times(1)).getNearbyAttractions(user.getUserId(), 1);
-    verify(rewardsService, times(1)).getTotalRewardPoints(user.getUserId());
+    verify(rewardServiceProxy, times(1)).getTotalRewardPoints(user.getUserId());
     verify(tripServiceProxy, times(1)).getTripDeals(any(UUID.class), any(PreferencesDto.class),
         anyInt());
   }
@@ -363,7 +365,7 @@ class TourGuideServiceTest {
     when(locationServiceProxy.getLastVisitedLocation(any(UUID.class))).thenReturn(userLocation);
     when(locationServiceProxy.getNearbyAttractions(any(UUID.class), anyInt()))
         .thenReturn(EntitiesTestFactory.getAttractionsWithDistance());
-    when(rewardsService.getRewardPoints(any(UUID.class), any(UUID.class))).thenReturn(100);
+    when(rewardServiceProxy.getRewardPoints(any(UUID.class), any(UUID.class))).thenReturn(100);
 
 
     // When
@@ -379,7 +381,7 @@ class TourGuideServiceTest {
     verify(userRepository, times(1)).findByUsername("jon");
     verify(locationServiceProxy, times(1)).getLastVisitedLocation(user.getUserId());
     verify(locationServiceProxy, times(1)).getNearbyAttractions(user.getUserId(), 5);
-    verify(rewardsService, times(5)).getRewardPoints(any(UUID.class), any(UUID.class));
+    verify(rewardServiceProxy, times(5)).getRewardPoints(any(UUID.class), any(UUID.class));
   }
 
   @DisplayName("Set nearby attractions of non found user should throw an exception")
@@ -432,7 +434,7 @@ class TourGuideServiceTest {
 
     //Then
     verify(locationServiceProxy, times(1)).getVisitedAttractions(userId);
-    verify(rewardsService, times(1)).calculateRewards(userId, attractionToReward);
+    verify(rewardServiceProxy, times(1)).calculateRewards(userId, attractionToReward);
   }
 
 }
