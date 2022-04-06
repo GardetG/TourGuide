@@ -20,7 +20,7 @@ import tourguideservice.dto.NearbyAttractionsListDto;
 import shared.dto.UserRewardDto;
 import shared.dto.VisitedLocationDto;
 import shared.exception.NoLocationFoundException;
-import tourguideservice.exception.UserNotFoundException;
+import shared.exception.UserNotFoundException;
 import tourguideservice.repository.UserRepository;
 import tourguideservice.service.TourGuideService;
 import tourguideservice.service.proxy.LocationServiceProxy;

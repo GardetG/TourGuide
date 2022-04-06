@@ -38,7 +38,7 @@ import tourguideservice.dto.NearbyAttractionsListDto;
 import shared.dto.UserRewardDto;
 import shared.dto.VisitedLocationDto;
 import shared.exception.NoLocationFoundException;
-import tourguideservice.exception.UserNotFoundException;
+import shared.exception.UserNotFoundException;
 import tourguideservice.repository.UserRepository;
 import tourguideservice.service.TourGuideService;
 import tourguideservice.service.proxy.LocationServiceProxy;
@@ -119,7 +119,7 @@ class TourGuideServiceTest {
 
   @DisplayName("Get all users current locations should return a map of userId and location")
   @Test
-  void getAllCurrentLocationsTest() throws Exception {
+  void getAllCurrentLocationsTest() {
     // Given
     Map<UUID, LocationDto> expectedMap = new HashMap<>();
 

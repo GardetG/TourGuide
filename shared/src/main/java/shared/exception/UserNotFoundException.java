@@ -1,4 +1,4 @@
-package tourguideservice.exception;
+package shared.exception;
 
 /**
  * Exception thrown when the requested user is not found.

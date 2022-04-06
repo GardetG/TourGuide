@@ -11,7 +11,7 @@ import shared.dto.LocationDto;
 import tourguideservice.dto.NearbyAttractionsListDto;
 import shared.dto.UserRewardDto;
 import shared.dto.VisitedLocationDto;
-import tourguideservice.exception.UserNotFoundException;
+import shared.exception.UserNotFoundException;
 
 /**
  * Service interface for the main service of TourGuide.

@@ -10,7 +10,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import tourguideservice.exception.UserNotFoundException;
+import shared.exception.UserNotFoundException;
 
 /**
  * Class handling exceptions thrown by Service in Controller and generate the HTTP response.
