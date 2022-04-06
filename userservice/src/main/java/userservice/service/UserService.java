@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import shared.dto.UserDto;
+import shared.exception.UserNameAlreadyUsedException;
 import shared.exception.UserNotFoundException;
 
 /**
@@ -28,7 +29,7 @@ public interface UserService {
    * @param userDto to add
    * @return User dto added
    */
-  UserDto addUser(UserDto userDto);
+  UserDto addUser(UserDto userDto) throws UserNameAlreadyUsedException;
 
   /**
    * Get the list of all the users' Id.
