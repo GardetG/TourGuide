@@ -3,6 +3,7 @@ package userservice.repository.impl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import org.springframework.stereotype.Repository;
@@ -31,10 +32,12 @@ public class InternalUserRepository implements UserRepository {
 
   @Override
   public User save(User user) {
-    if(!internalUserMap.containsKey(user.getUserName())) {
-      internalUserMap.put(user.getUserName(), user);
+    if (internalUserMap.containsKey(user.getUserName())) {
+      return null;
     }
-    return user;
+    User userToAdd = User.of(user, UUID.randomUUID());
+    internalUserMap.put(userToAdd.getUserName(), userToAdd);
+    return userToAdd;
   }
 
   @Override
