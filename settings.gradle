@@ -4,3 +4,5 @@ include 'tripservice'
 include 'tourguideservice'
 include 'locationservice'
 include 'rewardservice'
+include 'userservice'
+
