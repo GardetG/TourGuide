@@ -1,4 +1,4 @@
-package tourguideservice.utils.service;
+package tourguideservice.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -17,7 +17,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,10 +27,8 @@ import org.springframework.test.context.ActiveProfiles;
 import shared.dto.AttractionWithDistanceDto;
 import shared.dto.PreferencesDto;
 import shared.dto.ProviderDto;
+import shared.dto.UserDto;
 import shared.dto.VisitedAttractionDto;
-import tourguideservice.domain.Provider;
-import tourguideservice.domain.User;
-import tourguideservice.domain.UserPreferences;
 import shared.dto.AttractionDto;
 import shared.dto.LocationDto;
 import tourguideservice.dto.NearbyAttractionsListDto;
@@ -39,11 +36,10 @@ import shared.dto.UserRewardDto;
 import shared.dto.VisitedLocationDto;
 import shared.exception.NoLocationFoundException;
 import shared.exception.UserNotFoundException;
-import tourguideservice.repository.UserRepository;
-import tourguideservice.service.TourGuideService;
 import tourguideservice.service.proxy.LocationServiceProxy;
 import tourguideservice.service.proxy.RewardServiceProxy;
 import tourguideservice.service.proxy.TripServiceProxy;
+import tourguideservice.service.proxy.UserServiceProxy;
 import tourguideservice.utils.EntitiesTestFactory;
 
 @SpringBootTest(properties = {"tourguide.test.trackingOnStart=false",
@@ -55,7 +51,7 @@ class TourGuideServiceTest {
   private TourGuideService tourGuideService;
 
   @MockBean
-  private UserRepository userRepository;
+  private UserServiceProxy userServiceProxy;
   @MockBean
   private TripServiceProxy tripServiceProxy;
   @MockBean
@@ -67,9 +63,9 @@ class TourGuideServiceTest {
   @Test
   void getUserLocationTest() throws Exception {
     // Given
-    User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
+    UserDto user = new UserDto(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
     LocationDto location = new LocationDto(45, -45);
-    when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+    when(userServiceProxy.getUser(anyString())).thenReturn(user);
     when(locationServiceProxy.getLastVisitedLocation(any(UUID.class)))
         .thenReturn(new VisitedLocationDto(user.getUserId(), location, new Date()));
 
@@ -78,7 +74,7 @@ class TourGuideServiceTest {
 
     //Then
     assertThat(actualDto).usingRecursiveComparison().isEqualTo(location);
-    verify(userRepository, times(1)).findByUsername("jon");
+    verify(userServiceProxy, times(1)).getUser("jon");
     verify(locationServiceProxy, times(1)).getLastVisitedLocation(user.getUserId());
   }
 
@@ -86,9 +82,9 @@ class TourGuideServiceTest {
   @Test
   void getUserLocationWhenNoLocationTest() throws Exception {
     // Given
-    User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
+    UserDto user = new UserDto(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
     LocationDto location = new LocationDto(45, -45);
-    when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+    when(userServiceProxy.getUser(anyString())).thenReturn(user);
     when(locationServiceProxy.getLastVisitedLocation(any(UUID.class))).thenThrow(
         new NoLocationFoundException("No user locations found"));
     when(locationServiceProxy.trackUserLocation(any(UUID.class))).thenReturn(
@@ -99,22 +95,22 @@ class TourGuideServiceTest {
 
     //Then
     assertThat(actualDto).usingRecursiveComparison().isEqualTo(location);
-    verify(userRepository, times(1)).findByUsername("jon");
+    verify(userServiceProxy, times(1)).getUser("jon");
     verify(locationServiceProxy, times(1)).getLastVisitedLocation(user.getUserId());
     verify(locationServiceProxy, times(1)).trackUserLocation(user.getUserId());
   }
 
   @DisplayName("Get user location of non found user should throw an exception")
   @Test
-  void getUserLocationNotFoundTest() {
+  void getUserLocationNotFoundTest() throws Exception {
     // Given
-    when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
+    when(userServiceProxy.getUser(anyString())).thenThrow(new UserNotFoundException("User not found"));
 
     // Then
     assertThatThrownBy(() -> tourGuideService.getUserLocation("nonExistent"))
         .isInstanceOf(UserNotFoundException.class)
         .hasMessageContaining("User not found");
-    verify(userRepository, times(1)).findByUsername("nonExistent");
+    verify(userServiceProxy, times(1)).getUser("nonExistent");
   }
 
   @DisplayName("Get all users current locations should return a map of userId and location")
@@ -123,17 +119,14 @@ class TourGuideServiceTest {
     // Given
     Map<UUID, LocationDto> expectedMap = new HashMap<>();
 
-    User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
-    VisitedLocationDto user1Location =
-        new VisitedLocationDto(user.getUserId(), new LocationDto(0, 0), new Date());
-    expectedMap.put(user.getUserId(), user1Location.getLocation());
+    UUID user1Id = UUID.randomUUID();
+    VisitedLocationDto user1Location = new VisitedLocationDto(user1Id, new LocationDto(0, 0), new Date());
+    expectedMap.put(user1Id, user1Location.getLocation());
 
-    User user2 = new User(UUID.randomUUID(), "jon2", "000", "jon2@tourGuide.com");
-    VisitedLocationDto user2Location =
-        new VisitedLocationDto(user2.getUserId(), new LocationDto(45, 45), new Date());
-    expectedMap.put(user2.getUserId(), user2Location.getLocation());
+    UUID user2Id = UUID.randomUUID();
+    VisitedLocationDto user2Location = new VisitedLocationDto(user2Id, new LocationDto(45, 45), new Date());
+    expectedMap.put(user2Id, user2Location.getLocation());
 
-    when(userRepository.findAll()).thenReturn(Arrays.asList(user, user2));
     when(locationServiceProxy.getAllUserLastVisitedLocation()).thenReturn(List.of(user1Location, user2Location));
 
     // When
@@ -163,128 +156,77 @@ class TourGuideServiceTest {
   @Test
   void getUserRewardsTest() throws Exception {
     // Given
-    User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
-    AttractionDto attractionDto =
-        new AttractionDto(UUID.randomUUID(), "Test1", "city", "state", 45, -45);
-    VisitedLocationDto visitedLocationDto =
-        new VisitedLocationDto(user.getUserId(), new LocationDto(-45, 45), new Date());
+    UserDto user = new UserDto(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
+    AttractionDto attractionDto = new AttractionDto(UUID.randomUUID(), "Test1", "city", "state", 45, -45);
+    VisitedLocationDto visitedLocationDto = new VisitedLocationDto(user.getUserId(), new LocationDto(-45, 45), new Date());
     UserRewardDto reward = new UserRewardDto(visitedLocationDto, attractionDto, 10);
-    when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
-    when(rewardServiceProxy.getAllRewards(any(UUID.class))).thenReturn(
-        Collections.singletonList(reward));
+    when(userServiceProxy.getUser(anyString())).thenReturn(user);
+    when(rewardServiceProxy.getAllRewards(any(UUID.class))).thenReturn(Collections.singletonList(reward));
 
     // When
     List<UserRewardDto> actualDto = tourGuideService.getUserRewards("jon");
 
     //Then
     assertThat(actualDto).usingRecursiveFieldByFieldElementComparator().containsExactly(reward);
-    verify(userRepository, times(1)).findByUsername("jon");
+    verify(userServiceProxy, times(1)).getUser("jon");
     verify(rewardServiceProxy, times(1)).getAllRewards(user.getUserId());
   }
 
   @DisplayName("Get user rewards of non found user should throw an exception")
   @Test
-  void getUserRewardsNotFoundTest() {
+  void getUserRewardsNotFoundTest() throws Exception {
     // Given
-    when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
+    when(userServiceProxy.getUser(anyString())).thenThrow(new UserNotFoundException("User not found"));
 
     // Then
     assertThatThrownBy(() -> tourGuideService.getUserRewards("nonExistent"))
         .isInstanceOf(UserNotFoundException.class)
         .hasMessageContaining("User not found");
-    verify(userRepository, times(1)).findByUsername("nonExistent");
+    verify(userServiceProxy, times(1)).getUser("nonExistent");
     verify(rewardServiceProxy, times(0)).getAllRewards(any(UUID.class));
   }
 
-  @DisplayName("Get all users should return a list of all users")
-  @Test
-  void getAllUserTest() {
-    // Given
-    User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
-    User user2 = new User(UUID.randomUUID(), "jon2", "000", "jon2@tourGuide.com");
-    when(userRepository.findAll()).thenReturn(Arrays.asList(user, user2));
-
-    // When
-    List<User> actualUsers = tourGuideService.getAllUsers();
-
-    // Then
-    assertThat(actualUsers).containsExactlyInAnyOrder(user, user2);
-    verify(userRepository, times(1)).findAll();
-  }
-
-  @DisplayName("Get a user by username should return the corresponding user")
-  @Test
-  void getUserTest() throws Exception {
-    // Given
-    User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
-    when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
-
-    // When
-    User actualUser = tourGuideService.getUser("jon");
-
-    // Then
-    assertThat(actualUser).isEqualTo(user);
-    verify(userRepository, times(1)).findByUsername("jon");
-  }
-
-  @DisplayName("Get a user by a non existent username should throw an exception")
-  @Test
-  void getUserNotFoundTest() {
-    // Given
-    when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
-
-    // Then
-    assertThatThrownBy(() -> tourGuideService.getUser("nonExistent"))
-        .isInstanceOf(UserNotFoundException.class)
-        .hasMessageContaining("User not found");
-    verify(userRepository, times(1)).findByUsername("nonExistent");
-  }
 
   @DisplayName("Get a user trip deals should return a list of provider")
   @Test
   void getTripDealsTest() throws Exception {
     // Given
-    User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
-    UUID attractionId = UUID.randomUUID();
-    List<AttractionWithDistanceDto> nearbyAttractions = List.of(new AttractionWithDistanceDto(
-        new AttractionDto(attractionId, "attraction", "", "", 0, 0),
-        0d
-    ));
-    user.setUserPreferences(new UserPreferences(0, Integer.MAX_VALUE, 1, 1, 2, 3));
+    UserDto user = new UserDto(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
+    PreferencesDto preferencesDto = new PreferencesDto(BigDecimal.ZERO, BigDecimal.TEN,4,3,2,1);
+    AttractionDto attractionDto = new AttractionDto(UUID.randomUUID(), "attraction", "", "", 0, 0);
+    List<AttractionWithDistanceDto> nearbyAttractions =  List.of(new AttractionWithDistanceDto(attractionDto,0d));
     List<ProviderDto> providers = EntitiesTestFactory.getProvidersDto(user.getUserId());
-    when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
-    when(locationServiceProxy.getNearbyAttractions(any(UUID.class), anyInt())).thenReturn(
-        nearbyAttractions);
+
+    when(userServiceProxy.getUser(anyString())).thenReturn(user);
+    when(userServiceProxy.getUserPreferences(anyString())).thenReturn(preferencesDto);
+    when(locationServiceProxy.getNearbyAttractions(any(UUID.class), anyInt())).thenReturn(nearbyAttractions);
     when(rewardServiceProxy.getTotalRewardPoints(any(UUID.class))).thenReturn(10);
-    when(tripServiceProxy.getTripDeals(any(UUID.class), any(shared.dto.PreferencesDto.class),
-        anyInt()))
+    when(tripServiceProxy.getTripDeals(any(UUID.class), any(shared.dto.PreferencesDto.class), anyInt()))
         .thenReturn(providers);
 
     // When
     List<ProviderDto> actualDtos = tourGuideService.getTripDeals("jon");
 
     //Then
-    List<Provider> expectedProviders = EntitiesTestFactory.getProviders(user.getUserId());
     assertThat(actualDtos).usingRecursiveComparison().isEqualTo(providers);
-    assertThat(user.getTripDeals()).usingRecursiveComparison().isEqualTo(expectedProviders);
-    verify(userRepository, times(1)).findByUsername("jon");
+    verify(userServiceProxy, times(1)).getUser("jon");
     verify(locationServiceProxy, times(1)).getNearbyAttractions(user.getUserId(), 1);
     verify(rewardServiceProxy, times(1)).getTotalRewardPoints(user.getUserId());
-    verify(tripServiceProxy, times(1)).getTripDeals(any(UUID.class), any(PreferencesDto.class),
-        anyInt());
+    verify(tripServiceProxy, times(1))
+        .getTripDeals(attractionDto.getAttractionId(), preferencesDto, 10);
   }
 
   @DisplayName("Get a non existent user trip deals should throw an exception")
   @Test
-  void getTripDealsNotFoundTest() {
+  void getTripDealsNotFoundTest() throws Exception {
     // Given
-    when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
+    when(userServiceProxy.getUser(anyString())).thenThrow(new UserNotFoundException("User not found"));
 
     // Then
     assertThatThrownBy(() -> tourGuideService.getTripDeals("nonExistent"))
         .isInstanceOf(UserNotFoundException.class)
         .hasMessageContaining("User not found");
-    verify(userRepository, times(1)).findByUsername("nonExistent");
+    verify(userServiceProxy, times(1)).getUser("nonExistent");
     verify(tripServiceProxy, times(0)).getTripDeals(any(UUID.class),
         any(shared.dto.PreferencesDto.class), anyInt());
   }
@@ -293,75 +235,66 @@ class TourGuideServiceTest {
   @Test
   void getUserPreferenceTest() throws Exception {
     // Given
-    User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
-    user.setUserPreferences(new UserPreferences(0, Integer.MAX_VALUE, 1, 1, 2, 3));
-    PreferencesDto preferencesDto =
-        new PreferencesDto(BigDecimal.ZERO, BigDecimal.valueOf(Integer.MAX_VALUE), 1, 1, 2, 3);
-    when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+    PreferencesDto preferencesDto = new PreferencesDto(BigDecimal.ZERO, BigDecimal.valueOf(Integer.MAX_VALUE), 1, 1, 2, 3);
+    when(userServiceProxy.getUserPreferences(anyString())).thenReturn(preferencesDto);
 
     // When
     PreferencesDto actualDto = tourGuideService.getUserPreferences("jon");
 
     //Then
     assertThat(actualDto).usingRecursiveComparison().isEqualTo(preferencesDto);
-    verify(userRepository, times(1)).findByUsername("jon");
+    verify(userServiceProxy, times(1)).getUserPreferences("jon");
   }
 
   @DisplayName("Get user preferences of non found user should throw an exception")
   @Test
-  void getUserPreferencesNotFoundTest() {
+  void getUserPreferencesNotFoundTest() throws Exception {
     // Given
-    when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
+    when(userServiceProxy.getUserPreferences(anyString())).thenThrow(new UserNotFoundException("User not found"));
 
     // Then
     assertThatThrownBy(() -> tourGuideService.getUserPreferences("nonExistent"))
         .isInstanceOf(UserNotFoundException.class)
         .hasMessageContaining("User not found");
-    verify(userRepository, times(1)).findByUsername("nonExistent");
+    verify(userServiceProxy, times(1)).getUserPreferences("nonExistent");
   }
 
   @DisplayName("Set user preferences should update user preferences")
   @Test
   void setUserPreferenceTest() throws Exception {
     // Given
-    User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
-    PreferencesDto preferencesDto =
-        new PreferencesDto(BigDecimal.ZERO, BigDecimal.valueOf(Integer.MAX_VALUE), 1, 1, 2, 3);
-    UserPreferences userPreferences = new UserPreferences(0, Integer.MAX_VALUE, 1, 1, 2, 3);
-    when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+    PreferencesDto preferencesDto = new PreferencesDto(BigDecimal.ZERO, BigDecimal.valueOf(Integer.MAX_VALUE), 1, 1, 2, 3);
+    when(userServiceProxy.setUserPreferences(anyString(), any(PreferencesDto.class))).thenReturn(preferencesDto);
 
     // When
     PreferencesDto actualDto = tourGuideService.setUserPreferences("jon", preferencesDto);
 
     //Then
     assertThat(actualDto).isEqualTo(preferencesDto);
-    assertThat(user.getUserPreferences()).usingRecursiveComparison().isEqualTo(userPreferences);
-    verify(userRepository, times(1)).findByUsername("jon");
+    verify(userServiceProxy, times(1)).setUserPreferences("jon", preferencesDto);
   }
 
   @DisplayName("Set user preferences of non found user should throw an exception")
   @Test
-  void setUserPreferencesNotFoundTest() {
+  void setUserPreferencesNotFoundTest() throws Exception {
     // Given
-    PreferencesDto preferencesDto =
-        new PreferencesDto(BigDecimal.ZERO, BigDecimal.valueOf(Integer.MAX_VALUE), 1, 1, 2, 3);
-    when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
+    PreferencesDto preferencesDto = new PreferencesDto(BigDecimal.ZERO, BigDecimal.valueOf(Integer.MAX_VALUE), 1, 1, 2, 3);
+    when(userServiceProxy.setUserPreferences(anyString(), any(PreferencesDto.class))).thenThrow(new UserNotFoundException("User not found"));
 
     // Then
     assertThatThrownBy(() -> tourGuideService.setUserPreferences("nonExistent", preferencesDto))
         .isInstanceOf(UserNotFoundException.class)
         .hasMessageContaining("User not found");
-    verify(userRepository, times(1)).findByUsername("nonExistent");
+    verify(userServiceProxy, times(1)).setUserPreferences("nonExistent", preferencesDto);
   }
 
   @DisplayName("Set nearby attractions should should return dto with user location and 5 attractions")
   @Test
   void getNearByAttractionsTest() throws Exception {
     // Given
-    User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
-    VisitedLocationDto userLocation =
-        new VisitedLocationDto(user.getUserId(), new LocationDto(0, 0), new Date());
-    when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+    UserDto user = new UserDto(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
+    VisitedLocationDto userLocation = new VisitedLocationDto(user.getUserId(), new LocationDto(0, 0), new Date());
+    when(userServiceProxy.getUser(anyString())).thenReturn(user);
     when(locationServiceProxy.getLastVisitedLocation(any(UUID.class))).thenReturn(userLocation);
     when(locationServiceProxy.getNearbyAttractions(any(UUID.class), anyInt()))
         .thenReturn(EntitiesTestFactory.getAttractionsWithDistance());
@@ -378,7 +311,7 @@ class TourGuideServiceTest {
         .hasSize(5)
         .usingRecursiveFieldByFieldElementComparator()
         .hasSameElementsAs(EntitiesTestFactory.getAttractionsDto());
-    verify(userRepository, times(1)).findByUsername("jon");
+    verify(userServiceProxy, times(1)).getUser("jon");
     verify(locationServiceProxy, times(1)).getLastVisitedLocation(user.getUserId());
     verify(locationServiceProxy, times(1)).getNearbyAttractions(user.getUserId(), 5);
     verify(rewardServiceProxy, times(5)).getRewardPoints(any(UUID.class), any(UUID.class));
@@ -386,17 +319,15 @@ class TourGuideServiceTest {
 
   @DisplayName("Set nearby attractions of non found user should throw an exception")
   @Test
-  void getNearByAttractionsNotFoundTest() {
+  void getNearByAttractionsNotFoundTest() throws Exception {
     // Given
-    PreferencesDto preferencesDto =
-        new PreferencesDto(BigDecimal.ZERO, BigDecimal.valueOf(Integer.MAX_VALUE), 1, 1, 2, 3);
-    when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
+    when(userServiceProxy.getUser(anyString())).thenThrow(new UserNotFoundException("User not found"));
 
     // Then
     assertThatThrownBy(() -> tourGuideService.getNearByAttractions("nonExistent"))
         .isInstanceOf(UserNotFoundException.class)
         .hasMessageContaining("User not found");
-    verify(userRepository, times(1)).findByUsername("nonExistent");
+    verify(userServiceProxy, times(1)).getUser("nonExistent");
   }
 
   @DisplayName("Track user location should return current visited location Dto")
@@ -404,8 +335,7 @@ class TourGuideServiceTest {
   void trackUserLocationTest() {
     // Given
     UUID userId = UUID.randomUUID();
-    VisitedLocationDto visitedLocation =
-        new VisitedLocationDto(userId, new LocationDto(0, 0), new Date());
+    VisitedLocationDto visitedLocation = new VisitedLocationDto(userId, new LocationDto(0, 0), new Date());
     when(locationServiceProxy.trackUserLocation(any(UUID.class))).thenReturn(visitedLocation);
 
     // When
@@ -421,13 +351,10 @@ class TourGuideServiceTest {
   void calculateRewardsTest() {
     // Given
     UUID userId = UUID.randomUUID();
-    VisitedLocationDto visitedLocation =
-        new VisitedLocationDto(userId, new LocationDto(0, 0), new Date());
+    VisitedLocationDto visitedLocation = new VisitedLocationDto(userId, new LocationDto(0, 0), new Date());
     AttractionDto attraction = new AttractionDto(UUID.randomUUID(), "attraction", "", "", 0, 0);
-    List<VisitedAttractionDto> attractionToReward =
-        List.of(new VisitedAttractionDto(attraction, visitedLocation));
-    when(locationServiceProxy.getVisitedAttractions(any(UUID.class))).thenReturn(
-        attractionToReward);
+    List<VisitedAttractionDto> attractionToReward = List.of(new VisitedAttractionDto(attraction, visitedLocation));
+    when(locationServiceProxy.getVisitedAttractions(any(UUID.class))).thenReturn(attractionToReward);
 
     // When
     tourGuideService.calculateRewards(userId);
@@ -435,6 +362,50 @@ class TourGuideServiceTest {
     //Then
     verify(locationServiceProxy, times(1)).getVisitedAttractions(userId);
     verify(rewardServiceProxy, times(1)).calculateRewards(userId, attractionToReward);
+  }
+
+  @DisplayName("Get all users should return a list of all users")
+  @Test
+  void getAllUserTest() {
+    // Given
+    UUID user1Id = UUID.randomUUID();
+    UUID user2Id = UUID.randomUUID();
+    when(userServiceProxy.getAllUserId()).thenReturn(Arrays.asList(user1Id, user2Id));
+
+    // When
+    List<UUID> actualUsersId = tourGuideService.getAllUsersId();
+
+    // Then
+    assertThat(actualUsersId).containsExactlyInAnyOrder(user1Id, user2Id);
+    verify(userServiceProxy, times(1)).getAllUserId();
+  }
+
+  @DisplayName("Get a user by username should return the corresponding user")
+  @Test
+  void getUserTest() throws Exception {
+    // Given
+    UserDto user = new UserDto(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
+    when(userServiceProxy.getUser(anyString())).thenReturn(user);
+
+    // When
+    UUID actualUserId = tourGuideService.getUserId("jon");
+
+    // Then
+    assertThat(actualUserId).isEqualTo(user.getUserId());
+    verify(userServiceProxy, times(1)).getUser("jon");
+  }
+
+  @DisplayName("Get a user by a non existent username should throw an exception")
+  @Test
+  void getUserNotFoundTest() throws Exception {
+    // Given
+    when(userServiceProxy.getUser(anyString())).thenThrow(new UserNotFoundException("User not found"));
+
+    // Then
+    assertThatThrownBy(() -> tourGuideService.getUserId("nonExistent"))
+        .isInstanceOf(UserNotFoundException.class)
+        .hasMessageContaining("User not found");
+    verify(userServiceProxy, times(1)).getUser("nonExistent");
   }
 
 }

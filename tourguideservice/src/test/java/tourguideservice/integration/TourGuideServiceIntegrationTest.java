@@ -15,8 +15,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import tourguideservice.domain.User;
-import tourguideservice.repository.UserRepository;
+import shared.dto.UserDto;
+import tourguideservice.service.proxy.UserServiceProxy;
 import tourguideservice.service.tracker.Tracker;
 
 @Tag("integration")
@@ -32,7 +32,7 @@ class TourGuideServiceIntegrationTest {
   @Autowired
   private Tracker tracker;
   @Autowired
-  private UserRepository userRepository;
+  private UserServiceProxy userServiceProxy;
 
   @BeforeEach
   void setUp() {
@@ -62,7 +62,7 @@ class TourGuideServiceIntegrationTest {
   @Test
   void getAllCurrentLocations() throws Exception {
     // GIVEN
-    User user = userRepository.findByUsername("internalUser0").orElseThrow();
+    UserDto user = userServiceProxy.getUser("internalUser0");
 
     // WHEN
     mockMvc.perform(get("/getAllCurrentLocations"))
