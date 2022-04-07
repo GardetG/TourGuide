@@ -22,8 +22,8 @@ import shared.dto.AttractionDto;
 import shared.dto.LocationDto;
 import shared.dto.VisitedLocationDto;
 import tourguideservice.service.TourGuideService;
-import tourguideservice.service.proxy.LocationServiceProxy;
-import tourguideservice.service.proxy.RewardServiceProxy;
+import tourguideservice.proxy.LocationServiceProxy;
+import tourguideservice.proxy.RewardServiceProxy;
 
 @Tag("performance")
 @SpringBootTest(properties = {"tourguide.test.trackingOnStart=false",

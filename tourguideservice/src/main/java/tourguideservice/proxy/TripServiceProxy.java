@@ -1,4 +1,4 @@
-package tourguideservice.service.proxy;
+package tourguideservice.proxy;
 
 import java.util.List;
 import java.util.UUID;

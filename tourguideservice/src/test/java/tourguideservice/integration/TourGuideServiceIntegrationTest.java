@@ -16,7 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import shared.dto.UserDto;
-import tourguideservice.service.proxy.UserServiceProxy;
+import tourguideservice.proxy.UserServiceProxy;
 import tourguideservice.service.tracker.Tracker;
 
 @Tag("integration")

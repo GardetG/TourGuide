@@ -20,10 +20,10 @@ import shared.dto.VisitedLocationDto;
 import shared.exception.NoLocationFoundException;
 import shared.exception.UserNotFoundException;
 import tourguideservice.service.TourGuideService;
-import tourguideservice.service.proxy.LocationServiceProxy;
-import tourguideservice.service.proxy.RewardServiceProxy;
-import tourguideservice.service.proxy.TripServiceProxy;
-import tourguideservice.service.proxy.UserServiceProxy;
+import tourguideservice.proxy.LocationServiceProxy;
+import tourguideservice.proxy.RewardServiceProxy;
+import tourguideservice.proxy.TripServiceProxy;
+import tourguideservice.proxy.UserServiceProxy;
 
 /**
  * Service implementation class for the main service of TourGuide.

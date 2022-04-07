@@ -1,4 +1,4 @@
-package tourguideservice.service.helper;
+package tourguideservice.utils;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -20,8 +20,8 @@ import shared.dto.UserDto;
 import shared.exception.UserNameAlreadyUsedException;
 import shared.dto.LocationDto;
 import shared.dto.VisitedLocationDto;
-import tourguideservice.service.proxy.LocationServiceProxy;
-import tourguideservice.service.proxy.UserServiceProxy;
+import tourguideservice.proxy.LocationServiceProxy;
+import tourguideservice.proxy.UserServiceProxy;
 
 /**
  * Configuration Class to handle generation of the internal user map when using internal users for
