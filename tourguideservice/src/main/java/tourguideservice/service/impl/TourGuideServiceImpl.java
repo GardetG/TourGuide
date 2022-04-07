@@ -11,8 +11,6 @@ import shared.dto.AttractionWithDistanceDto;
 import shared.dto.PreferencesDto;
 import shared.dto.ProviderDto;
 import shared.dto.VisitedAttractionDto;
-import tourguideservice.domain.User;
-import tourguideservice.domain.UserPreferences;
 import shared.dto.AttractionDto;
 import shared.dto.LocationDto;
 import tourguideservice.dto.NearbyAttractionDto;
@@ -21,13 +19,11 @@ import shared.dto.UserRewardDto;
 import shared.dto.VisitedLocationDto;
 import shared.exception.NoLocationFoundException;
 import shared.exception.UserNotFoundException;
-import tourguideservice.repository.UserRepository;
 import tourguideservice.service.TourGuideService;
 import tourguideservice.service.proxy.LocationServiceProxy;
 import tourguideservice.service.proxy.RewardServiceProxy;
 import tourguideservice.service.proxy.TripServiceProxy;
-import tourguideservice.utils.PreferencesMapper;
-import tourguideservice.utils.ProviderMapper;
+import tourguideservice.service.proxy.UserServiceProxy;
 
 /**
  * Service implementation class for the main service of TourGuide.
@@ -40,15 +36,16 @@ public class TourGuideServiceImpl implements TourGuideService {
   private final LocationServiceProxy locationServiceProxy;
   private final RewardServiceProxy rewardServiceProxy;
   private final TripServiceProxy tripServiceProxy;
-  private final UserRepository userRepository;
+  private final UserServiceProxy userServiceProxy;
 
   public TourGuideServiceImpl(LocationServiceProxy locationServiceProxy,
                               RewardServiceProxy rewardServiceProxy,
-                              TripServiceProxy tripServiceProxy, UserRepository userRepository) {
+                              TripServiceProxy tripServiceProxy,
+                              UserServiceProxy userServiceProxy) {
     this.locationServiceProxy = locationServiceProxy;
     this.rewardServiceProxy = rewardServiceProxy;
     this.tripServiceProxy = tripServiceProxy;
-    this.userRepository = userRepository;
+    this.userServiceProxy = userServiceProxy;
   }
 
   /**
@@ -56,7 +53,7 @@ public class TourGuideServiceImpl implements TourGuideService {
    */
   @Override
   public LocationDto getUserLocation(String userName) throws UserNotFoundException {
-    UUID userId = getUser(userName).getUserId();
+    UUID userId = getUserId(userName);
     VisitedLocationDto visitedLocation = getLastVisitedLocation(userId);
     return visitedLocation.getLocation();
   }
@@ -66,7 +63,8 @@ public class TourGuideServiceImpl implements TourGuideService {
    */
   @Override
   public Map<UUID, LocationDto> getAllCurrentLocations() {
-    return locationServiceProxy.getAllUserLastVisitedLocation().stream()
+    return locationServiceProxy.getAllUserLastVisitedLocation()
+        .stream()
         .collect(Collectors.toMap(
             VisitedLocationDto::getUserId,
             VisitedLocationDto::getLocation
@@ -78,7 +76,7 @@ public class TourGuideServiceImpl implements TourGuideService {
    */
   @Override
   public List<UserRewardDto> getUserRewards(String userName) throws UserNotFoundException {
-    UUID userId = getUser(userName).getUserId();
+    UUID userId = getUserId(userName);
     return rewardServiceProxy.getAllRewards(userId);
   }
 
@@ -87,8 +85,7 @@ public class TourGuideServiceImpl implements TourGuideService {
    */
   @Override
   public PreferencesDto getUserPreferences(String username) throws UserNotFoundException {
-    User user = getUser(username);
-    return PreferencesMapper.toDto(user.getUserPreferences());
+    return userServiceProxy.getUserPreferences(username);
   }
 
   /**
@@ -97,9 +94,7 @@ public class TourGuideServiceImpl implements TourGuideService {
   @Override
   public PreferencesDto setUserPreferences(String username, PreferencesDto userPreferences)
       throws UserNotFoundException {
-    User user = getUser(username);
-    user.setUserPreferences(PreferencesMapper.toEntity(userPreferences));
-    return userPreferences;
+    return userServiceProxy.setUserPreferences(username, userPreferences);
   }
 
   /**
@@ -107,17 +102,16 @@ public class TourGuideServiceImpl implements TourGuideService {
    */
   @Override
   public List<ProviderDto> getTripDeals(String userName) throws UserNotFoundException {
-    User user = getUser(userName);
-    UserPreferences preferences = user.getUserPreferences();
-    UUID attractionId = getClosestAttraction(user.getUserId()).getAttractionId();
-    int rewardPoints = rewardServiceProxy.getTotalRewardPoints(user.getUserId());
-    List<ProviderDto> providers = tripServiceProxy.getTripDeals(
+    UUID userId = getUserId(userName);
+    PreferencesDto preferences = userServiceProxy.getUserPreferences(userName);
+    UUID attractionId = getClosestAttraction(userId).getAttractionId();
+    int rewardPoints = rewardServiceProxy.getTotalRewardPoints(userId);
+
+    return tripServiceProxy.getTripDeals(
         attractionId,
-        PreferencesMapper.toDto(preferences),
+        preferences,
         rewardPoints
     );
-    user.setTripDeals(ProviderMapper.toEntity(providers));
-    return providers;
   }
 
   /**
@@ -126,9 +120,10 @@ public class TourGuideServiceImpl implements TourGuideService {
   @Override
   public NearbyAttractionsListDto getNearByAttractions(String userName)
       throws UserNotFoundException {
-    UUID userId = getUser(userName).getUserId();
+    UUID userId = getUserId(userName);
     LocationDto userLocation = getLastVisitedLocation(userId).getLocation();
     List<AttractionWithDistanceDto> nearbyAttractions = retrieveNearbyAttractions(userId, 5);
+
     List<NearbyAttractionDto> attractions = nearbyAttractions
         .stream()
         .parallel()
@@ -141,24 +136,11 @@ public class TourGuideServiceImpl implements TourGuideService {
                 attractionWithDistance.getAttraction().getAttractionId(), userId)
         ))
         .collect(Collectors.toList());
+
     return new NearbyAttractionsListDto(
         new LocationDto(userLocation.getLatitude(), userLocation.getLongitude()),
         attractions
     );
-  }
-
-  @Override
-  public User getUser(String userName) throws UserNotFoundException {
-    return userRepository.findByUsername(userName)
-        .orElseThrow(() -> {
-          LOGGER.error("User not found");
-          return new UserNotFoundException("User not found");
-        });
-  }
-
-  @Override
-  public List<User> getAllUsers() {
-    return userRepository.findAll();
   }
 
   /**
@@ -179,8 +161,20 @@ public class TourGuideServiceImpl implements TourGuideService {
     rewardServiceProxy.calculateRewards(userId, attractionToReward);
   }
 
-  public void addUser(User user) {
-    userRepository.save(user);
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public UUID getUserId(String userName) throws UserNotFoundException {
+    return userServiceProxy.getUser(userName).getUserId();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public List<UUID> getAllUsersId() {
+    return userServiceProxy.getAllUserId();
   }
 
   private VisitedLocationDto getLastVisitedLocation(UUID userId) {

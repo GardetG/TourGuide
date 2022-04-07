@@ -103,7 +103,7 @@ public class UserController {
    * @throws UserNotFoundException if user not found
    */
   @PutMapping("/setUserPreferences")
-  public PreferencesDto getTripDeals(@RequestParam String userName,
+  public PreferencesDto setUserPreferences(@RequestParam String userName,
                               @RequestBody @Valid PreferencesDto preferencesDto) throws UserNotFoundException {
     LOGGER.info("Request: Set user {} preferences", userName);
     preferencesService.setUserPreferences(userName, preferencesDto);

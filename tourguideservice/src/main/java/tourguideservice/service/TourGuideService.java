@@ -6,7 +6,6 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import shared.dto.PreferencesDto;
 import shared.dto.ProviderDto;
-import tourguideservice.domain.User;
 import shared.dto.LocationDto;
 import tourguideservice.dto.NearbyAttractionsListDto;
 import shared.dto.UserRewardDto;
@@ -84,10 +83,6 @@ public interface TourGuideService {
    */
   NearbyAttractionsListDto getNearByAttractions(String userName) throws UserNotFoundException;
 
-  User getUser(String userName) throws UserNotFoundException;
-
-  List<User> getAllUsers();
-
   /**
    * Track the current user location and return the current visited location Dto.
    *
@@ -102,5 +97,22 @@ public interface TourGuideService {
    * @param userId of the user
    */
   void calculateRewards(UUID userId);
+
+  /**
+   * Get the user Id of the user corresponding to the provided userName or throw an exception if
+   * user not found.
+   *
+   * @param userName of the user
+   * @return User id
+   * @throws UserNotFoundException if user not found
+   */
+  UUID getUserId(String userName) throws UserNotFoundException;
+
+  /**
+   * Get the list of all users' id.
+   *
+   * @return List of user Id
+   */
+  List<UUID> getAllUsersId();
 
 }
