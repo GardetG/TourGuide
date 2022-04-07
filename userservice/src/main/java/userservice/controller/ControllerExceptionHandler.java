@@ -62,7 +62,12 @@ public class ControllerExceptionHandler {
       MethodArgumentNotValidException ex) {
     Map<String, String> errors = new HashMap<>();
     ex.getBindingResult().getAllErrors().forEach(error -> {
-      String name = ((FieldError) error).getField();
+      String name;
+      if (error instanceof FieldError) {
+        name = ((FieldError) error).getField();
+      } else {
+        name = error.getObjectName();
+      }
       String errorMessage = error.getDefaultMessage();
       errors.put(name, errorMessage);
     });
