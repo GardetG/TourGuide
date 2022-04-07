@@ -10,9 +10,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 import org.json.JSONObject;
@@ -25,6 +28,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import shared.dto.PreferencesDto;
 import shared.dto.UserDto;
 import shared.exception.UserNameAlreadyUsedException;
 import shared.exception.UserNotFoundException;
@@ -44,6 +48,8 @@ class UserControllerTest {
 
   @Captor
   ArgumentCaptor<UserDto> userCaptor;
+  @Captor
+  ArgumentCaptor<PreferencesDto> preferencesCaptor;
 
   @DisplayName("GET user should return 200 with user")
   @Test
@@ -169,6 +175,110 @@ class UserControllerTest {
         .andExpect(jsonPath("$[0]", is(user1Id.toString())))
         .andExpect(jsonPath("$[1]]", is(user2Id.toString())));
     verify(userService, times(1)).getAllUserId();
+  }
+
+  @DisplayName("GET user preferences should return 200 with preferences")
+  @Test
+  void getUserPreferencesTest() throws Exception {
+    // GIVEN
+    PreferencesDto preferencesDto = new PreferencesDto(BigDecimal.ZERO, BigDecimal.TEN, 4,3,2,1);
+    when(preferencesService.getUserPreferences(anyString())).thenReturn(preferencesDto);
+
+    // WHEN
+    mockMvc.perform(get("/getUserPreferences?userName=jon"))
+
+        // THEN
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.lowerPricePoint", is(0)))
+        .andExpect(jsonPath("$.highPricePoint", is(10)))
+        .andExpect(jsonPath("$.tripDuration", is(4)))
+        .andExpect(jsonPath("$.ticketQuantity", is(3)))
+        .andExpect(jsonPath("$.numberOfAdults", is(2)))
+        .andExpect(jsonPath("$.numberOfChildren", is(1)));
+    verify(preferencesService, times(1)).getUserPreferences("jon");
+  }
+
+  @DisplayName("GET user preferences when user not found should return 404")
+  @Test
+  void getUserPreferencesWhenNotFoundTest() throws Exception {
+    // WHEN
+    when(preferencesService.getUserPreferences(anyString())).thenThrow(new UserNotFoundException("The user is not found"));
+
+    // THEN
+    mockMvc.perform(get("/getUserPreferences?userName=NonExistent"))
+
+        // THEN
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$", is("The user is not found")));
+    verify(preferencesService, times(1)).getUserPreferences("NonExistent");
+  }
+
+  @DisplayName("PUT user preferences should return 200 with updated preferences")
+  @Test
+  void setUserPreferences() throws Exception {
+    // GIVEN
+    ObjectMapper objectMapper = new ObjectMapper();
+    PreferencesDto preferencesDto = new PreferencesDto(BigDecimal.ZERO, BigDecimal.TEN, 4,3,2,1);
+    when(preferencesService.setUserPreferences(anyString(), any(PreferencesDto.class))).thenReturn(preferencesDto);
+    // WHEN
+    mockMvc.perform(put("/setUserPreferences?userName=jon")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(preferencesDto)))
+
+        // THEN
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.lowerPricePoint", is(0)))
+        .andExpect(jsonPath("$.highPricePoint", is(10)))
+        .andExpect(jsonPath("$.tripDuration", is(4)))
+        .andExpect(jsonPath("$.ticketQuantity", is(3)))
+        .andExpect(jsonPath("$.numberOfAdults", is(2)))
+        .andExpect(jsonPath("$.numberOfChildren", is(1)));
+    verify(preferencesService, times(1)).setUserPreferences(anyString(), preferencesCaptor.capture());
+    assertThat(preferencesCaptor.getValue()).usingRecursiveComparison().isEqualTo(preferencesDto);
+  }
+
+  @DisplayName("PUT user preferences when user not found should return 404")
+  @Test
+  void setUserPreferencesWhenNotFoundTest() throws Exception {
+    // GIVEN
+    ObjectMapper objectMapper = new ObjectMapper();
+    PreferencesDto preferencesDto = new PreferencesDto(BigDecimal.ZERO, BigDecimal.TEN, 4,3,2,1);
+    when(preferencesService.setUserPreferences(anyString(), any(PreferencesDto.class)))
+        .thenThrow(new UserNotFoundException("The user is not found"));
+
+    // WHEN
+    mockMvc.perform(put("/setUserPreferences?userName=NonExistent")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(preferencesDto)))
+
+        // THEN
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$", is("The user is not found")));
+    verify(preferencesService, times(1)).setUserPreferences(anyString(), any(PreferencesDto.class));
+
+  }
+
+  @DisplayName("PUT invalid user preferences should return 422")
+  @Test
+  void setUserPreferencesWhenInvalidTest() throws Exception {
+    // GIVEN
+    ObjectMapper objectMapper = new ObjectMapper();
+    PreferencesDto preferencesDto = new PreferencesDto(BigDecimal.valueOf(0), BigDecimal.valueOf(-1), -1, -1, -1, -1);
+
+    // WHEN
+    mockMvc.perform(put("/setUserPreferences?userName=jon")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(preferencesDto)))
+
+        // THEN
+        .andExpect(status().isUnprocessableEntity())
+        .andExpect(jsonPath("$.preferencesDto", is("Lower price point cannot be greater than High price point")))
+        .andExpect(jsonPath("$.highPricePoint", is("High price point cannot be negative")))
+        .andExpect(jsonPath("$.tripDuration", is("Trip Duration cannot be negative or equals to 0")))
+        .andExpect(jsonPath("$.ticketQuantity", is("Ticket Quantity cannot be negative")))
+        .andExpect(jsonPath("$.numberOfAdults", is("Number of Adults cannot be negative")))
+        .andExpect(jsonPath("$.numberOfChildren", is("Number of Children cannot be negative")));
+    verify(userService, times(0)).addUser(any(UserDto.class));
   }
 
 }

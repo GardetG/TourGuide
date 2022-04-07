@@ -31,10 +31,11 @@ public class PreferencesServiceImpl implements PreferencesService {
    * {@inheritDoc}
    */
   @Override
-  public void setUserPreferences(String userName, PreferencesDto preferencesDto)
+  public PreferencesDto setUserPreferences(String userName, PreferencesDto preferencesDto)
       throws UserNotFoundException {
     UserPreferences preferences = PreferencesMapper.toEntity(preferencesDto);
     userService.retrieveUser(userName).setUserPreferences(preferences);
+    return preferencesDto;
   }
 
 }
