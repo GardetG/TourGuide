@@ -53,21 +53,20 @@ public class InternalTestHelper {
   }
 
   private void setUpUser(int index) {
-    UUID userid = generateUser(index);
-    generateUserLocationHistory(userid);
+    try {
+      UUID userid = generateUser(index);
+      generateUserLocationHistory(userid);
+    } catch (UserNameAlreadyUsedException e) {
+      LOGGER.warn("Internal test users creation : Duplicate name");
+    }
   }
 
-  private UUID generateUser(int index) {
+  private UUID generateUser(int index) throws UserNameAlreadyUsedException {
     String userName = "internalUser" + index;
     String phone = "000";
     String email = userName + "@tourGuide.com";
     UserDto user = new UserDto(null, userName, phone, email);
-    try {
-      return userServiceProxy.addUser(user).getUserId();
-    } catch (UserNameAlreadyUsedException e) {
-      LOGGER.error("Internal test users creation error : Duplicate name");
-      throw new IllegalStateException("Internal test users creation error");
-    }
+    return userServiceProxy.addUser(user).getUserId();
   }
 
   private void generateUserLocationHistory(UUID userId) {
