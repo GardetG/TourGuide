@@ -26,16 +26,30 @@ public class UserServiceImpl implements UserService {
   @Autowired
   private UserRepository userRepository;
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public UserDto getUser(String username) throws UserNotFoundException {
-    User user = userRepository.findByUsername(username)
+    User user = retrieveUser(username);
+    return UserMapper.toDto(user);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public User retrieveUser(String username) throws UserNotFoundException {
+    return userRepository.findByUsername(username)
         .orElseThrow(() -> {
           LOGGER.error("User {} not found", username);
           return new UserNotFoundException("User not found");
         });
-    return UserMapper.toDto(user);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public UserDto addUser(UserDto userDto) throws UserNameAlreadyUsedException {
     if (userRepository.findByUsername(userDto.getUserName()).isPresent()) {
@@ -46,6 +60,9 @@ public class UserServiceImpl implements UserService {
     return UserMapper.toDto(user);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public List<UUID> getAllUserId() {
     return userRepository.findAll()
@@ -53,4 +70,5 @@ public class UserServiceImpl implements UserService {
         .map(User::getUserId)
         .collect(Collectors.toList());
   }
+
 }

@@ -3,13 +3,11 @@ package userservice.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -21,10 +19,7 @@ import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import shared.dto.PreferencesDto;
-import shared.dto.ProviderDto;
 import shared.dto.UserDto;
-import shared.exception.NoLocationFoundException;
 import shared.exception.UserNameAlreadyUsedException;
 import shared.exception.UserNotFoundException;
 import userservice.domain.User;
@@ -103,7 +98,6 @@ class UserServiceTest {
     assertThat(actualIds).isEmpty();
     verify(userRepository, times(1)).findAll();
   }
-
 
   @DisplayName("Add user should persist User and return it")
   @Test

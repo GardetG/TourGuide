@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import shared.dto.UserDto;
 import shared.exception.UserNameAlreadyUsedException;
 import shared.exception.UserNotFoundException;
+import userservice.domain.User;
 
 /**
  * Service Interface to manage users.
@@ -14,14 +15,22 @@ import shared.exception.UserNotFoundException;
 public interface UserService {
 
   /**
-   * Get the user from the username or throw an exception if the user can't be found.
+   * Get the user Dto from the username or throw an exception if the user can't be found.
    *
    * @param username of the user
-   * @return User id of the user
+   * @return User Dto
    * @throws UserNotFoundException when user not found
    */
   UserDto getUser(String username) throws UserNotFoundException;
 
+  /**
+   * Retrieve the user from the username or throw an exception if the user can't be found.
+   *
+   * @param username of the user
+   * @return User
+   * @throws UserNotFoundException when user not found
+   */
+  User retrieveUser(String username) throws UserNotFoundException;
 
   /**
    * Add a new User according to the data provided.
