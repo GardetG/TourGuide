@@ -3,16 +3,12 @@ package shared.dto;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.UUID;
+import javax.validation.constraints.NotBlank;
 
 /**
  * Dto Class for User entity.
  */
 public class UserDto {
-
-  private final UUID userId;
-  private final String userName;
-  private final String phoneNumber;
-  private final String emailAddress;
 
   /**
    * Constructor for an instance of UserDto with userId, name and personal coordinate.
@@ -33,6 +29,14 @@ public class UserDto {
     this.phoneNumber = phoneNumber;
     this.emailAddress = emailAddress;
   }
+
+  private final UUID userId;
+  @NotBlank(message = "UserName is mandatory")
+  private final String userName;
+  @NotBlank(message = "Phone number is mandatory")
+  private final String phoneNumber;
+  @NotBlank(message = "Email address is mandatory")
+  private final String emailAddress;
 
   public UUID getUserId() {
     return userId;
