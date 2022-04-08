@@ -21,17 +21,30 @@ public class ControllerExceptionHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(ControllerExceptionHandler.class);
 
   /**
-   * Handle ForbiddenOperationException thrown when requesting an operation forbidden by business
-   * rules.
+   * Handle ForbiddenOperationException thrown when requesting user location while no location
+   * registred.
    *
    * @param ex instance of the exception
-   * @return HTTP 409 response
+   * @return HTTP 404 response
    */
   @ExceptionHandler(NoLocationFoundException.class)
   public ResponseEntity<String> handleNoLocationFoundException(NoLocationFoundException ex) {
     String error = ex.getMessage();
-    LOGGER.info("Response : 409 {}", error);
-    return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    LOGGER.info("Response : 404 {}", error);
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+  }
+
+  /**
+   * Handle IllegalArgumentException thrown when request perform with invalid parameter.
+   *
+   * @param ex instance of the exception
+   * @return HTTP 422 response
+   */
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
+    String error = ex.getMessage();
+    LOGGER.info("Response : 422 {}", error);
+    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
   }
 
   /**

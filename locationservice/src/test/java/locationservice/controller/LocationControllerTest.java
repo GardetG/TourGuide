@@ -68,6 +68,23 @@ class LocationControllerTest {
     verify(gpsService, times(1)).getUserLastVisitedLocation(userId);
   }
 
+  @DisplayName("GET last location when no location registered should return 404 Not found")
+  @Test
+  void getLastLocationWhenNoLocationTest() throws Exception {
+    // GIVEN
+    UUID userId = UUID.randomUUID();
+    when(gpsService.getUserLastVisitedLocation(any(UUID.class)))
+        .thenThrow(new NoLocationFoundException("No location registered for the user yet"));
+
+    // WHEN
+    mockMvc.perform(get("/getUserLastVisitedLocation?userId=" + userId))
+
+        // THEN
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$", is("No location registered for the user yet")));
+    verify(gpsService, times(1)).getUserLastVisitedLocation(userId);
+  }
+
   @DisplayName("GET all user last location should return 200 with list of last visited location")
   @Test
   void getAllUserLastVisitedLocationTest() throws Exception {
@@ -83,23 +100,6 @@ class LocationControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(2)));
     verify(gpsService, times(1)).getAllUserLastVisitedLocation();
-  }
-
-  @DisplayName("GET last location when no location registered should return 409 conflict")
-  @Test
-  void getLastLocationWhenNoLocationTest() throws Exception {
-    // GIVEN
-    UUID userId = UUID.randomUUID();
-    when(gpsService.getUserLastVisitedLocation(any(UUID.class)))
-        .thenThrow(new NoLocationFoundException("No location registered for the user yet"));
-
-    // WHEN
-    mockMvc.perform(get("/getUserLastVisitedLocation?userId=" + userId))
-
-        // THEN
-        .andExpect(status().isConflict())
-        .andExpect(jsonPath("$", is("No location registered for the user yet")));
-    verify(gpsService, times(1)).getUserLastVisitedLocation(userId);
   }
 
   @DisplayName("GET track location should return 200 with user current visited location")
@@ -244,6 +244,40 @@ class LocationControllerTest {
         .andExpect(jsonPath("$[0].attraction.longitude", is(-50.0)))
         .andExpect(jsonPath("$[0].distance", is(10.0)));
     verify(gpsService, times(1)).getNearbyAttractions(userId, 2);
+  }
+
+  @DisplayName("GET nearby attractions when no location registered for user should return 404")
+  @Test
+  void getNearbyAttractionsWhenNoLocationTest() throws Exception {
+    // GIVEN
+    UUID userId = UUID.randomUUID();
+    when(gpsService.getNearbyAttractions(any(UUID.class), anyInt()))
+        .thenThrow(new NoLocationFoundException("No location registered for the user yet"));
+
+    // WHEN
+    mockMvc.perform(get("/getNearbyAttractions?userId=" + userId + "&limit=2"))
+
+        // THEN
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$", is("No location registered for the user yet")));
+    verify(gpsService, times(1)).getNearbyAttractions(userId, 2);
+  }
+
+  @DisplayName("GET nearby attractions with invalid limit should return 422")
+  @Test
+  void getNearbyAttractionsWhenLimitInvalidTest() throws Exception {
+    // GIVEN
+    UUID userId = UUID.randomUUID();
+    when(gpsService.getNearbyAttractions(any(UUID.class), anyInt()))
+        .thenThrow(new IllegalArgumentException("Limit must be positive"));
+
+    // WHEN
+    mockMvc.perform(get("/getNearbyAttractions?userId=" + userId + "&limit=-2"))
+
+        // THEN
+        .andExpect(status().isUnprocessableEntity())
+        .andExpect(jsonPath("$", is("Limit must be positive")));
+    verify(gpsService, times(1)).getNearbyAttractions(userId, -2);
   }
 
 }
