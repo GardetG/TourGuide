@@ -24,6 +24,7 @@ import tourguideservice.proxy.LocationServiceProxy;
 import tourguideservice.proxy.RewardServiceProxy;
 import tourguideservice.proxy.TripServiceProxy;
 import tourguideservice.proxy.UserServiceProxy;
+import tourguideservice.utils.NearbyAttractionMapper;
 
 /**
  * Service implementation class for the main service of TourGuide.
@@ -127,14 +128,11 @@ public class TourGuideServiceImpl implements TourGuideService {
     List<NearbyAttractionDto> attractions = nearbyAttractions
         .stream()
         .parallel()
-        .map(attractionWithDistance -> new NearbyAttractionDto(
-            attractionWithDistance.getAttraction().getAttractionName(),
-            attractionWithDistance.getAttraction().getLatitude(),
-            attractionWithDistance.getAttraction().getLongitude(),
-            attractionWithDistance.getDistance(),
-            rewardServiceProxy.getRewardPoints(
-                attractionWithDistance.getAttraction().getAttractionId(), userId)
-        ))
+        .map(attractionWithDistance -> NearbyAttractionMapper.toDto(
+                attractionWithDistance,
+                rewardServiceProxy.getRewardPoints(attractionWithDistance.getAttraction().getAttractionId(), userId)
+            )
+        )
         .collect(Collectors.toList());
 
     return new NearbyAttractionsListDto(
@@ -181,6 +179,7 @@ public class TourGuideServiceImpl implements TourGuideService {
     try {
       return locationServiceProxy.getLastVisitedLocation(userId);
     } catch (NoLocationFoundException e) {
+      // If no location found for the user then track user location and return current location
       LOGGER.warn("User {} location not found, track current location", userId);
       return trackUserLocation(userId);
     }
@@ -198,6 +197,7 @@ public class TourGuideServiceImpl implements TourGuideService {
     try {
       return locationServiceProxy.getNearbyAttractions(userId, limit);
     } catch (NoLocationFoundException e) {
+      // If no location found then track the user before retrying
       LOGGER.warn("User {} location not found, track current location", userId);
       trackUserLocation(userId);
     }
