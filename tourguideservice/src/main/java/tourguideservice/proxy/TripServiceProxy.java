@@ -9,9 +9,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import shared.dto.PreferencesDto;
 import shared.dto.ProviderDto;
+import tourguideservice.config.CustomFeignClientConfiguration;
 
 @Service
-@FeignClient(value = "trip-service", url = "http://localhost:8081")
+@FeignClient(value = "trip-service", url = "http://localhost:8081", configuration = CustomFeignClientConfiguration.class)
 public interface TripServiceProxy {
 
   @PutMapping("/getTripDeals")

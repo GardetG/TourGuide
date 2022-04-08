@@ -10,9 +10,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import shared.dto.UserRewardDto;
 import shared.dto.VisitedAttractionDto;
+import tourguideservice.config.CustomFeignClientConfiguration;
 
 @Service
-@FeignClient(value = "reward-service", url = "http://localhost:8083")
+@FeignClient(value = "reward-service", url = "http://localhost:8083", configuration = CustomFeignClientConfiguration.class)
 public interface RewardServiceProxy {
 
   @GetMapping("/getAllRewards")

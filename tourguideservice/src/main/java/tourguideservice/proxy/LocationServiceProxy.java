@@ -13,9 +13,10 @@ import shared.dto.AttractionWithDistanceDto;
 import shared.dto.VisitedAttractionDto;
 import shared.dto.VisitedLocationDto;
 import shared.exception.NoLocationFoundException;
+import tourguideservice.config.CustomFeignClientConfiguration;
 
 @Service
-@FeignClient(value = "location-service", url = "http://localhost:8082")
+@FeignClient(value = "location-service", url = "http://localhost:8082", configuration = CustomFeignClientConfiguration.class)
 public interface LocationServiceProxy {
 
   @GetMapping("/getUserLastVisitedLocation")

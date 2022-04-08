@@ -13,8 +13,9 @@ import shared.dto.PreferencesDto;
 import shared.dto.UserDto;
 import shared.exception.UserNameAlreadyUsedException;
 import shared.exception.UserNotFoundException;
+import tourguideservice.config.CustomFeignClientConfiguration;
 
-@FeignClient(value = "user-service", url = "http://localhost:8084")
+@FeignClient(value = "user-service", url = "http://localhost:8084", configuration = CustomFeignClientConfiguration.class)
 public interface UserServiceProxy {
 
   @GetMapping("/getUser")
