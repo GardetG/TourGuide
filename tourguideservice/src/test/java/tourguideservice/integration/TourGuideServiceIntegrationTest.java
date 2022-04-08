@@ -1,10 +1,14 @@
 package tourguideservice.integration;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,8 +17,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import shared.dto.PreferencesDto;
 import shared.dto.UserDto;
 import tourguideservice.proxy.UserServiceProxy;
 import tourguideservice.service.tracker.Tracker;
@@ -71,6 +77,30 @@ class TourGuideServiceIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$." + user.getUserId() + ".longitude").isNotEmpty())
         .andExpect(jsonPath("$." + user.getUserId() + ".latitude").isNotEmpty());
+  }
+
+  @DisplayName("Set a user preferences should allow to retrieve the updated preferences")
+  @Test
+  void setAndGetUserPreferencesTest() throws Exception {
+    // GIVEN
+    ObjectMapper objectMapper = new ObjectMapper();
+    PreferencesDto preferencesDto = new PreferencesDto(BigDecimal.ZERO, BigDecimal.TEN, 4,3,2,1);
+
+    // WHEN
+    mockMvc.perform(put("/setUserPreferences?userName=internalUser0")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(preferencesDto)))
+        .andExpect(status().isOk());
+    mockMvc.perform(get("/getUserPreferences?userName=internalUser0"))
+
+        // THEN
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.lowerPricePoint", is(0.0)))
+        .andExpect(jsonPath("$.highPricePoint", is(10.0)))
+        .andExpect(jsonPath("$.tripDuration", is(4)))
+        .andExpect(jsonPath("$.ticketQuantity", is(3)))
+        .andExpect(jsonPath("$.numberOfAdults", is(2)))
+        .andExpect(jsonPath("$.numberOfChildren", is(1)));
   }
 
   @DisplayName("GET user trip deals should return 200 with list of provider Dto")
