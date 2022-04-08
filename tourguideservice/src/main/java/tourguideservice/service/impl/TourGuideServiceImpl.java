@@ -103,8 +103,8 @@ public class TourGuideServiceImpl implements TourGuideService {
   @Override
   public List<ProviderDto> getTripDeals(String userName) throws UserNotFoundException {
     UUID userId = getUserId(userName);
-    PreferencesDto preferences = userServiceProxy.getUserPreferences(userName);
     UUID attractionId = getClosestAttraction(userId).getAttractionId();
+    PreferencesDto preferences = userServiceProxy.getUserPreferences(userName);
     int rewardPoints = rewardServiceProxy.getTotalRewardPoints(userId);
 
     return tripServiceProxy.getTripDeals(
@@ -190,11 +190,8 @@ public class TourGuideServiceImpl implements TourGuideService {
     return retrieveNearbyAttractions(userId, 1)
         .stream()
         .map(AttractionWithDistanceDto::getAttraction)
-        .findFirst()
-        .orElseThrow(() -> {
-          LOGGER.error("Unable to retrieve user {} closest attraction", userId);
-          return new IllegalStateException("Unable to retrieve user closest attraction");
-        });
+        .collect(Collectors.toList())
+        .get(0);
   }
 
   private List<AttractionWithDistanceDto> retrieveNearbyAttractions(UUID userId, int limit) {
@@ -209,7 +206,7 @@ public class TourGuideServiceImpl implements TourGuideService {
       return locationServiceProxy.getNearbyAttractions(userId, limit);
     } catch (NoLocationFoundException e) {
       LOGGER.error("Unable to retrieve user {} nearby attractions", userId);
-      throw new IllegalArgumentException("Unable to retrieve user nearby attractions");
+      throw new IllegalStateException("Unable to retrieve user nearby attractions");
     }
   }
 

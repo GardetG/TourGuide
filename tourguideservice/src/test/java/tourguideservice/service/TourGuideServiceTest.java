@@ -216,6 +216,23 @@ class TourGuideServiceTest {
         .getTripDeals(attractionDto.getAttractionId(), preferencesDto, 10);
   }
 
+  @DisplayName("Get user trip deals when location can't be retrieve should throw an exception")
+  @Test
+  void getTripDealsWhenLocationCantBeRetrieveTest() throws Exception {
+    // Given
+    UserDto user = new UserDto(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
+
+    when(userServiceProxy.getUser(anyString())).thenReturn(user);
+    when(locationServiceProxy.getNearbyAttractions(any(UUID.class), anyInt()))
+        .thenThrow(new NoLocationFoundException("No Location registered for this user yet"));
+
+    // Then
+    assertThatThrownBy(() -> tourGuideService.getTripDeals("jon"))
+        .isInstanceOf(IllegalStateException.class);
+    verify(userServiceProxy, times(1)).getUser("jon");
+    verify(locationServiceProxy, times(2)).getNearbyAttractions(user.getUserId(),1);
+  }
+
   @DisplayName("Get a non existent user trip deals should throw an exception")
   @Test
   void getTripDealsNotFoundTest() throws Exception {
@@ -288,7 +305,7 @@ class TourGuideServiceTest {
     verify(userServiceProxy, times(1)).setUserPreferences("nonExistent", preferencesDto);
   }
 
-  @DisplayName("Set nearby attractions should should return dto with user location and 5 attractions")
+  @DisplayName("Get nearby attractions should should return dto with user location and 5 attractions")
   @Test
   void getNearByAttractionsTest() throws Exception {
     // Given
@@ -317,7 +334,7 @@ class TourGuideServiceTest {
     verify(rewardServiceProxy, times(5)).getRewardPoints(any(UUID.class), any(UUID.class));
   }
 
-  @DisplayName("Set nearby attractions of non found user should throw an exception")
+  @DisplayName("Get nearby attractions of non found user should throw an exception")
   @Test
   void getNearByAttractionsNotFoundTest() throws Exception {
     // Given
