@@ -4,6 +4,10 @@ import feign.Response;
 import feign.codec.ErrorDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import shared.exception.NoLocationFoundException;
+import shared.exception.UserNameAlreadyUsedException;
+import shared.exception.UserNotFoundException;
+import tourguideservice.exception.ProxyResponseErrorException;
 
 public class FeignCustomErrorDecoder implements ErrorDecoder {
 
@@ -11,20 +15,35 @@ public class FeignCustomErrorDecoder implements ErrorDecoder {
 
   @Override
   public Exception decode(String methodKey, Response response) {
+
+    String proxyName = methodKey.split("#")[0];
+
     switch (response.status()) {
-      case 400:
-        LOGGER.error("Error in request went through feign client");
-        return new Exception("Bad Request Through Feign");
       case 404:
-        LOGGER.error("Error in request went through feign client");
-        return new Exception("Unauthorized Request Through Feign");
+        if (proxyName.equals("LocationServiceProxy")) {
+          LOGGER.error("No location registered for the user yet");
+          return new NoLocationFoundException("No location registered for the user yet");
+        }
+        if (proxyName.equals("UserServiceProxy")) {
+          LOGGER.error("User not found");
+          return new UserNotFoundException("User not found");
+        }
+        return defaultException(404, proxyName);
       case 409:
-        LOGGER.error("Error in request went through feign client");
-        return new Exception("Unidentified Request Through Feign");
+        if (proxyName.equals("UserServiceProxy")) {
+          LOGGER.error("This username is already used");
+          return new UserNameAlreadyUsedException("This username is already used");
+        }
+        return defaultException(409, proxyName);
       default:
-        LOGGER.error("Error in request went through feign client");
-        return new Exception("Common Feign Exception");
+        return defaultException(response.status(), proxyName);
     }
+  }
+
+  private Exception defaultException(int errorCode, String proxyName) {
+    String message = String.format("Unexpected error %s in %s response", errorCode, proxyName);
+    LOGGER.error(message);
+    return new ProxyResponseErrorException(message);
   }
 
 }
