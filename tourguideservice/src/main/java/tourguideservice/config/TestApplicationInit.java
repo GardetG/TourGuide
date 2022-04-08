@@ -5,7 +5,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import tourguideservice.service.helper.InternalTestHelper;
+import tourguideservice.utils.InternalTestHelper;
 import tourguideservice.service.tracker.Tracker;
 
 /**
@@ -25,7 +25,7 @@ public class TestApplicationInit implements ApplicationRunner {
   private TourGuideTestProperties testProperties;
 
   @Override
-  public void run(ApplicationArguments args) throws Exception {
+  public void run(ApplicationArguments args) {
     if (testProperties.isUseInternalUser()) {
       internalTestHelper.initializeInternalUsers(testProperties.getInternalUserNumber());
     }

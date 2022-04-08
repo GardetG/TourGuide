@@ -1,6 +1,7 @@
 package tourguideservice.service.tracker;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -13,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tourguideservice.config.TourGuideProperties;
-import tourguideservice.domain.User;
 import tourguideservice.service.TourGuideService;
 
 /**
@@ -58,16 +58,18 @@ public class Tracker implements Runnable {
   @Override
   public void run() {
     StopWatch stopWatch = new StopWatch();
-    List<User> users = tourGuideService.getAllUsers();
-    LOGGER.debug("Begin Tracker. Tracking {} users.", users.size());
+    List<UUID> usersId = tourGuideService.getAllUsersId();
+    LOGGER.debug("Begin Tracker. Tracking {} users.", usersId.size());
     stopWatch.start();
 
     ExecutorService trackExecutor = Executors.newFixedThreadPool(200);
     ExecutorService rewardExecutor = Executors.newFixedThreadPool(200);
 
-    List<CompletableFuture<?>> trackResult = users.stream()
-        .map(user -> CompletableFuture.runAsync(() -> tourGuideService.trackUserLocation(user.getUserId()), trackExecutor)
-            .thenRunAsync(() -> tourGuideService.calculateRewards(user.getUserId()), rewardExecutor))
+    List<CompletableFuture<?>> trackResult = usersId
+        .stream()
+        .map(userId ->
+            CompletableFuture.runAsync(() -> tourGuideService.trackUserLocation(userId), trackExecutor)
+            .thenRunAsync(() -> tourGuideService.calculateRewards(userId), rewardExecutor))
         .collect(Collectors.toList());
 
     trackResult.forEach(CompletableFuture::join);

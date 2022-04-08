@@ -13,7 +13,6 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "tourguide.test")
 public class TourGuideTestProperties {
 
-
   private boolean trackingOnStart;
   private boolean useInternalUser;
   private int internalUserNumber;

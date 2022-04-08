@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,17 +18,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import tourguideservice.domain.User;
 import shared.dto.AttractionDto;
 import shared.dto.LocationDto;
 import shared.dto.VisitedLocationDto;
 import tourguideservice.service.TourGuideService;
-import tourguideservice.service.proxy.LocationServiceProxy;
-import tourguideservice.service.proxy.RewardServiceProxy;
+import tourguideservice.proxy.LocationServiceProxy;
+import tourguideservice.proxy.RewardServiceProxy;
 
 @Tag("performance")
 @SpringBootTest(properties = {"tourguide.test.trackingOnStart=false",
-    "tourguide.test.internalUserNumber=10"})
+    "tourguide.test.internalUserNumber=100000"})
 @ActiveProfiles({"test"})
 class TestPerformance {
 
@@ -66,40 +66,41 @@ class TestPerformance {
   @Test
   void highVolumeTrackLocation() {
     // Given
-    List<User> allUsers = tourGuideService.getAllUsers();
+    List<UUID> allUsersId = tourGuideService.getAllUsersId();
 
     // When
     StopWatch stopWatch = new StopWatch();
     stopWatch.start();
 
     ExecutorService executor = Executors.newFixedThreadPool(200);
-    List<CompletableFuture<?>> result = allUsers.stream()
-        .map(user -> CompletableFuture.runAsync(
-            () -> tourGuideService.trackUserLocation(user.getUserId()), executor))
+    List<CompletableFuture<Void>> result = allUsersId
+        .stream()
+        .map(userId ->
+            CompletableFuture.runAsync(() -> tourGuideService.trackUserLocation(userId), executor))
         .collect(Collectors.toList());
+
     result.forEach(CompletableFuture::join);
     stopWatch.stop();
 
     // Then
-    System.out.println("highVolumeTrackLocation: Time Elapsed: " +
-        TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");
-    assertTrue(
-        TimeUnit.MINUTES.toSeconds(15) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
+    System.out.println("highVolumeTrackLocation: Time Elapsed: " + TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");
+    assertTrue(TimeUnit.MINUTES.toSeconds(15) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
   }
 
   @Test
   void highVolumeGetRewards() {
     // Given
     ExecutorService testExecutor = Executors.newFixedThreadPool(200);
-    List<User> allUsers = tourGuideService.getAllUsers();
+    List<UUID> allUsersId = tourGuideService.getAllUsersId();
     AttractionDto attraction = locationServiceProxy.getAttractions().get(0);
     LocationDto attractionLocation = new LocationDto(attraction.getLatitude(), attraction.getLongitude());
 
     // Add a location near the first attraction
-    List<CompletableFuture<Void>> usersInit = allUsers.stream()
-        .map(user -> CompletableFuture.runAsync(() -> locationServiceProxy.addVisitedLocation(
-            List.of(new VisitedLocationDto(user.getUserId(), attractionLocation, new Date())),
-            user.getUserId()
+    List<CompletableFuture<Void>> usersInit = allUsersId
+        .stream()
+        .map(userId -> CompletableFuture.runAsync(() -> locationServiceProxy.addVisitedLocation(
+            List.of(new VisitedLocationDto(userId, attractionLocation, new Date())),
+            userId
         ), testExecutor))
         .collect(Collectors.toList());
     usersInit.forEach(CompletableFuture::join);
@@ -109,18 +110,20 @@ class TestPerformance {
     stopWatch.start();
 
     ExecutorService executor = Executors.newFixedThreadPool(200);
-    List<CompletableFuture<?>> result = allUsers.stream()
-        .map(user -> CompletableFuture.runAsync(
-            () -> tourGuideService.calculateRewards(user.getUserId()), executor))
+    List<CompletableFuture<?>> result = allUsersId
+        .stream()
+        .map(userId ->
+            CompletableFuture.runAsync(() -> tourGuideService.calculateRewards(userId), executor))
         .collect(Collectors.toList());
     result.forEach(CompletableFuture::join);
 
     stopWatch.stop();
 
     // Then
-    List<CompletableFuture<Integer>> rewardListSize = allUsers.stream()
-        .map(user -> CompletableFuture.supplyAsync(() -> rewardServiceProxy.getAllRewards(user.getUserId()).size()
-            ,testExecutor))
+    List<CompletableFuture<Integer>> rewardListSize = allUsersId
+        .stream()
+        .map(userId ->
+            CompletableFuture.supplyAsync(() -> rewardServiceProxy.getAllRewards(userId).size(), testExecutor))
         .collect(Collectors.toList());
 
     for ( CompletableFuture<Integer> rewardSize : rewardListSize) {

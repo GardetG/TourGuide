@@ -1,5 +1,6 @@
 package tourguideservice.controller;
 
+import feign.RetryableException;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -10,7 +11,8 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import tourguideservice.exception.UserNotFoundException;
+import shared.exception.UserNotFoundException;
+import tourguideservice.exception.ProxyResponseErrorException;
 
 /**
  * Class handling exceptions thrown by Service in Controller and generate the HTTP response.
@@ -33,6 +35,35 @@ public class ControllerExceptionHandler {
     String error = ex.getMessage();
     LOGGER.info("Response : 404 {}", error);
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+  }
+
+  /**
+   * Handle ProxyResponseErrorException thrown when feign client proxy return a unexpected error
+   * response.
+   *
+
+   * @param ex instance of the exception
+   * @return HTTP 502 response
+   */
+  @ExceptionHandler(ProxyResponseErrorException.class)
+  public ResponseEntity<String> handleUserNotFoundException(ProxyResponseErrorException ex) {
+    String error = ex.getMessage();
+    LOGGER.info("Response : 502 {}", error);
+    return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(error);
+  }
+
+  /**
+   * Handle RetryableException thrown when feign client is unavailable or don't respond.
+   *
+
+   * @param ex instance of the exception
+   * @return HTTP 503 response
+   */
+  @ExceptionHandler(RetryableException.class)
+  public ResponseEntity<String> handleUserNotFoundException(RetryableException ex) {
+    String error = String.format("%s is currently unavailable", ex.request().requestTemplate().feignTarget().name());
+    LOGGER.info("Response : 503 {}", error);
+    return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
   }
 
   /**
@@ -59,4 +90,5 @@ public class ControllerExceptionHandler {
     LOGGER.info("Response : 422 invalid DTO");
     return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(errors);
   }
+
 }
