@@ -15,7 +15,7 @@ import shared.exception.UserNameAlreadyUsedException;
 import shared.exception.UserNotFoundException;
 import tourguideservice.config.CustomFeignClientConfiguration;
 
-@FeignClient(value = "user-service", url = "http://localhost:8084", configuration = CustomFeignClientConfiguration.class)
+@FeignClient(value = "user-service", url = "${tourguide.userservice.url}", configuration = CustomFeignClientConfiguration.class)
 public interface UserServiceProxy {
 
   @GetMapping("/getUser")
