@@ -12,7 +12,7 @@ import shared.dto.ProviderDto;
 import tourguideservice.config.CustomFeignClientConfiguration;
 
 @Service
-@FeignClient(value = "trip-service", url = "http://localhost:8081", configuration = CustomFeignClientConfiguration.class)
+@FeignClient(value = "trip-service", url = "${tourguide.tripservice.url}", configuration = CustomFeignClientConfiguration.class)
 public interface TripServiceProxy {
 
   @PutMapping("/getTripDeals")

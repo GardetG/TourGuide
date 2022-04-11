@@ -1,0 +1,41 @@
+version: "3"
+services:
+  tourguideservice:
+    image: tourguideservice
+    ports:
+      - "8080:8080"
+    environment:
+      - TOURGUIDE_TRIPSERVICE_URL=http://tripservice:8081
+      - TOURGUIDE_LOCATIONSERVICE_URL=http://locationservice:8082
+      - TOURGUIDE_REWARDSERVICE_URL=http://rewardservice:8083
+      - TOURGUIDE_USERSERVICE_URL=http://userservice:8084
+    networks:
+      - tourguidenet
+    depends_on:
+      - locationservice
+      - rewardservice
+      - tripservice
+      - userservice
+
+  locationservice:
+    image: locationservice
+    networks:
+      - tourguidenet
+
+  rewardservice:
+    image: rewardservice
+    networks:
+      - tourguidenet
+
+  tripservice:
+    image: tripservice
+    networks:
+      - tourguidenet
+
+  userservice:
+    image: userservice
+    networks:
+      - tourguidenet
+
+networks:
+  tourguidenet:

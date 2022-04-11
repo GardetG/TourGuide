@@ -16,7 +16,7 @@ import shared.exception.NoLocationFoundException;
 import tourguideservice.config.CustomFeignClientConfiguration;
 
 @Service
-@FeignClient(value = "location-service", url = "http://localhost:8082", configuration = CustomFeignClientConfiguration.class)
+@FeignClient(value = "location-service", url = "${tourguide.locationservice.url}", configuration = CustomFeignClientConfiguration.class)
 public interface LocationServiceProxy {
 
   @GetMapping("/getUserLastVisitedLocation")

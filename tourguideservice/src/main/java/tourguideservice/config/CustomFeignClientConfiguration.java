@@ -14,7 +14,7 @@ public class CustomFeignClientConfiguration {
 
   @Bean
   Logger.Level feignLoggerLevel() {
-    return Logger.Level.BASIC;
+    return Logger.Level.NONE;
   }
 
 }

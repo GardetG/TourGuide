@@ -13,7 +13,7 @@ import shared.dto.VisitedAttractionDto;
 import tourguideservice.config.CustomFeignClientConfiguration;
 
 @Service
-@FeignClient(value = "reward-service", url = "http://localhost:8083", configuration = CustomFeignClientConfiguration.class)
+@FeignClient(value = "reward-service", url = "${tourguide.rewardservice.url}", configuration = CustomFeignClientConfiguration.class)
 public interface RewardServiceProxy {
 
   @GetMapping("/getAllRewards")

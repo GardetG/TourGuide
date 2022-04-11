@@ -1,0 +1,22 @@
+version: "3"
+services:
+
+  locationservice:
+    image: locationservice
+    ports:
+      - "8082:8082"
+
+  rewardservice:
+    image: rewardservice
+    ports:
+      - "8083:8083"
+
+  tripservice:
+    image: tripservice
+    ports:
+      - "8081:8081"
+
+  userservice:
+    image: userservice
+    ports:
+      - "8084:8084"
