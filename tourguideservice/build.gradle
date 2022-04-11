@@ -3,6 +3,7 @@ plugins {
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
     id 'java'
     id 'jacoco'
+    id "com.avast.gradle.docker-compose" version "0.15.2"
 }
 
 group = 'com.tourguide'
@@ -60,6 +61,16 @@ task performanceTest(type: Test) {
         includeTags 'performance'
     }
 }
+
+dockerCompose {
+    integration {
+        // Define the docker compose file for integration testing
+        useComposeFiles = ["${buildDir}/resources/main/integrationTest/docker-compose.yml"]
+        isRequiredBy(integrationTest)
+        isRequiredBy(performanceTest)
+    }
+}
+
 
 jacoco {
     toolVersion = "0.8.4"
