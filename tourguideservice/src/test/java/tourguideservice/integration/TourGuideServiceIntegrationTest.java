@@ -27,7 +27,7 @@ import tourguideservice.service.tracker.Tracker;
 
 @Tag("integration")
 @SpringBootTest(properties = {"tourguide.test.trackingOnStart=false",
-    "tourguide.test.internalUserNumber=1"})
+    "tourguide.test.internalUserNumber=3"})
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 class TourGuideServiceIntegrationTest {
@@ -107,7 +107,7 @@ class TourGuideServiceIntegrationTest {
   @Test
   void getTripDealsTest() throws Exception {
     // WHEN
-    mockMvc.perform(get("/getTripDeals?userName=internalUser0"))
+    mockMvc.perform(get("/getTripDeals?userName=internalUser1"))
 
         // THEN
         .andExpect(status().isOk())
@@ -118,7 +118,7 @@ class TourGuideServiceIntegrationTest {
   @Test
   void getNearbyAttractionsTest() throws Exception {
     // WHEN
-    mockMvc.perform(get("/getNearbyAttractions?userName=internalUser0"))
+    mockMvc.perform(get("/getNearbyAttractions?userName=internalUser2"))
 
         // THEN
         .andExpect(status().isOk())
