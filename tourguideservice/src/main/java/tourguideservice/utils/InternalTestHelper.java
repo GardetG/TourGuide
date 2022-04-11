@@ -1,5 +1,6 @@
 package tourguideservice.utils;
 
+import feign.RetryableException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
@@ -9,6 +10,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.slf4j.Logger;
@@ -35,6 +37,7 @@ public class InternalTestHelper {
   private final UserServiceProxy userServiceProxy;
   private final LocationServiceProxy locationServiceProxy;
   private final Random random = new Random();
+  private AtomicInteger count;
 
   @Autowired
   public InternalTestHelper(UserServiceProxy userServiceProxy,
@@ -44,20 +47,25 @@ public class InternalTestHelper {
   }
 
   public void initializeInternalUsers(int internalUserNumber) {
+    LOGGER.debug("Initialize internal test users.");
+    count = new AtomicInteger();
     Executor internalUserExecutor = Executors.newFixedThreadPool(200);
     List<CompletableFuture<Void>> userFutur = IntStream.range(0, internalUserNumber)
-        .mapToObj(i -> CompletableFuture.runAsync(() -> setUpUser(i), internalUserExecutor))
+        .mapToObj(i -> CompletableFuture.runAsync(() -> setUpUser(i, internalUserNumber), internalUserExecutor))
         .collect(Collectors.toList());
     userFutur.forEach(CompletableFuture::join);
     LOGGER.debug("Created {} internal test users.", internalUserNumber);
   }
 
-  private void setUpUser(int index) {
+  private void setUpUser(int index, int internalUserNumber) {
     try {
       UUID userid = generateUser(index);
       generateUserLocationHistory(userid);
+      logProgress(internalUserNumber);
     } catch (UserNameAlreadyUsedException e) {
       LOGGER.warn("Internal test users creation : Duplicate name");
+    } catch (RetryableException e) {
+      LOGGER.warn("Internal test users creation : Service unavailable");
     }
   }
 
@@ -78,6 +86,13 @@ public class InternalTestHelper {
         ))
         .collect(Collectors.toList());
     locationServiceProxy.addVisitedLocation(visitedLocationDtos, userId);
+  }
+
+  private void logProgress(double internalUserNumber) {
+    double percent = (count.incrementAndGet() / internalUserNumber) * 100;
+    if (percent % 10 == 0) {
+      LOGGER.debug("Initializing : {} %", percent);
+    }
   }
 
   private double generateRandomLongitude() {
