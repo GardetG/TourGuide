@@ -1,8 +1,8 @@
 package tourguideservice.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
@@ -30,14 +30,14 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import shared.dto.PreferencesDto;
-import shared.dto.ProviderDto;
 import shared.dto.AttractionDto;
 import shared.dto.LocationDto;
-import tourguideservice.dto.NearbyAttractionsListDto;
+import shared.dto.PreferencesDto;
+import shared.dto.ProviderDto;
 import shared.dto.UserRewardDto;
 import shared.dto.VisitedLocationDto;
 import shared.exception.UserNotFoundException;
+import tourguideservice.dto.NearbyAttractionsListDto;
 import tourguideservice.service.TourGuideService;
 import tourguideservice.utils.EntitiesTestFactory;
 

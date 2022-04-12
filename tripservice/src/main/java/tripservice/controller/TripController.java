@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import shared.dto.ProviderDto;
 import shared.dto.PreferencesDto;
+import shared.dto.ProviderDto;
 import tripservice.service.TripDealsService;
 
 /**

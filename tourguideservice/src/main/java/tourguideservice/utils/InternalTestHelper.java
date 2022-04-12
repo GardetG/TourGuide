@@ -18,10 +18,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import shared.dto.UserDto;
-import shared.exception.UserNameAlreadyUsedException;
 import shared.dto.LocationDto;
+import shared.dto.UserDto;
 import shared.dto.VisitedLocationDto;
+import shared.exception.UserNameAlreadyUsedException;
 import tourguideservice.proxy.LocationServiceProxy;
 import tourguideservice.proxy.UserServiceProxy;
 

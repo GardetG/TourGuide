@@ -46,7 +46,7 @@ public class ControllerExceptionHandler {
    * @return HTTP 502 response
    */
   @ExceptionHandler(ProxyResponseErrorException.class)
-  public ResponseEntity<String> handleUserNotFoundException(ProxyResponseErrorException ex) {
+  public ResponseEntity<String> handleProxyResponseErrorException(ProxyResponseErrorException ex) {
     String error = ex.getMessage();
     LOGGER.info("Response : 502 {}", error);
     return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(error);
@@ -60,7 +60,7 @@ public class ControllerExceptionHandler {
    * @return HTTP 503 response
    */
   @ExceptionHandler(RetryableException.class)
-  public ResponseEntity<String> handleUserNotFoundException(RetryableException ex) {
+  public ResponseEntity<String> handleRetryableExceptionException(RetryableException ex) {
     String error = String.format("%s is currently unavailable", ex.request().requestTemplate().feignTarget().name());
     LOGGER.info("Response : 503 {}", error);
     return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);

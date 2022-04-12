@@ -5,8 +5,8 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import tourguideservice.utils.InternalTestHelper;
 import tourguideservice.service.tracker.Tracker;
+import tourguideservice.utils.InternalTestHelper;
 
 /**
  * Initialize the application in test by orchestrate the generation of internal users and the

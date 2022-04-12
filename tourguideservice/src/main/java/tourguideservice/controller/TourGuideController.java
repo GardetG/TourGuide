@@ -12,12 +12,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import shared.dto.LocationDto;
 import shared.dto.PreferencesDto;
 import shared.dto.ProviderDto;
-import shared.dto.LocationDto;
-import tourguideservice.dto.NearbyAttractionsListDto;
 import shared.dto.UserRewardDto;
 import shared.exception.UserNotFoundException;
+import tourguideservice.dto.NearbyAttractionsListDto;
 import tourguideservice.service.TourGuideService;
 
 /**

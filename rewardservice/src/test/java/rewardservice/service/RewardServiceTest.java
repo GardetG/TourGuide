@@ -27,10 +27,10 @@ import rewardservice.domain.Location;
 import rewardservice.domain.UserReward;
 import rewardservice.domain.VisitedLocation;
 import rewardservice.repository.RewardsRepository;
-import shared.dto.VisitedAttractionDto;
 import shared.dto.AttractionDto;
 import shared.dto.LocationDto;
 import shared.dto.UserRewardDto;
+import shared.dto.VisitedAttractionDto;
 import shared.dto.VisitedLocationDto;
 
 @SpringBootTest(properties = {"tourguide.test.trackingOnStart=false",

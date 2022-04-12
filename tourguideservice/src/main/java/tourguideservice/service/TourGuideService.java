@@ -4,13 +4,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
+import shared.dto.LocationDto;
 import shared.dto.PreferencesDto;
 import shared.dto.ProviderDto;
-import shared.dto.LocationDto;
-import tourguideservice.dto.NearbyAttractionsListDto;
 import shared.dto.UserRewardDto;
 import shared.dto.VisitedLocationDto;
 import shared.exception.UserNotFoundException;
+import tourguideservice.dto.NearbyAttractionsListDto;
 
 /**
  * Service interface for the main service of TourGuide.

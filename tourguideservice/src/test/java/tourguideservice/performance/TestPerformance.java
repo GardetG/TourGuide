@@ -21,9 +21,9 @@ import org.springframework.test.context.ActiveProfiles;
 import shared.dto.AttractionDto;
 import shared.dto.LocationDto;
 import shared.dto.VisitedLocationDto;
-import tourguideservice.service.TourGuideService;
 import tourguideservice.proxy.LocationServiceProxy;
 import tourguideservice.proxy.RewardServiceProxy;
+import tourguideservice.service.TourGuideService;
 
 @Tag("performance")
 @SpringBootTest(properties = {"tourguide.test.trackingOnStart=false",
