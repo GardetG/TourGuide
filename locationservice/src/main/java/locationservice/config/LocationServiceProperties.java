@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  *  Configuration Class for TourGuide management and tests properties:
- *  - proximityDistanceInMiles : Api Key used required by TripPricer library
+ *  - proximityDistanceInMiles : Api Key used required by TripPricer library.
  */
 @Configuration
 @ConfigurationProperties(prefix = "locationservice")

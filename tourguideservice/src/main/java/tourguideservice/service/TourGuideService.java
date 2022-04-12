@@ -56,12 +56,13 @@ public interface TourGuideService {
    * Update the preference of the user defined by the provided userName according to the provided
    * values, and return the updated preferences.
    *
-   * @param username of the user
+   * @param username        of the user
    * @param userPreferences to update
    * @return updated UserPreferencesDto
    * @throws UserNotFoundException when user not found
    */
-  PreferencesDto setUserPreferences(String username, PreferencesDto userPreferences) throws UserNotFoundException;
+  PreferencesDto setUserPreferences(String username, PreferencesDto userPreferences)
+      throws UserNotFoundException;
 
   /**
    * Get a list of trip deals providers for the user defined by the provided userName according to

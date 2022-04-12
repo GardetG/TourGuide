@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  *  Configuration Class for TourGuide management and tests properties:
- *  - trackingPollingInterval : Tracking polling interval in minutes
+ *  - trackingPollingInterval : Tracking polling interval in minutes.
  */
 @Configuration
 @ConfigurationProperties(prefix = "tourguide")

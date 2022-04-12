@@ -3,6 +3,9 @@ package tourguideservice.utils;
 import shared.dto.AttractionWithDistanceDto;
 import tourguideservice.dto.NearbyAttractionDto;
 
+/**
+ * Mapper Class to map Attraction into NearbyAttraction Dto.
+ */
 public class NearbyAttractionMapper {
 
   private NearbyAttractionMapper() {
@@ -13,10 +16,11 @@ public class NearbyAttractionMapper {
    * Map an attraction with distance into NearbyAttractionDto.
    *
    * @param attractionWithDistance to map
-   * @param rewardPoint reward of the attraction
+   * @param rewardPoint            reward of the attraction
    * @return corresponding NearbyAttractionDto mapped
    */
-  public static NearbyAttractionDto toDto(AttractionWithDistanceDto attractionWithDistance, int rewardPoint) {
+  public static NearbyAttractionDto toDto(AttractionWithDistanceDto attractionWithDistance,
+                                          int rewardPoint) {
     return new NearbyAttractionDto(
         attractionWithDistance.getAttraction().getAttractionName(),
         attractionWithDistance.getAttraction().getLatitude(),

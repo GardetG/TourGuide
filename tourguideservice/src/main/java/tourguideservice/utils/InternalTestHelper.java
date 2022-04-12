@@ -46,12 +46,20 @@ public class InternalTestHelper {
     this.locationServiceProxy = locationServiceProxy;
   }
 
+  /**
+   * Initialize internal users for test purposes according to the provided desired number of users
+   * to generate.
+   *
+   * @param internalUserNumber number of user to generate
+   */
   public void initializeInternalUsers(int internalUserNumber) {
     LOGGER.debug("Initialize internal test users.");
     count = new AtomicInteger();
     Executor internalUserExecutor = Executors.newFixedThreadPool(200);
     List<CompletableFuture<Void>> userFutur = IntStream.range(0, internalUserNumber)
-        .mapToObj(i -> CompletableFuture.runAsync(() -> setUpUser(i, internalUserNumber), internalUserExecutor))
+        .mapToObj(i ->
+            CompletableFuture.runAsync(() -> setUpUser(i, internalUserNumber),
+                internalUserExecutor))
         .collect(Collectors.toList());
     userFutur.forEach(CompletableFuture::join);
     LOGGER.debug("Created {} internal test users.", internalUserNumber);

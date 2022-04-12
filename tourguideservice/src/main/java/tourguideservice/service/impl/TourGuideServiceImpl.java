@@ -39,6 +39,14 @@ public class TourGuideServiceImpl implements TourGuideService {
   private final TripServiceProxy tripServiceProxy;
   private final UserServiceProxy userServiceProxy;
 
+  /**
+   * Constructor method for TourGuideService.
+   *
+   * @param locationServiceProxy LocationService Proxy
+   * @param rewardServiceProxy   RewardService Proxy
+   * @param tripServiceProxy     TripService Proxy
+   * @param userServiceProxy     UserService Proxy
+   */
   public TourGuideServiceImpl(LocationServiceProxy locationServiceProxy,
                               RewardServiceProxy rewardServiceProxy,
                               TripServiceProxy tripServiceProxy,
@@ -130,7 +138,8 @@ public class TourGuideServiceImpl implements TourGuideService {
         .parallel()
         .map(attractionWithDistance -> NearbyAttractionMapper.toDto(
                 attractionWithDistance,
-                rewardServiceProxy.getRewardPoints(attractionWithDistance.getAttraction().getAttractionId(), userId)
+                rewardServiceProxy.getRewardPoints(
+                    attractionWithDistance.getAttraction().getAttractionId(), userId)
             )
         )
         .collect(Collectors.toList());

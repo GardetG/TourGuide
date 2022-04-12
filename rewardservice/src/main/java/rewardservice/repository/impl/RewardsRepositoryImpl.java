@@ -17,7 +17,8 @@ import rewardservice.repository.RewardsRepository;
 @Repository
 public class RewardsRepositoryImpl implements RewardsRepository {
 
-  private final ConcurrentMap<UUID, List<UserReward>> internalUserRewardsMap = new ConcurrentHashMap<>();
+  private final ConcurrentMap<UUID, List<UserReward>> internalUserRewardsMap =
+      new ConcurrentHashMap<>();
 
   @Override
   public List<UserReward> findById(UUID userId) {
@@ -26,9 +27,10 @@ public class RewardsRepositoryImpl implements RewardsRepository {
 
   @Override
   public UserReward save(UserReward reward) {
-    UUID userId=reward.visitedLocation.userId;
+    UUID userId = reward.visitedLocation.userId;
     List<UserReward> userRewards = findById(userId);
-    if(userRewards.stream().noneMatch(r -> r.attraction.attractionName.equals(reward.attraction.attractionName))) {
+    if (userRewards.stream()
+        .noneMatch(r -> r.attraction.attractionName.equals(reward.attraction.attractionName))) {
       userRewards.add(reward);
       internalUserRewardsMap.put(userId, userRewards);
     }

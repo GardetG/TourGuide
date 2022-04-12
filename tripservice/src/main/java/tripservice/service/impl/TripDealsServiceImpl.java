@@ -51,7 +51,7 @@ public class TripDealsServiceImpl implements TripDealsService {
    * and children, the trip duration and user reward points.
    *
    * @param attractionId of the attraction
-   * @param preferences of the user
+   * @param preferences  of the user
    * @param rewardPoints of the yser
    * @return List of providers
    */
@@ -70,15 +70,16 @@ public class TripDealsServiceImpl implements TripDealsService {
   /**
    * Check if a provider price is in the range define by the lower and high price points.
    *
-   * @param provider of the trip
+   * @param provider        of the trip
    * @param lowerPricePoint of the trip price
-   * @param highPricePoint of the trip price
+   * @param highPricePoint  of the trip price
    * @return true if in range and false otherwise
    */
-  private boolean isInRange(Provider provider, BigDecimal lowerPricePoint, BigDecimal highPricePoint) {
+  private boolean isInRange(Provider provider, BigDecimal lowerPricePoint,
+                            BigDecimal highPricePoint) {
     BigDecimal tripPrice = BigDecimal.valueOf(provider.price);
     boolean isGreaterThanLowerPricePoint = tripPrice.compareTo(lowerPricePoint) >= 0;
-    boolean isLessThanHighPricePoint = tripPrice.compareTo(highPricePoint) <=0 ;
+    boolean isLessThanHighPricePoint = tripPrice.compareTo(highPricePoint) <= 0;
     return isGreaterThanLowerPricePoint && isLessThanHighPricePoint;
   }
 

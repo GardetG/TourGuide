@@ -9,6 +9,9 @@ import shared.exception.UserNameAlreadyUsedException;
 import shared.exception.UserNotFoundException;
 import tourguideservice.exception.ProxyResponseErrorException;
 
+/**
+ * Custom Feign Client Error Decoder.
+ */
 public class FeignCustomErrorDecoder implements ErrorDecoder {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FeignCustomErrorDecoder.class);

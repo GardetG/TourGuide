@@ -28,6 +28,12 @@ public class Tracker implements Runnable {
   private final long trackingPollingInterval;
   private ScheduledExecutorService executorService;
 
+  /**
+   * Constructor method for Tracker.
+   *
+   * @param tourGuideService main service
+   * @param properties       application properties
+   */
   @Autowired
   public Tracker(TourGuideService tourGuideService, TourGuideProperties properties) {
     this.tourGuideService = tourGuideService;
@@ -37,7 +43,7 @@ public class Tracker implements Runnable {
   }
 
   /**
-   * Start the Tracker thread
+   * Start the Tracker thread.
    */
   public void startTracking() {
     executorService = Executors.newSingleThreadScheduledExecutor();
@@ -46,7 +52,7 @@ public class Tracker implements Runnable {
   }
 
   /**
-   * Shut down the Tracker thread
+   * Shut down the Tracker thread.
    */
   public void stopTracking() {
     if (executorService != null) {
@@ -68,14 +74,16 @@ public class Tracker implements Runnable {
     List<CompletableFuture<?>> trackResult = usersId
         .stream()
         .map(userId ->
-            CompletableFuture.runAsync(() -> tourGuideService.trackUserLocation(userId), trackExecutor)
-            .thenRunAsync(() -> tourGuideService.calculateRewards(userId), rewardExecutor))
+            CompletableFuture.runAsync(() -> tourGuideService.trackUserLocation(userId),
+                    trackExecutor)
+                .thenRunAsync(() -> tourGuideService.calculateRewards(userId), rewardExecutor))
         .collect(Collectors.toList());
 
     trackResult.forEach(CompletableFuture::join);
 
     stopWatch.stop();
-    LOGGER.debug("Tracker Time Elapsed: {} seconds.", TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
+    LOGGER.debug("Tracker Time Elapsed: {} seconds.",
+        TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
     stopWatch.reset();
   }
 

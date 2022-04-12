@@ -61,7 +61,8 @@ public class ControllerExceptionHandler {
    */
   @ExceptionHandler(RetryableException.class)
   public ResponseEntity<String> handleRetryableExceptionException(RetryableException ex) {
-    String error = String.format("%s is currently unavailable", ex.request().requestTemplate().feignTarget().name());
+    String error = String.format("%s is currently unavailable",
+        ex.request().requestTemplate().feignTarget().name());
     LOGGER.info("Response : 503 {}", error);
     return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
   }

@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  *  Configuration Class for TripService properties:
- *  - tripPricerApiKey : Api Key used required by TripPricer library
+ *  - tripPricerApiKey : Api Key used required by TripPricer library.
  */
 @Configuration
 @ConfigurationProperties(prefix = "tripservice")

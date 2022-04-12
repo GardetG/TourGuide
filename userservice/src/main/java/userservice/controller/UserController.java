@@ -44,7 +44,8 @@ public class UserController {
   public UserDto getUser(@RequestParam String userName) throws UserNotFoundException {
     LOGGER.info("Request: Get user with username {}", userName);
     UserDto userDto = userService.getUser(userName);
-    LOGGER.info("Response: User {} associated with username {} sent", userDto.getUserId(), userName);
+    LOGGER.info("Response: User {} associated with username {} sent", userDto.getUserId(),
+        userName);
     return userDto;
   }
 
@@ -60,7 +61,8 @@ public class UserController {
   public UserDto addUser(@RequestBody @Valid UserDto userDto) throws UserNameAlreadyUsedException {
     LOGGER.info("Request: Registered new user with username {}", userDto.getUserName());
     UserDto userAddedDto = userService.addUser(userDto);
-    LOGGER.info("Response: User {} associated with username {} registred", userAddedDto.getUserId(), userAddedDto.getUserName());
+    LOGGER.info("Response: User {} associated with username {} registred", userAddedDto.getUserId(),
+        userAddedDto.getUserName());
     return userAddedDto;
   }
 
@@ -86,7 +88,8 @@ public class UserController {
    * @throws UserNotFoundException if user not found.
    */
   @GetMapping("/getUserPreferences")
-  public PreferencesDto getUserPreferences(@RequestParam String userName) throws UserNotFoundException {
+  public PreferencesDto getUserPreferences(@RequestParam String userName)
+      throws UserNotFoundException {
     LOGGER.info("Request: Get user {} preferences", userName);
     PreferencesDto preferencesDto = preferencesService.getUserPreferences(userName);
     LOGGER.info("Response: User {} preferences sent", userName);
@@ -97,14 +100,15 @@ public class UserController {
    * PUT the preferences of the user with the provided preferences Dto and return HTTP 200 with
    * updated preferences or throw an exception if the userName is already used.
    *
-   * @param userName of the user
+   * @param userName       of the user
    * @param preferencesDto Preferences Dto to update
    * @return Preferences Dto updated
    * @throws UserNotFoundException if user not found
    */
   @PutMapping("/setUserPreferences")
   public PreferencesDto setUserPreferences(@RequestParam String userName,
-                              @RequestBody @Valid PreferencesDto preferencesDto) throws UserNotFoundException {
+                                           @RequestBody @Valid PreferencesDto preferencesDto)
+      throws UserNotFoundException {
     LOGGER.info("Request: Set user {} preferences", userName);
     preferencesService.setUserPreferences(userName, preferencesDto);
     LOGGER.info("Response: User {} preferences set", userName);

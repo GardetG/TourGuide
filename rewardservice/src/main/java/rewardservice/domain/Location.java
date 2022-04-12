@@ -1,5 +1,8 @@
 package rewardservice.domain;
 
+/**
+ * Location Entity with latitude and longitude.
+ */
 public class Location {
 
   public Location(double latitude, double longitude) {

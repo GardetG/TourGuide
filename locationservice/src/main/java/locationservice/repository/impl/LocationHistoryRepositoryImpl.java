@@ -20,7 +20,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class LocationHistoryRepositoryImpl implements LocationHistoryRepository {
 
-  private final ConcurrentMap<UUID, List<VisitedLocation>> internalUserLocationsMap = new ConcurrentHashMap<>();
+  private final ConcurrentMap<UUID, List<VisitedLocation>> internalUserLocationsMap =
+      new ConcurrentHashMap<>();
 
   /**
    * {@inheritDoc}

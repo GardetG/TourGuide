@@ -15,6 +15,9 @@ import shared.exception.UserNameAlreadyUsedException;
 import shared.exception.UserNotFoundException;
 import tourguideservice.config.CustomFeignClientConfiguration;
 
+/**
+ * Open Feign Client Proxy for UserService.
+ */
 @FeignClient(value = "user-service", url = "${tourguide.userservice.url}", configuration = CustomFeignClientConfiguration.class)
 public interface UserServiceProxy {
 
@@ -32,6 +35,7 @@ public interface UserServiceProxy {
 
   @PutMapping("/setUserPreferences")
   PreferencesDto setUserPreferences(@RequestParam String userName,
-                                     @RequestBody @Valid PreferencesDto preferencesDto) throws UserNotFoundException;
+                                    @RequestBody @Valid PreferencesDto preferencesDto)
+      throws UserNotFoundException;
 
 }

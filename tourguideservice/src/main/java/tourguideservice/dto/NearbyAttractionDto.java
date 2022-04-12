@@ -9,13 +9,14 @@ public class NearbyAttractionDto {
   /**
    * Constructor for an instance of AttractionDto with name, location, distance and reward points.
    *
-   * @param name of the attraction
-   * @param longitude of the attraction
-   * @param latitude of the attraction
-   * @param distance from the user
+   * @param name         of the attraction
+   * @param longitude    of the attraction
+   * @param latitude     of the attraction
+   * @param distance     from the user
    * @param rewardPoints earned for visiting it
    */
-  public NearbyAttractionDto(String name, double latitude, double longitude, double distance, int rewardPoints) {
+  public NearbyAttractionDto(String name, double latitude, double longitude, double distance,
+                             int rewardPoints) {
     this.name = name;
     this.latitude = latitude;
     this.longitude = longitude;

@@ -35,7 +35,7 @@ public interface LocationHistoryRepository {
   VisitedLocation save(VisitedLocation visitedLocation);
 
   /**
-   * Delete all the visited location persisted
+   * Delete all the visited location persisted.
    */
   void deleteAll();
 

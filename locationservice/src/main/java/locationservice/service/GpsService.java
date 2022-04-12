@@ -43,6 +43,7 @@ public interface GpsService {
 
   /**
    * Add to the user a list of new visited locations.
+   *
    * @param userId of the user
    * @param visitedLocationDtos to add
    */
@@ -79,7 +80,7 @@ public interface GpsService {
       throws NoLocationFoundException;
 
   /**
-   * Return the distance in miles between two location
+   * Return the distance in miles between two location.
    *
    * @param loc1 first location
    * @param loc2 second location

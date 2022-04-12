@@ -50,7 +50,6 @@ public class ControllerExceptionHandler {
   /**
    * Handle ConstraintViolationException thrown when validation failed.
    *
-
    * @param ex instance of the exception
    * @return HTTP 422 response with information on invalid fields
    */
@@ -59,7 +58,7 @@ public class ControllerExceptionHandler {
       ConstraintViolationException ex) {
     Map<String, String> errors = new HashMap<>();
     ex.getConstraintViolations().forEach(error -> {
-      String name = ((PathImpl)error.getPropertyPath()).getLeafNode().getName();
+      String name = ((PathImpl) error.getPropertyPath()).getLeafNode().getName();
       String errorMessage = error.getMessage();
       errors.put(name, errorMessage);
     });

@@ -12,6 +12,9 @@ import shared.dto.UserRewardDto;
 import shared.dto.VisitedAttractionDto;
 import tourguideservice.config.CustomFeignClientConfiguration;
 
+/**
+ * Feign Client Proxy for RewardService.
+ */
 @Service
 @FeignClient(value = "reward-service", url = "${tourguide.rewardservice.url}", configuration = CustomFeignClientConfiguration.class)
 public interface RewardServiceProxy {

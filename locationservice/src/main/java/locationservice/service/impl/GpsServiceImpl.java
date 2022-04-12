@@ -39,6 +39,13 @@ public class GpsServiceImpl implements GpsService {
   private final LocationServiceProperties properties;
   private final LocationHistoryRepository locationHistoryRepository;
 
+  /**
+   * Constructor Method for GpsService.
+   *
+   * @param gpsUtil                   GpsUtils library
+   * @param properties                Application properties
+   * @param locationHistoryRepository Location history repository
+   */
   @Autowired
   public GpsServiceImpl(GpsUtil gpsUtil, LocationServiceProperties properties,
                         LocationHistoryRepository locationHistoryRepository) {
@@ -169,9 +176,16 @@ public class GpsServiceImpl implements GpsService {
     return LocationServiceProperties.STATUTE_MILES_PER_NAUTICAL_MILE * nauticalMiles;
   }
 
+  /**
+   * Check and return true if an attraction is in range of a user visited location.
+   *
+   * @param visitedLocation to check
+   * @param attraction      to check
+   * @return true if in range
+   */
   private boolean isInRangeOfAttraction(VisitedLocation visitedLocation, Attraction attraction) {
-    return getDistance(attraction, visitedLocation.location) <
-        properties.getProximityThresholdInMiles();
+    return getDistance(attraction, visitedLocation.location)
+        < properties.getProximityThresholdInMiles();
   }
 
   private Map<Attraction, Double> getAttractionsWithDistances(Location location) {

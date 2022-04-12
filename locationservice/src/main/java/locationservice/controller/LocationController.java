@@ -40,7 +40,8 @@ public class LocationController {
    * @throws NoLocationFoundException when no location found
    */
   @GetMapping("/getUserLastVisitedLocation")
-  public VisitedLocationDto getUserLastVisitedLocation(@RequestParam UUID userId) throws NoLocationFoundException {
+  public VisitedLocationDto getUserLastVisitedLocation(@RequestParam UUID userId)
+      throws NoLocationFoundException {
     LOGGER.info("Request: Get user {} last location", userId);
     VisitedLocationDto visitedLocation = gpsService.getUserLastVisitedLocation(userId);
     LOGGER.info("Response: User {} last location sent", userId);
@@ -94,11 +95,12 @@ public class LocationController {
    */
   @PostMapping("/addVisitedLocation")
   public void addVisitedLocation(@RequestParam UUID userId,
-                          @RequestBody List<@Valid VisitedLocationDto> visitedLocationDto){
+                                 @RequestBody List<@Valid VisitedLocationDto> visitedLocationDto) {
     LOGGER.info("Request: Add locations to user {}", userId);
     gpsService.addVisitedLocation(userId, visitedLocationDto);
     LOGGER.info("Response: Location added to user {}", userId);
   }
+
   /**
    * Return a list of the visited attractions of the user and the corresponding visited location
    * that was in range of the attraction.
@@ -120,16 +122,18 @@ public class LocationController {
    * The limit can't be negative or would throw an IllegalArgumentException.
    *
    * @param userId of the user
-   * @param limit number of records
+   * @param limit  number of records
    * @return HTTP 200 with List of attraction with distance Dto
    * @throws NoLocationFoundException when no user location found
    * @throws IllegalArgumentException when limit is negative
    */
   @GetMapping("/getNearbyAttractions")
-  List<AttractionWithDistanceDto> getNearbyAttractions(@RequestParam UUID userId, @RequestParam int limit)
+  List<AttractionWithDistanceDto> getNearbyAttractions(@RequestParam UUID userId,
+                                                       @RequestParam int limit)
       throws NoLocationFoundException {
     LOGGER.info("Request: Get {} nearest attractions from user {}", limit, userId);
-    List<AttractionWithDistanceDto> attractionsWithDistance = gpsService.getNearbyAttractions(userId, limit);
+    List<AttractionWithDistanceDto> attractionsWithDistance =
+        gpsService.getNearbyAttractions(userId, limit);
     LOGGER.info("Response: {} nearest attractions from user {} sent", limit, userId);
     return attractionsWithDistance;
   }

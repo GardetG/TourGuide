@@ -25,7 +25,6 @@ public class ControllerExceptionHandler {
   /**
    * Handle UserNotFoundException thrown when the user can't be found.
    *
-
    * @param ex instance of the exception
    * @return HTTP 404 response
    */
@@ -39,12 +38,12 @@ public class ControllerExceptionHandler {
   /**
    * Handle UserNameAlreadyUsedException thrown when the username is already used.
    *
-
    * @param ex instance of the exception
    * @return HTTP 409 response
    */
   @ExceptionHandler(UserNameAlreadyUsedException.class)
-  public ResponseEntity<String> handleUserNameAlreadyUsedException(UserNameAlreadyUsedException ex) {
+  public ResponseEntity<String> handleUserNameAlreadyUsedException(
+      UserNameAlreadyUsedException ex) {
     String error = ex.getMessage();
     LOGGER.info("Response : 409 {}", error);
     return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
@@ -53,7 +52,6 @@ public class ControllerExceptionHandler {
   /**
    * Handle MethodArgumentNotValidException thrown when validation failed.
    *
-
    * @param ex instance of the exception
    * @return HTTP 422 response with information on invalid fields
    */

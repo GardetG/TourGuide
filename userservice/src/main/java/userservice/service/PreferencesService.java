@@ -26,6 +26,7 @@ public interface PreferencesService {
    * @param userName of the user
    * @throws UserNotFoundException when user not found
    */
-  PreferencesDto setUserPreferences(String userName, PreferencesDto preferencesDto) throws UserNotFoundException;
+  PreferencesDto setUserPreferences(String userName, PreferencesDto preferencesDto)
+      throws UserNotFoundException;
 
 }

@@ -15,12 +15,16 @@ import shared.dto.VisitedLocationDto;
 import shared.exception.NoLocationFoundException;
 import tourguideservice.config.CustomFeignClientConfiguration;
 
+/**
+ * Feign Client Proxy for LocationService.
+ */
 @Service
 @FeignClient(value = "location-service", url = "${tourguide.locationservice.url}", configuration = CustomFeignClientConfiguration.class)
 public interface LocationServiceProxy {
 
   @GetMapping("/getUserLastVisitedLocation")
-  VisitedLocationDto getLastVisitedLocation(@RequestParam UUID userId) throws NoLocationFoundException;
+  VisitedLocationDto getLastVisitedLocation(@RequestParam UUID userId)
+      throws NoLocationFoundException;
 
   @GetMapping("/getAllUserLastVisitedLocation")
   List<VisitedLocationDto> getAllUserLastVisitedLocation();
@@ -32,13 +36,15 @@ public interface LocationServiceProxy {
   List<AttractionDto> getAttractions();
 
   @PostMapping("/addVisitedLocation")
-  void addVisitedLocation(@RequestBody List<VisitedLocationDto> visitedLocationDto, @RequestParam UUID userId);
+  void addVisitedLocation(@RequestBody List<VisitedLocationDto> visitedLocationDto,
+                          @RequestParam UUID userId);
 
   @GetMapping("/getVisitedAttractions")
   List<VisitedAttractionDto> getVisitedAttractions(@RequestParam UUID userId);
 
   @GetMapping("/getNearbyAttractions")
-  List<AttractionWithDistanceDto> getNearbyAttractions(@RequestParam UUID userId, @RequestParam int limit)
-      throws NoLocationFoundException ;
+  List<AttractionWithDistanceDto> getNearbyAttractions(@RequestParam UUID userId,
+                                                       @RequestParam int limit)
+      throws NoLocationFoundException;
 
 }

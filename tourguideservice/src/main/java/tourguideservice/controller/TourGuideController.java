@@ -72,11 +72,12 @@ public class TourGuideController {
    * @throws UserNotFoundException when user not found
    */
   @RequestMapping("/getRewards")
-  public List<UserRewardDto> getRewards(@RequestParam String userName) throws UserNotFoundException {
+  public List<UserRewardDto> getRewards(@RequestParam String userName)
+      throws UserNotFoundException {
     LOGGER.info("Request: Get user {} rewards", userName);
     List<UserRewardDto> rewards = tourGuideService.getUserRewards(userName);
     LOGGER.info("Request: User {} rewards sent", userName);
-    return  rewards;
+    return rewards;
   }
 
   /**
@@ -87,7 +88,8 @@ public class TourGuideController {
    * @throws UserNotFoundException when user not found
    */
   @RequestMapping("/getUserPreferences")
-  public PreferencesDto getUserPreferences(@RequestParam String userName) throws UserNotFoundException {
+  public PreferencesDto getUserPreferences(@RequestParam String userName)
+      throws UserNotFoundException {
     LOGGER.info("Request: Get user {} preferences", userName);
     PreferencesDto preferences = tourGuideService.getUserPreferences(userName);
     LOGGER.info("Request: User {} preferences sent", userName);
@@ -97,7 +99,7 @@ public class TourGuideController {
   /**
    * Update user preferences by its userName and the provided values.
    *
-   * @param userName of the user
+   * @param userName       of the user
    * @param preferencesDto to update
    * @return updated user preferences
    * @throws UserNotFoundException when user not found
@@ -120,7 +122,8 @@ public class TourGuideController {
    * @throws UserNotFoundException when user not found
    */
   @RequestMapping("/getTripDeals")
-  public List<ProviderDto> getTripDeals(@RequestParam String userName) throws UserNotFoundException {
+  public List<ProviderDto> getTripDeals(@RequestParam String userName)
+      throws UserNotFoundException {
     LOGGER.info("Request: Get user {} trip deals", userName);
     List<ProviderDto> providers = tourGuideService.getTripDeals(userName);
     LOGGER.info("Response: User {} trip deals sent", userName);
@@ -136,9 +139,11 @@ public class TourGuideController {
    * @throws UserNotFoundException when user not found
    */
   @RequestMapping("/getNearbyAttractions")
-  public NearbyAttractionsListDto getNearbyAttractions(@RequestParam String userName) throws UserNotFoundException {
+  public NearbyAttractionsListDto getNearbyAttractions(@RequestParam String userName)
+      throws UserNotFoundException {
     LOGGER.info("Request: Get user {} nearby attractions", userName);
-    NearbyAttractionsListDto nearbyAttractionsList = tourGuideService.getNearByAttractions(userName);
+    NearbyAttractionsListDto nearbyAttractionsList =
+        tourGuideService.getNearByAttractions(userName);
     LOGGER.info("Response: User {} nearby attractions sent", userName);
     return nearbyAttractionsList;
   }

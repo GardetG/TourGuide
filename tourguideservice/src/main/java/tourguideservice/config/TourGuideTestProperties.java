@@ -5,9 +5,9 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  *  Configuration Class for TourGuide management and tests properties:
- *  - trackerOnStart : Start the tracker on application start
- *  - useInternalUser : Generate internal users on application start
- *  - internalUserNumber : Number of internal users to generate
+ *  - trackerOnStart : Start the tracker on application start.
+ *  - useInternalUser : Generate internal users on application start.
+ *  - internalUserNumber : Number of internal users to generate.
  */
 @Configuration
 @ConfigurationProperties(prefix = "tourguide.test")

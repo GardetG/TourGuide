@@ -38,7 +38,8 @@ public class TripController {
                                         @RequestParam int rewardPoints,
                                         @Valid @RequestBody PreferencesDto preferences) {
     LOGGER.info("Request: Get trip deals for attraction {}", attractionId);
-    List<ProviderDto> providers = tripDealsService.getUserTripDeals(attractionId, preferences, rewardPoints);
+    List<ProviderDto> providers =
+        tripDealsService.getUserTripDeals(attractionId, preferences, rewardPoints);
     LOGGER.info("Response: Trip deals for attraction {} sent", attractionId);
     return providers;
   }

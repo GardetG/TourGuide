@@ -57,11 +57,12 @@ public class RewardController {
    * Calculate the user rewards from a map of attraction to reward and the associated user visited
    * location in range, and registered the rewards.
    *
-   * @param userId of the user
+   * @param userId                     of the user
    * @param visitedAttractionsToReward attractions to reward
    */
   @PostMapping("/calculateRewards")
-  public void calculateRewards(@RequestParam UUID userId, @RequestBody List<VisitedAttractionDto> visitedAttractionsToReward) {
+  public void calculateRewards(@RequestParam UUID userId,
+                               @RequestBody List<VisitedAttractionDto> visitedAttractionsToReward) {
     LOGGER.info("Request: Calculate rewards of user {}", userId);
     rewardsService.calculateRewards(userId, visitedAttractionsToReward);
     LOGGER.info("Response: Rewards of user {} calculated", userId);
@@ -71,7 +72,7 @@ public class RewardController {
    * Return the number of reward points earned when the user visit the attraction.
    *
    * @param attractionId of the attraction
-   * @param userId of the user
+   * @param userId       of the user
    * @return reward points
    */
   @GetMapping("/getRewardPoints")

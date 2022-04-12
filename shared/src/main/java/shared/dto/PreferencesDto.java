@@ -13,6 +13,16 @@ import shared.utils.validator.RangeCheck;
 @RangeCheck(message = "Lower price point cannot be greater than High price point")
 public class PreferencesDto {
 
+  /**
+   * Constructor method for PreferencesDto.
+   *
+   * @param lowerPricePoint  of the trip
+   * @param highPricePoint   of the trip
+   * @param tripDuration     duration of the trip
+   * @param ticketQuantity   for the trip
+   * @param numberOfAdults   for the trip
+   * @param numberOfChildren for the trip
+   */
   @JsonCreator
   public PreferencesDto(@JsonProperty("lowerPricePoint") BigDecimal lowerPricePoint,
                         @JsonProperty("highPricePoint") BigDecimal highPricePoint,
