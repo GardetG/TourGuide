@@ -37,6 +37,7 @@ public interface UserService {
    *
    * @param userDto to add
    * @return User dto added
+   * @throws UserNameAlreadyUsedException when username is already used
    */
   UserDto addUser(UserDto userDto) throws UserNameAlreadyUsedException;
 

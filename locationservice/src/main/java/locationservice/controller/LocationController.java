@@ -91,6 +91,7 @@ public class LocationController {
   /**
    * Add to user a new location.
    *
+   * @param userId id of the user
    * @param visitedLocationDto visited location to add
    */
   @PostMapping("/addVisitedLocation")

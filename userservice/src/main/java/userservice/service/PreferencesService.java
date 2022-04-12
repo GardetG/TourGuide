@@ -23,7 +23,9 @@ public interface PreferencesService {
    * Set the preferences of a user according to the provided Dto or throw an exception if the user
    * can't be found.
    *
-   * @param userName of the user
+   * @param userName       of the user
+   * @param preferencesDto of the user to update
+   * @return Preference Dto updated
    * @throws UserNotFoundException when user not found
    */
   PreferencesDto setUserPreferences(String userName, PreferencesDto preferencesDto)

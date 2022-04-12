@@ -33,6 +33,13 @@ public class UserPreferences {
 
   /**
    * Parametric constructor to instantiate a UserPreferences with the values chosen by the user.
+   *
+   * @param lowerPricePoint  of the price
+   * @param highPricePoint   of the price
+   * @param tripDuration     duration of the trip
+   * @param ticketQuantity   of the trip
+   * @param numberOfAdults   of the trip
+   * @param numberOfChildren of the trip
    */
   public UserPreferences(double lowerPricePoint, double highPricePoint, int tripDuration,
                          int ticketQuantity, int numberOfAdults, int numberOfChildren) {

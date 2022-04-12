@@ -6,8 +6,8 @@ With TourGuide, change your way of travelling.
 
 ## Getting Started
 
-TourGuide is a micro-serviced application build with Gradle and intend to be deployed with Docker.
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+The JavaDoc is available [here](https://gardetg.github.io/TourGuide/).
 
 ### Prerequisities
 
@@ -18,6 +18,21 @@ This project is built with:
 3. Java 11
 4. Docker: 20.10.12
 5. Docker-compose: 1.29.2
+
+### Structure
+
+TourGuide is a microservice application build with Gradle and is intended to be deployed with Docker.
+The main gradle project is composed of 5 module, one for each service:
+- TourGuideService
+- LocationService
+- RewardService
+- TripService
+- UserService
+
+The `shared` module contains common references used by the different services. 
+ 
+![alt text](https://github.com/GardetG/TourGuide/blob/release/1.0/docs/diagram/diagram.jpg?raw=true)
+
 
 ### Setup the Application
 

@@ -21,7 +21,7 @@ public class ControllerExceptionHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(ControllerExceptionHandler.class);
 
   /**
-   * Handle ForbiddenOperationException thrown when requesting user location while no location
+   * Handle NoLocationFoundException thrown when requesting user location while no location
    * registred.
    *
    * @param ex instance of the exception
@@ -35,7 +35,7 @@ public class ControllerExceptionHandler {
   }
 
   /**
-   * Handle IllegalArgumentException thrown when request perform with invalid parameter.
+   * Handle IllegalArgumentException thrown when request performed with invalid parameter.
    *
    * @param ex instance of the exception
    * @return HTTP 422 response
